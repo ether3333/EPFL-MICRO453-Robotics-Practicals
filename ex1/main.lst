@@ -1,0 +1,121 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"main.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.startup,"ax",%progbits
+  18              		.align	2
+  19              		.global	main
+  20              		.syntax unified
+  21              		.arm
+  23              	main:
+  24              	.LFB0:
+  25              		.file 1 "main.c"
+   1:main.c        **** #include <stdint.h>
+   2:main.c        **** #include "hardware.h"
+   3:main.c        **** #include "registers.h"
+   4:main.c        **** 
+   5:main.c        **** int main(void)
+   6:main.c        **** {
+  26              		.loc 1 6 1 view -0
+  27              		.cfi_startproc
+  28              		@ Function supports interworking.
+  29              		@ Volatile: function does not return.
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+   7:main.c        ****   int8_t i;
+  32              		.loc 1 7 3 view .LVU1
+   8:main.c        **** 
+   9:main.c        ****   hardware_init();
+  33              		.loc 1 9 3 view .LVU2
+   6:main.c        ****   int8_t i;
+  34              		.loc 1 6 1 is_stmt 0 view .LVU3
+  35 0000 10402DE9 		push	{r4, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 8
+  38              		.cfi_offset 4, -8
+  39              		.cfi_offset 14, -4
+  40              		.loc 1 9 3 view .LVU4
+  41 0004 FEFFFFEB 		bl	hardware_init
+  42              	.LVL0:
+  10:main.c        ****   reg32_table[REG32_LED] = LED_MANUAL;  // manual LED control
+  43              		.loc 1 10 3 is_stmt 1 view .LVU5
+  44              		.loc 1 10 26 is_stmt 0 view .LVU6
+  45 0008 FF24A0E3 		mov	r2, #-16777216
+  46 000c 38309FE5 		ldr	r3, .L4
+  11:main.c        **** 
+  12:main.c        ****   while (1) {
+  13:main.c        ****       set_rgb(0, 127, 0);
+  14:main.c        ****       pause(HALF_SEC);
+  47              		.loc 1 14 7 view .LVU7
+  48 0010 38409FE5 		ldr	r4, .L4+4
+  10:main.c        ****   reg32_table[REG32_LED] = LED_MANUAL;  // manual LED control
+  49              		.loc 1 10 26 view .LVU8
+  50 0014 002083E5 		str	r2, [r3]
+  51              	.L2:
+  12:main.c        ****       set_rgb(0, 127, 0);
+  52              		.loc 1 12 3 is_stmt 1 discriminator 1 view .LVU9
+  13:main.c        ****       pause(HALF_SEC);
+  53              		.loc 1 13 7 discriminator 1 view .LVU10
+  54 0018 0020A0E3 		mov	r2, #0
+  55 001c 7F10A0E3 		mov	r1, #127
+  56 0020 0200A0E1 		mov	r0, r2
+  57 0024 FEFFFFEB 		bl	set_rgb
+  58              	.LVL1:
+  59              		.loc 1 14 7 discriminator 1 view .LVU11
+  60 0028 0400A0E1 		mov	r0, r4
+  61 002c FEFFFFEB 		bl	pause
+  62              	.LVL2:
+  15:main.c        ****     
+  16:main.c        ****       set_rgb(0, 0, 0);
+  63              		.loc 1 16 7 discriminator 1 view .LVU12
+  64 0030 0020A0E3 		mov	r2, #0
+  65 0034 0200A0E1 		mov	r0, r2
+  66 0038 0210A0E1 		mov	r1, r2
+  67 003c FEFFFFEB 		bl	set_rgb
+  68              	.LVL3:
+  17:main.c        ****       pause(HALF_SEC);
+  69              		.loc 1 17 7 discriminator 1 view .LVU13
+  70 0040 0400A0E1 		mov	r0, r4
+  71 0044 FEFFFFEB 		bl	pause
+  72              	.LVL4:
+  12:main.c        ****       set_rgb(0, 127, 0);
+  73              		.loc 1 12 9 discriminator 1 view .LVU14
+  74 0048 F2FFFFEA 		b	.L2
+  75              	.L5:
+  76              		.align	2
+  77              	.L4:
+  78 004c 00000000 		.word	reg32_table
+  79 0050 404B4C00 		.word	5000000
+  80              		.cfi_endproc
+  81              	.LFE0:
+  83              		.text
+  84              	.Letext0:
+  85              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+  86              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+  87              		.file 4 "../firmware/hardware.h"
+  88              		.file 5 "../firmware/sysTime.h"
+  89              		.file 6 "../../common/regdefs.h"
+  90              		.file 7 "../firmware/registers.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+C:\Users\ishin\AppData\Local\Temp\cczK86VV.s:18     .text.startup:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\cczK86VV.s:23     .text.startup:00000000 main
+C:\Users\ishin\AppData\Local\Temp\cczK86VV.s:78     .text.startup:0000004c $d
+
+UNDEFINED SYMBOLS
+hardware_init
+set_rgb
+pause
+reg32_table

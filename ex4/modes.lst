@@ -1,0 +1,504 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"modes.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.syntax unified
+  19              		.arm
+  21              	register_handler:
+  22              	.LVL0:
+  23              	.LFB1:
+  24              		.file 1 "modes.c"
+   1:modes.c       **** #include "config.h"
+   2:modes.c       **** #include "modes.h"
+   3:modes.c       **** #include "robot.h"
+   4:modes.c       **** #include "module.h"
+   5:modes.c       **** #include "registers.h"
+   6:modes.c       **** #include "hardware.h"
+   7:modes.c       **** 
+   8:modes.c       **** // Address of the motor we control
+   9:modes.c       **** const uint8_t MOTOR_ADDR = 21;
+  10:modes.c       **** 
+  11:modes.c       **** void motor_demo_mode()
+  12:modes.c       **** {
+  13:modes.c       ****   // Initialize controller and PD parameters
+  14:modes.c       ****   init_body_module(MOTOR_ADDR);
+  15:modes.c       ****   // Start the PD controller
+  16:modes.c       ****   start_pid(MOTOR_ADDR);
+  17:modes.c       ****   // Set the LED to red to show activity
+  18:modes.c       ****   set_color(4);
+  19:modes.c       ****   // Loop until we remain in demo mode
+  20:modes.c       ****   while (reg8_table[REG8_MODE] == IMODE_MOTOR_DEMO) {
+  21:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(21.0));
+  22:modes.c       ****     pause(HALF_SEC);
+  23:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(-21.0));
+  24:modes.c       ****     pause(HALF_SEC);
+  25:modes.c       ****   }
+  26:modes.c       ****   // Send back the motor to zero position
+  27:modes.c       ****   bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(0.0));
+  28:modes.c       ****   // Give it some time for this to happen
+  29:modes.c       ****   pause(HALF_SEC);
+  30:modes.c       ****   // Turn off the PD controller
+  31:modes.c       ****   bus_set(MOTOR_ADDR, MREG_MODE, MODE_IDLE);
+  32:modes.c       ****   // Set back LED to green
+  33:modes.c       ****   set_color(2);
+  34:modes.c       **** }
+  35:modes.c       **** 
+  36:modes.c       **** static volatile int8_t setpoint = 0;
+  37:modes.c       **** 
+  38:modes.c       **** static int8_t register_handler(uint8_t operation, uint8_t address, RadioData* radio_data)
+  39:modes.c       **** {
+  25              		.loc 1 39 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  40:modes.c       ****   if (operation == ROP_WRITE_8 && address == 20) {
+  31              		.loc 1 40 3 view .LVU1
+  32              		.loc 1 40 6 is_stmt 0 view .LVU2
+  33 0000 040050E3 		cmp	r0, #4
+  34 0004 14005103 		cmpeq	r1, #20
+  41:modes.c       ****     setpoint = radio_data->byte;
+  35              		.loc 1 41 26 view .LVU3
+  36 0008 D020D201 		ldrsbeq	r2, [r2]
+  37              	.LVL1:
+  38              		.loc 1 41 14 view .LVU4
+  39 000c 10309F05 		ldreq	r3, .L4
+  40:modes.c       ****   if (operation == ROP_WRITE_8 && address == 20) {
+  40              		.loc 1 40 6 view .LVU5
+  41 0010 0100A003 		moveq	r0, #1
+  42              	.LVL2:
+  40:modes.c       ****   if (operation == ROP_WRITE_8 && address == 20) {
+  43              		.loc 1 40 6 view .LVU6
+  44 0014 0000A013 		movne	r0, #0
+  45              		.loc 1 41 5 is_stmt 1 view .LVU7
+  46              		.loc 1 41 14 is_stmt 0 view .LVU8
+  47 0018 0020C305 		strbeq	r2, [r3]
+  42:modes.c       ****     return TRUE;
+  48              		.loc 1 42 5 is_stmt 1 view .LVU9
+  49              		.loc 1 42 12 is_stmt 0 view .LVU10
+  50 001c 0100A003 		moveq	r0, #1
+  43:modes.c       ****   }
+  44:modes.c       ****   return FALSE;
+  45:modes.c       **** }
+  51              		.loc 1 45 1 view .LVU11
+  52 0020 1EFF2FE1 		bx	lr
+  53              	.L5:
+  54              		.align	2
+  55              	.L4:
+  56 0024 00000000 		.word	.LANCHOR0
+  57              		.cfi_endproc
+  58              	.LFE1:
+  60              		.align	2
+  61              		.global	motor_demo_mode
+  62              		.syntax unified
+  63              		.arm
+  65              	motor_demo_mode:
+  66              	.LFB0:
+  12:modes.c       ****   // Initialize controller and PD parameters
+  67              		.loc 1 12 1 is_stmt 1 view -0
+  68              		.cfi_startproc
+  69              		@ Function supports interworking.
+  70              		@ args = 0, pretend = 0, frame = 0
+  71              		@ frame_needed = 0, uses_anonymous_args = 0
+  14:modes.c       ****   // Start the PD controller
+  72              		.loc 1 14 3 view .LVU13
+  12:modes.c       ****   // Initialize controller and PD parameters
+  73              		.loc 1 12 1 is_stmt 0 view .LVU14
+  74 0028 70402DE9 		push	{r4, r5, r6, lr}
+  75              	.LCFI0:
+  76              		.cfi_def_cfa_offset 16
+  77              		.cfi_offset 4, -16
+  78              		.cfi_offset 5, -12
+  79              		.cfi_offset 6, -8
+  80              		.cfi_offset 14, -4
+  14:modes.c       ****   // Start the PD controller
+  81              		.loc 1 14 3 view .LVU15
+  82 002c 1500A0E3 		mov	r0, #21
+  83 0030 FEFFFFEB 		bl	init_body_module
+  84              	.LVL3:
+  16:modes.c       ****   // Set the LED to red to show activity
+  85              		.loc 1 16 3 is_stmt 1 view .LVU16
+  86 0034 1500A0E3 		mov	r0, #21
+  87 0038 FEFFFFEB 		bl	start_pid
+  88              	.LVL4:
+  18:modes.c       ****   // Loop until we remain in demo mode
+  89              		.loc 1 18 3 view .LVU17
+  90 003c 0400A0E3 		mov	r0, #4
+  91 0040 FEFFFFEB 		bl	set_color
+  92              	.LVL5:
+  20:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(21.0));
+  93              		.loc 1 20 3 view .LVU18
+  20:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(21.0));
+  94              		.loc 1 20 20 is_stmt 0 view .LVU19
+  95 0044 78509FE5 		ldr	r5, .L10
+  22:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(-21.0));
+  96              		.loc 1 22 5 view .LVU20
+  97 0048 78409FE5 		ldr	r4, .L10+4
+  98              	.L7:
+  20:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(21.0));
+  99              		.loc 1 20 9 is_stmt 1 view .LVU21
+  20:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(21.0));
+ 100              		.loc 1 20 20 is_stmt 0 view .LVU22
+ 101 004c 0030D5E5 		ldrb	r3, [r5]	@ zero_extendqisi2
+  20:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(21.0));
+ 102              		.loc 1 20 9 view .LVU23
+ 103 0050 010053E3 		cmp	r3, #1
+ 104 0054 0D00000A 		beq	.L8
+  27:modes.c       ****   // Give it some time for this to happen
+ 105              		.loc 1 27 3 is_stmt 1 view .LVU24
+ 106 0058 0020A0E3 		mov	r2, #0
+ 107 005c 2F10A0E3 		mov	r1, #47
+ 108 0060 1500A0E3 		mov	r0, #21
+ 109 0064 FEFFFFEB 		bl	bus_set
+ 110              	.LVL6:
+  29:modes.c       ****   // Turn off the PD controller
+ 111              		.loc 1 29 3 view .LVU25
+ 112 0068 58009FE5 		ldr	r0, .L10+4
+ 113 006c FEFFFFEB 		bl	pause
+ 114              	.LVL7:
+  31:modes.c       ****   // Set back LED to green
+ 115              		.loc 1 31 3 view .LVU26
+ 116 0070 0020A0E3 		mov	r2, #0
+ 117 0074 2810A0E3 		mov	r1, #40
+ 118 0078 1500A0E3 		mov	r0, #21
+ 119 007c FEFFFFEB 		bl	bus_set
+ 120              	.LVL8:
+  33:modes.c       **** }
+ 121              		.loc 1 33 3 view .LVU27
+ 122 0080 0200A0E3 		mov	r0, #2
+ 123 0084 FEFFFFEB 		bl	set_color
+ 124              	.LVL9:
+  34:modes.c       **** 
+ 125              		.loc 1 34 1 is_stmt 0 view .LVU28
+ 126 0088 7040BDE8 		pop	{r4, r5, r6, lr}
+ 127              	.LCFI1:
+ 128              		.cfi_remember_state
+ 129              		.cfi_restore 14
+ 130              		.cfi_restore 6
+ 131              		.cfi_restore 5
+ 132              		.cfi_restore 4
+ 133              		.cfi_def_cfa_offset 0
+ 134 008c 1EFF2FE1 		bx	lr
+ 135              	.L8:
+ 136              	.LCFI2:
+ 137              		.cfi_restore_state
+  21:modes.c       ****     pause(HALF_SEC);
+ 138              		.loc 1 21 5 is_stmt 1 view .LVU29
+ 139 0090 1F20A0E3 		mov	r2, #31
+ 140 0094 2F10A0E3 		mov	r1, #47
+ 141 0098 1500A0E3 		mov	r0, #21
+ 142 009c FEFFFFEB 		bl	bus_set
+ 143              	.LVL10:
+  22:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(-21.0));
+ 144              		.loc 1 22 5 view .LVU30
+ 145 00a0 0400A0E1 		mov	r0, r4
+ 146 00a4 FEFFFFEB 		bl	pause
+ 147              	.LVL11:
+  23:modes.c       ****     pause(HALF_SEC);
+ 148              		.loc 1 23 5 view .LVU31
+ 149 00a8 E120A0E3 		mov	r2, #225
+ 150 00ac 2F10A0E3 		mov	r1, #47
+ 151 00b0 1500A0E3 		mov	r0, #21
+ 152 00b4 FEFFFFEB 		bl	bus_set
+ 153              	.LVL12:
+  24:modes.c       ****   }
+ 154              		.loc 1 24 5 view .LVU32
+ 155 00b8 0400A0E1 		mov	r0, r4
+ 156 00bc FEFFFFEB 		bl	pause
+ 157              	.LVL13:
+ 158 00c0 E1FFFFEA 		b	.L7
+ 159              	.L11:
+ 160              		.align	2
+ 161              	.L10:
+ 162 00c4 00000000 		.word	reg8_table
+ 163 00c8 404B4C00 		.word	5000000
+ 164              		.cfi_endproc
+ 165              	.LFE0:
+ 167              		.global	__aeabi_i2f
+ 168              		.global	__aeabi_fmul
+ 169              		.global	__aeabi_f2iz
+ 170              		.align	2
+ 171              		.global	pc_setpoint_mode
+ 172              		.syntax unified
+ 173              		.arm
+ 175              	pc_setpoint_mode:
+ 176              	.LFB2:
+  46:modes.c       **** 
+  47:modes.c       **** void pc_setpoint_mode()
+  48:modes.c       **** {
+ 177              		.loc 1 48 1 view -0
+ 178              		.cfi_startproc
+ 179              		@ Function supports interworking.
+ 180              		@ args = 0, pretend = 0, frame = 0
+ 181              		@ frame_needed = 0, uses_anonymous_args = 0
+  49:modes.c       ****   // Initialize controller and PD parameters
+  50:modes.c       ****   init_body_module(MOTOR_ADDR);
+ 182              		.loc 1 50 3 view .LVU34
+  48:modes.c       ****   // Initialize controller and PD parameters
+ 183              		.loc 1 48 1 is_stmt 0 view .LVU35
+ 184 00cc 70402DE9 		push	{r4, r5, r6, lr}
+ 185              	.LCFI3:
+ 186              		.cfi_def_cfa_offset 16
+ 187              		.cfi_offset 4, -16
+ 188              		.cfi_offset 5, -12
+ 189              		.cfi_offset 6, -8
+ 190              		.cfi_offset 14, -4
+ 191              		.loc 1 50 3 view .LVU36
+ 192 00d0 1500A0E3 		mov	r0, #21
+ 193 00d4 FEFFFFEB 		bl	init_body_module
+ 194              	.LVL14:
+  51:modes.c       ****   // Start the PD controller
+  52:modes.c       ****   start_pid(MOTOR_ADDR);
+ 195              		.loc 1 52 3 is_stmt 1 view .LVU37
+ 196 00d8 1500A0E3 		mov	r0, #21
+ 197 00dc FEFFFFEB 		bl	start_pid
+ 198              	.LVL15:
+  53:modes.c       ****   // Set the LED to red to show activity
+  54:modes.c       ****   set_color(4);
+ 199              		.loc 1 54 3 view .LVU38
+ 200 00e0 0400A0E3 		mov	r0, #4
+ 201 00e4 FEFFFFEB 		bl	set_color
+ 202              	.LVL16:
+  55:modes.c       ****   
+  56:modes.c       ****   radio_add_reg_callback(register_handler);
+ 203              		.loc 1 56 3 view .LVU39
+ 204 00e8 80009FE5 		ldr	r0, .L16
+ 205 00ec FEFFFFEB 		bl	radio_add_reg_callback
+ 206              	.LVL17:
+  57:modes.c       ****   
+  58:modes.c       ****   // Loop until we remain in demo mode
+  59:modes.c       ****   while (reg8_table[REG8_MODE] == PC_SETPOINT_MODE) {
+ 207              		.loc 1 59 3 view .LVU40
+  60:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(setpoint));
+ 208              		.loc 1 60 40 is_stmt 0 view .LVU41
+ 209 00f0 FF65A0E3 		mov	r6, #1069547520
+  59:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(setpoint));
+ 210              		.loc 1 59 20 view .LVU42
+ 211 00f4 78409FE5 		ldr	r4, .L16+4
+ 212              		.loc 1 60 40 view .LVU43
+ 213 00f8 78509FE5 		ldr	r5, .L16+8
+ 214              	.L13:
+  59:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(setpoint));
+ 215              		.loc 1 59 9 is_stmt 1 view .LVU44
+  59:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(setpoint));
+ 216              		.loc 1 59 20 is_stmt 0 view .LVU45
+ 217 00fc 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+  59:modes.c       ****     bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(setpoint));
+ 218              		.loc 1 59 9 view .LVU46
+ 219 0100 020053E3 		cmp	r3, #2
+ 220 0104 0D00000A 		beq	.L14
+  61:modes.c       ****   }
+  62:modes.c       ****   // Send back the motor to zero position
+  63:modes.c       ****   bus_set(MOTOR_ADDR, MREG_SETPOINT, DEG_TO_OUTPUT_BODY(0.0));
+ 221              		.loc 1 63 3 is_stmt 1 view .LVU47
+ 222 0108 0020A0E3 		mov	r2, #0
+ 223 010c 2F10A0E3 		mov	r1, #47
+ 224 0110 1500A0E3 		mov	r0, #21
+ 225 0114 FEFFFFEB 		bl	bus_set
+ 226              	.LVL18:
+  64:modes.c       ****   // Give it some time for this to happen
+  65:modes.c       ****   pause(HALF_SEC);
+ 227              		.loc 1 65 3 view .LVU48
+ 228 0118 5C009FE5 		ldr	r0, .L16+12
+ 229 011c FEFFFFEB 		bl	pause
+ 230              	.LVL19:
+  66:modes.c       ****   // Turn off the PD controller
+  67:modes.c       ****   bus_set(MOTOR_ADDR, MREG_MODE, MODE_IDLE);
+ 231              		.loc 1 67 3 view .LVU49
+ 232 0120 0020A0E3 		mov	r2, #0
+ 233 0124 2810A0E3 		mov	r1, #40
+ 234 0128 1500A0E3 		mov	r0, #21
+ 235 012c FEFFFFEB 		bl	bus_set
+ 236              	.LVL20:
+  68:modes.c       ****   // Set back LED to green
+  69:modes.c       ****   set_color(2);
+ 237              		.loc 1 69 3 view .LVU50
+ 238 0130 0200A0E3 		mov	r0, #2
+ 239 0134 FEFFFFEB 		bl	set_color
+ 240              	.LVL21:
+  70:modes.c       **** }
+ 241              		.loc 1 70 1 is_stmt 0 view .LVU51
+ 242 0138 7040BDE8 		pop	{r4, r5, r6, lr}
+ 243              	.LCFI4:
+ 244              		.cfi_remember_state
+ 245              		.cfi_restore 14
+ 246              		.cfi_restore 6
+ 247              		.cfi_restore 5
+ 248              		.cfi_restore 4
+ 249              		.cfi_def_cfa_offset 0
+ 250 013c 1EFF2FE1 		bx	lr
+ 251              	.L14:
+ 252              	.LCFI5:
+ 253              		.cfi_restore_state
+  60:modes.c       ****   }
+ 254              		.loc 1 60 5 is_stmt 1 view .LVU52
+  60:modes.c       ****   }
+ 255              		.loc 1 60 40 is_stmt 0 view .LVU53
+ 256 0140 0000D5E5 		ldrb	r0, [r5]	@ zero_extendqisi2
+ 257 0144 000CA0E1 		lsl	r0, r0, #24
+ 258 0148 400CA0E1 		asr	r0, r0, #24
+ 259 014c FEFFFFEB 		bl	__aeabi_i2f
+ 260              	.LVL22:
+ 261 0150 0610A0E1 		mov	r1, r6
+ 262 0154 FEFFFFEB 		bl	__aeabi_fmul
+ 263              	.LVL23:
+ 264 0158 FEFFFFEB 		bl	__aeabi_f2iz
+ 265              	.LVL24:
+  60:modes.c       ****   }
+ 266              		.loc 1 60 5 view .LVU54
+ 267 015c 2F10A0E3 		mov	r1, #47
+ 268 0160 FF2000E2 		and	r2, r0, #255
+ 269 0164 1500A0E3 		mov	r0, #21
+ 270 0168 FEFFFFEB 		bl	bus_set
+ 271              	.LVL25:
+ 272 016c E2FFFFEA 		b	.L13
+ 273              	.L17:
+ 274              		.align	2
+ 275              	.L16:
+ 276 0170 00000000 		.word	register_handler
+ 277 0174 00000000 		.word	reg8_table
+ 278 0178 00000000 		.word	.LANCHOR0
+ 279 017c 404B4C00 		.word	5000000
+ 280              		.cfi_endproc
+ 281              	.LFE2:
+ 283              		.align	2
+ 284              		.global	main_mode_loop
+ 285              		.syntax unified
+ 286              		.arm
+ 288              	main_mode_loop:
+ 289              	.LFB3:
+  71:modes.c       **** 
+  72:modes.c       **** 
+  73:modes.c       **** void main_mode_loop()
+  74:modes.c       **** {
+ 290              		.loc 1 74 1 is_stmt 1 view -0
+ 291              		.cfi_startproc
+ 292              		@ Function supports interworking.
+ 293              		@ Volatile: function does not return.
+ 294              		@ args = 0, pretend = 0, frame = 0
+ 295              		@ frame_needed = 0, uses_anonymous_args = 0
+  75:modes.c       ****   // Idle mode must be the default at startup
+  76:modes.c       ****   reg8_table[REG8_MODE] = IMODE_IDLE;
+ 296              		.loc 1 76 3 view .LVU56
+ 297              		.loc 1 76 25 is_stmt 0 view .LVU57
+ 298 0180 0050A0E3 		mov	r5, #0
+  74:modes.c       ****   // Idle mode must be the default at startup
+ 299              		.loc 1 74 1 view .LVU58
+ 300 0184 10402DE9 		push	{r4, lr}
+ 301              	.LCFI6:
+ 302              		.cfi_def_cfa_offset 8
+ 303              		.cfi_offset 4, -8
+ 304              		.cfi_offset 14, -4
+ 305              		.loc 1 76 25 view .LVU59
+ 306 0188 34409FE5 		ldr	r4, .L30
+ 307              	.L29:
+ 308 018c 0050C4E5 		strb	r5, [r4]
+ 309              	.L22:
+  77:modes.c       **** 
+  78:modes.c       ****   // Main loop
+  79:modes.c       ****   while (1)
+ 310              		.loc 1 79 3 is_stmt 1 view .LVU60
+  80:modes.c       ****   {
+  81:modes.c       ****     switch(reg8_table[REG8_MODE])
+ 311              		.loc 1 81 5 view .LVU61
+ 312              		.loc 1 81 22 is_stmt 0 view .LVU62
+ 313 0190 0020D4E5 		ldrb	r2, [r4]	@ zero_extendqisi2
+ 314              		.loc 1 81 5 view .LVU63
+ 315 0194 010052E3 		cmp	r2, #1
+ 316              		.loc 1 81 22 view .LVU64
+ 317 0198 FF3002E2 		and	r3, r2, #255
+ 318              		.loc 1 81 5 view .LVU65
+ 319 019c 0400000A 		beq	.L20
+ 320 01a0 020053E3 		cmp	r3, #2
+ 321 01a4 0400000A 		beq	.L21
+ 322 01a8 000053E3 		cmp	r3, #0
+ 323 01ac F6FFFF1A 		bne	.L29
+ 324 01b0 F6FFFFEA 		b	.L22
+ 325              	.L20:
+  82:modes.c       ****     {
+  83:modes.c       ****       case IMODE_IDLE:
+  84:modes.c       ****         break;
+  85:modes.c       ****       case IMODE_MOTOR_DEMO:
+  86:modes.c       ****         motor_demo_mode();
+ 326              		.loc 1 86 9 is_stmt 1 view .LVU66
+ 327 01b4 FEFFFFEB 		bl	motor_demo_mode
+ 328              	.LVL26:
+  87:modes.c       ****         break;
+ 329              		.loc 1 87 9 view .LVU67
+ 330 01b8 F4FFFFEA 		b	.L22
+ 331              	.L21:
+  88:modes.c       ****       case PC_SETPOINT_MODE:
+  89:modes.c       ****         pc_setpoint_mode();
+ 332              		.loc 1 89 9 view .LVU68
+ 333 01bc FEFFFFEB 		bl	pc_setpoint_mode
+ 334              	.LVL27:
+  90:modes.c       ****         break;
+ 335              		.loc 1 90 9 view .LVU69
+ 336 01c0 F2FFFFEA 		b	.L22
+ 337              	.L31:
+ 338              		.align	2
+ 339              	.L30:
+ 340 01c4 00000000 		.word	reg8_table
+ 341              		.cfi_endproc
+ 342              	.LFE3:
+ 344              		.global	MOTOR_ADDR
+ 345              		.section	.rodata
+ 348              	MOTOR_ADDR:
+ 349 0000 15       		.byte	21
+ 350              		.bss
+ 351              		.set	.LANCHOR0,. + 0
+ 354              	setpoint:
+ 355 0000 00       		.space	1
+ 356              		.text
+ 357              	.Letext0:
+ 358              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 359              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 360              		.file 4 "../firmware/radio.h"
+ 361              		.file 5 "../firmware/registers.h"
+ 362              		.file 6 "../firmware/robot.h"
+ 363              		.file 7 "../firmware/hardware.h"
+ 364              		.file 8 "../firmware/sysTime.h"
+ 365              		.file 9 "../../common/regdefs.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 modes.c
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:21     .text:00000000 register_handler
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:56     .text:00000024 $d
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:60     .text:00000028 $a
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:65     .text:00000028 motor_demo_mode
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:162    .text:000000c4 $d
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:170    .text:000000cc $a
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:175    .text:000000cc pc_setpoint_mode
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:276    .text:00000170 $d
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:283    .text:00000180 $a
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:288    .text:00000180 main_mode_loop
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:340    .text:000001c4 $d
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:348    .rodata:00000000 MOTOR_ADDR
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:354    .bss:00000000 setpoint
+C:\Users\ishin\AppData\Local\Temp\cclGDAFR.s:355    .bss:00000000 $d
+
+UNDEFINED SYMBOLS
+init_body_module
+start_pid
+set_color
+bus_set
+pause
+reg8_table
+__aeabi_i2f
+__aeabi_fmul
+__aeabi_f2iz
+radio_add_reg_callback

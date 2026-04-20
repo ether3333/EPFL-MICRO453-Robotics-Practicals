@@ -1,0 +1,943 @@
+Archive member included to satisfy reference by file (symbol)
+
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a(lib_a-memset.o)
+                              ../firmware/radio.o (memset)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldf3.o)
+                              ../firmware/lutmath.o (__aeabi_dmul)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+                              ../firmware/printf.o (__aeabi_uidivmod)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_dvmd_tls.o)
+                              c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+                              ../firmware/lutmath.o (__aeabi_dsub)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+                              ../firmware/lutmath.o (__aeabi_ddiv)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+                              ../firmware/lutmath.o (__aeabi_dcmpge)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_fixunsdfsi.o)
+                              ../firmware/lutmath.o (__aeabi_d2uiz)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_truncdfsf2.o)
+                              ../firmware/lutmath.o (__aeabi_d2f)
+c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+                              ../firmware/lutmath.o (__aeabi_fcmplt)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+ROM              0x00000000         0x0003e000         xr
+RAM              0x40000000         0x00004000         rw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD ../firmware/crt0.o
+LOAD ../firmware/uartISR.o
+LOAD ../firmware/armVIC.o
+LOAD ../firmware/radio.o
+LOAD ../firmware/LPC_CANAll.o
+LOAD ../firmware/sysTime.o
+LOAD ../firmware/uart.o
+LOAD ../firmware/i2c.o
+LOAD ../firmware/can.o
+LOAD ../firmware/hardware.o
+LOAD ../firmware/timerISR.o
+LOAD ../firmware/adc.o
+LOAD ../firmware/printf.o
+LOAD ../firmware/utils.o
+LOAD ../firmware/lutmath.o
+LOAD ../firmware/registers.o
+LOAD ../firmware/robot.o
+LOAD main.o
+LOAD c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a
+LOAD c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libm.a
+LOAD c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a
+LOAD c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a
+LOAD c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libstdc++.a
+START GROUP
+LOAD c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a
+LOAD c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libg.a
+LOAD c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a
+END GROUP
+                0x00000400                STACK_SIZE = 0x400
+
+.text           0x00000000     0x3dd9
+ *(.init)
+ .init          0x00000000      0x13c ../firmware/crt0.o
+                0x00000000                _boot
+                0x00000050                _mainCRTStartup
+                0x00000050                _start
+                0x00000050                start
+                0x00000114                _reset
+                0x00000114                exit
+                0x00000114                abort
+                0x00000114                reset
+ *(.text .text.*)
+ .text          0x0000013c        0x0 ../firmware/crt0.o
+ .text          0x0000013c       0xd0 ../firmware/uartISR.o
+                0x0000013c                uart0ISR
+                0x000001b0                init_uart0_isr
+                0x000001f0                uart0_waitch
+ .text          0x0000020c       0x78 ../firmware/armVIC.o
+                0x0000020c                disableIRQ
+                0x0000021c                restoreIRQ
+                0x00000238                enableIRQ
+                0x00000248                disableFIQ
+                0x00000258                restoreFIQ
+                0x00000274                enableFIQ
+ .text          0x00000284      0x3a4 ../firmware/radio.o
+                0x00000338                radio_add_reg_callback
+                0x0000036c                radio_del_reg_callback
+                0x000003a4                process_UART_in
+                0x000005c8                radio_init
+ .text          0x00000628      0x24c ../firmware/LPC_CANAll.o
+                0x00000628                CANAll_CANISR_Err
+                0x00000640                CANAll_CANISR_Rx1
+                0x000006b4                CANAll_Init
+                0x00000754                CANAll_SetErrIRQ
+                0x00000790                CANAll_PushMessage
+                0x000007f8                CANAll_PullMessage
+ .text          0x00000874       0xa8 ../firmware/sysTime.o
+                0x00000874                initSysTime
+                0x000008b0                getSysTICs
+                0x000008dc                getElapsedSysTICs
+                0x000008f4                pause
+ .text          0x0000091c      0x154 ../firmware/uart.o
+                0x0000091c                uart0Init
+                0x00000978                uart0Putch
+                0x00000998                uart0Space
+                0x000009a4                uart0Puts
+                0x000009d4                uart0Write
+                0x00000a18                uart0TxEmpty
+                0x00000a38                uart0TxFlush
+                0x00000a50                uart0Getch
+ .text          0x00000a70      0x288 ../firmware/i2c.o
+                0x00000a70                i2c_reset
+                0x00000a8c                i2c_init
+                0x00000ac0                i2c_set
+                0x00000bb0                i2c_get
+ .text          0x00000cf8      0x3fc ../firmware/can.o
+                0x00000cf8                can_head_init
+                0x00000d1c                set_reg_value_b
+                0x00000db0                set_reg_value_w
+                0x00000e4c                set_reg_value_dw
+                0x00000ee8                get_reg_value_b
+                0x00000f90                get_reg_value_w
+                0x00001044                get_reg_value_dw
+ .text          0x000010f4      0x370 ../firmware/hardware.o
+                0x000010f4                set_rgb
+                0x00001138                init_rgb_led
+                0x0000121c                set_color
+                0x00001268                set_color_i
+                0x00001278                get_batt_voltage
+                0x000012b0                get_batt_current
+                0x000012e4                get_ext_voltage
+                0x000012f8                get_batt_current_acc
+                0x0000132c                get_temperature
+                0x00001364                uc_init
+                0x00001414                hardware_init
+ .text          0x00001464      0x1d4 ../firmware/timerISR.o
+                0x000014e0                timer1_init
+                0x00001530                disable_timer1_irq
+                0x0000154c                enable_timer1_irq
+                0x00001568                timer1_init_isr
+                0x000015a4                restore_timer1_irq
+                0x000015c8                timer1_add_user_function
+                0x00001604                timer1_remove_user_function
+ .text          0x00001638       0xd4 ../firmware/adc.o
+                0x00001638                adc_init
+                0x0000166c                adc_set_channel
+                0x00001694                adc_read
+                0x000016d0                adc_read_ch
+ .text          0x0000170c      0x444 ../firmware/printf.o
+                0x00001ae4                set_printf_uart
+                0x00001af4                uart_printf
+                0x00001b20                sprintf
+ .text          0x00001b50       0x80 ../firmware/utils.o
+                0x00001b50                unaligned_read_16
+                0x00001b70                unaligned_read_32
+                0x00001ba0                unaligned_write_16
+                0x00001bb0                unaligned_write_32
+ .text          0x00001bd0       0xe4 ../firmware/lutmath.o
+                0x00001bd0                sinlut
+                0x00001c8c                coslut
+ .text          0x00001cb4       0x2c ../firmware/registers.o
+                0x00001cb4                registers_init
+ .text          0x00001ce0      0x2c8 ../firmware/robot.o
+                0x00001ce0                bus_get
+                0x00001cf0                bus_set
+                0x00001d00                safe_bus_set
+                0x00001dfc                safe_bus_setw
+                0x00001e48                start_pid
+                0x00001ea0                reset_pos
+                0x00001ed0                set_leg_setpoint
+                0x00001ef8                init_body_module
+                0x00001f38                init_limb_module
+ .text          0x00001fa8        0x0 main.o
+ .text.startup  0x00001fa8       0x54 main.o
+                0x00001fa8                main
+ .text          0x00001ffc        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a(lib_a-memset.o)
+ .text.memset   0x00001ffc      0x11c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a(lib_a-memset.o)
+                0x00001ffc                memset
+ .text          0x00002118      0x290 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldf3.o)
+ .text          0x000023a8      0x114 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+                0x000023a8                __aeabi_uidiv
+                0x000023a8                __udivsi3
+                0x0000249c                __aeabi_uidivmod
+ .text          0x000024bc        0x4 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_dvmd_tls.o)
+                0x000024bc                __aeabi_idiv0
+                0x000024bc                __aeabi_ldiv0
+ .text          0x000024c0      0x424 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+                0x000024c0                __aeabi_drsub
+                0x000024c8                __aeabi_dsub
+                0x000024c8                __subdf3
+                0x000024cc                __aeabi_dadd
+                0x000024cc                __adddf3
+                0x000027dc                __floatunsidf
+                0x000027dc                __aeabi_ui2d
+                0x00002800                __floatsidf
+                0x00002800                __aeabi_i2d
+                0x00002828                __aeabi_f2d
+                0x00002828                __extendsfdf2
+                0x00002870                __floatundidf
+                0x00002870                __aeabi_ul2d
+                0x00002884                __floatdidf
+                0x00002884                __aeabi_l2d
+ .text          0x000028e4      0x49c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+                0x000028e4                __aeabi_dmul
+                0x000028e4                __muldf3
+                0x00002b74                __divdf3
+                0x00002b74                __aeabi_ddiv
+ .text          0x00002d80      0x144 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+                0x00002d80                __gtdf2
+                0x00002d80                __gedf2
+                0x00002d88                __ltdf2
+                0x00002d88                __ledf2
+                0x00002d90                __nedf2
+                0x00002d90                __eqdf2
+                0x00002d90                __cmpdf2
+                0x00002e18                __aeabi_cdrcmple
+                0x00002e34                __aeabi_cdcmpeq
+                0x00002e34                __aeabi_cdcmple
+                0x00002e4c                __aeabi_dcmpeq
+                0x00002e64                __aeabi_dcmplt
+                0x00002e7c                __aeabi_dcmple
+                0x00002e94                __aeabi_dcmpge
+                0x00002eac                __aeabi_dcmpgt
+ .text          0x00002ec4       0x54 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_fixunsdfsi.o)
+                0x00002ec4                __aeabi_d2uiz
+                0x00002ec4                __fixunsdfsi
+ .text          0x00002f18       0xa0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_truncdfsf2.o)
+                0x00002f18                __truncdfsf2
+                0x00002f18                __aeabi_d2f
+ .text          0x00002fb8      0x114 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+                0x00002fb8                __gesf2
+                0x00002fb8                __gtsf2
+                0x00002fc0                __lesf2
+                0x00002fc0                __ltsf2
+                0x00002fc8                __nesf2
+                0x00002fc8                __eqsf2
+                0x00002fc8                __cmpsf2
+                0x0000302c                __aeabi_cfrcmple
+                0x0000303c                __aeabi_cfcmpeq
+                0x0000303c                __aeabi_cfcmple
+                0x00003054                __aeabi_fcmpeq
+                0x0000306c                __aeabi_fcmplt
+                0x00003084                __aeabi_fcmple
+                0x0000309c                __aeabi_fcmpge
+                0x000030b4                __aeabi_fcmpgt
+ *(.gnu.linkonce.t.*)
+ *(.glue_7)
+ .glue_7        0x000030cc        0x0 linker stubs
+ *(.glue_7t)
+ .glue_7t       0x000030cc        0x0 linker stubs
+ *(.gcc_except_table)
+ *(.rodata)
+ .rodata        0x000030cc       0x2a ../firmware/hardware.o
+ *fill*         0x000030f6        0x2 
+ .rodata        0x000030f8      0xc94 ../firmware/lutmath.o
+ .rodata        0x00003d8c       0x46 ../firmware/robot.o
+ *(.rodata*)
+ .rodata.str1.1
+                0x00003dd2        0x7 ../firmware/printf.o
+ *(.gnu.linkonce.r.*)
+
+.vfp11_veneer   0x00003ddc        0x0
+ .vfp11_veneer  0x00003ddc        0x0 linker stubs
+
+.v4_bx          0x00003ddc        0x0
+ .v4_bx         0x00003ddc        0x0 linker stubs
+
+.iplt           0x00003ddc        0x0
+ .iplt          0x00003ddc        0x0 ../firmware/crt0.o
+
+.rel.dyn        0x00003ddc        0x0
+ .rel.iplt      0x00003ddc        0x0 ../firmware/crt0.o
+                0x00003ddc                . = ALIGN (0x4)
+
+.ctors          0x00003dd9        0x0
+                0x00003dd9                PROVIDE (__ctors_start__ = .)
+ *(SORT_BY_NAME(.ctors.*))
+ *(.ctors)
+                0x00003dd9                PROVIDE (__ctors_end__ = .)
+
+.dtors          0x00003dd9        0x0
+                [!provide]                PROVIDE (__dtors_start__ = .)
+ *(SORT_BY_NAME(.dtors.*))
+ *(.dtors)
+                [!provide]                PROVIDE (__dtors_end__ = .)
+                0x00003ddc                . = ALIGN (0x4)
+                0x00003ddc                _etext = .
+                [!provide]                PROVIDE (etext = .)
+
+.data           0x40000000        0x0 load address 0x00003ddc
+                0x40000000                _data = .
+ *(.data)
+ .data          0x40000000        0x0 ../firmware/crt0.o
+ .data          0x40000000        0x0 ../firmware/uartISR.o
+ .data          0x40000000        0x0 ../firmware/armVIC.o
+ .data          0x40000000        0x0 ../firmware/radio.o
+ .data          0x40000000        0x0 ../firmware/LPC_CANAll.o
+ .data          0x40000000        0x0 ../firmware/sysTime.o
+ .data          0x40000000        0x0 ../firmware/uart.o
+ .data          0x40000000        0x0 ../firmware/i2c.o
+ .data          0x40000000        0x0 ../firmware/can.o
+ .data          0x40000000        0x0 ../firmware/hardware.o
+ .data          0x40000000        0x0 ../firmware/timerISR.o
+ .data          0x40000000        0x0 ../firmware/adc.o
+ .data          0x40000000        0x0 ../firmware/printf.o
+ .data          0x40000000        0x0 ../firmware/utils.o
+ .data          0x40000000        0x0 ../firmware/lutmath.o
+ .data          0x40000000        0x0 ../firmware/registers.o
+ .data          0x40000000        0x0 ../firmware/robot.o
+ .data          0x40000000        0x0 main.o
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a(lib_a-memset.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldf3.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_dvmd_tls.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_fixunsdfsi.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_truncdfsf2.o)
+ .data          0x40000000        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+ *(.data.*)
+ *(.gnu.linkonce.d*)
+                0x40000000                . = ALIGN (0x4)
+ *(.fastrun)
+
+.igot.plt       0x40000000        0x0 load address 0x00003ddc
+ .igot.plt      0x40000000        0x0 ../firmware/crt0.o
+                0x40000000                . = ALIGN (0x4)
+                0x40000000                _edata = .
+                [!provide]                PROVIDE (edata = .)
+
+.bss            0x40000000      0x230 load address 0x00003ddc
+                0x40000000                __bss_start = .
+                0x40000000                __bss_start__ = .
+ *(.bss)
+ .bss           0x40000000        0x0 ../firmware/crt0.o
+ .bss           0x40000000        0x0 ../firmware/uartISR.o
+ .bss           0x40000000        0x0 ../firmware/armVIC.o
+ .bss           0x40000000       0x68 ../firmware/radio.o
+                0x40000060                reg8_table
+                0x40000062                reg16_table
+                0x40000064                reg32_table
+ .bss           0x40000068      0x196 ../firmware/LPC_CANAll.o
+                0x40000068                mRxIN
+                0x4000006c                mRxCAN
+                0x400001fc                mRxOUT
+ *fill*         0x400001fe        0x2 
+ .bss           0x40000200        0x8 ../firmware/sysTime.o
+ .bss           0x40000208        0x0 ../firmware/uart.o
+ .bss           0x40000208        0x0 ../firmware/i2c.o
+ .bss           0x40000208        0x0 ../firmware/can.o
+ .bss           0x40000208        0x3 ../firmware/hardware.o
+ *fill*         0x4000020b        0x1 
+ .bss           0x4000020c       0x20 ../firmware/timerISR.o
+ .bss           0x4000022c        0x0 ../firmware/adc.o
+ .bss           0x4000022c        0x1 ../firmware/printf.o
+ .bss           0x4000022d        0x0 ../firmware/utils.o
+ .bss           0x4000022d        0x0 ../firmware/lutmath.o
+ .bss           0x4000022d        0x0 ../firmware/registers.o
+ .bss           0x4000022d        0x0 ../firmware/robot.o
+ .bss           0x4000022d        0x0 main.o
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a(lib_a-memset.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldf3.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_dvmd_tls.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_fixunsdfsi.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_truncdfsf2.o)
+ .bss           0x4000022d        0x0 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+ *(.gnu.linkonce.b*)
+ *(COMMON)
+                0x40000230                . = ALIGN (0x4)
+ *fill*         0x4000022d        0x3 
+                0x40000230                . = ALIGN (0x4)
+                0x40000230                __bss_end__ = .
+                [!provide]                PROVIDE (__bss_end = .)
+
+.stack          0x40000300      0x400 load address 0x000040dc
+                0x40000700                . = (. + STACK_SIZE)
+ *fill*         0x40000300      0x400 
+                0x40000700                PROVIDE (_stack = .)
+                0x40000700                _end = .
+                [!provide]                PROVIDE (end = .)
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment        0x00000000       0x49
+ *(.comment)
+ .comment       0x00000000       0x49 ../firmware/uartISR.o
+                                 0x4a (size before relaxing)
+ .comment       0x00000049       0x4a ../firmware/armVIC.o
+ .comment       0x00000049       0x4a ../firmware/radio.o
+ .comment       0x00000049       0x4a ../firmware/LPC_CANAll.o
+ .comment       0x00000049       0x4a ../firmware/sysTime.o
+ .comment       0x00000049       0x4a ../firmware/uart.o
+ .comment       0x00000049       0x4a ../firmware/i2c.o
+ .comment       0x00000049       0x4a ../firmware/can.o
+ .comment       0x00000049       0x4a ../firmware/hardware.o
+ .comment       0x00000049       0x4a ../firmware/timerISR.o
+ .comment       0x00000049       0x4a ../firmware/adc.o
+ .comment       0x00000049       0x4a ../firmware/printf.o
+ .comment       0x00000049       0x4a ../firmware/utils.o
+ .comment       0x00000049       0x4a ../firmware/lutmath.o
+ .comment       0x00000049       0x4a ../firmware/registers.o
+ .comment       0x00000049       0x4a ../firmware/robot.o
+ .comment       0x00000049       0x4a main.o
+
+.ARM.attributes
+                0x00000000       0x26
+ .ARM.attributes
+                0x00000000       0x1a ../firmware/crt0.o
+ .ARM.attributes
+                0x0000001a       0x2a ../firmware/uartISR.o
+ .ARM.attributes
+                0x00000044       0x2a ../firmware/armVIC.o
+ .ARM.attributes
+                0x0000006e       0x2a ../firmware/radio.o
+ .ARM.attributes
+                0x00000098       0x2a ../firmware/LPC_CANAll.o
+ .ARM.attributes
+                0x000000c2       0x2a ../firmware/sysTime.o
+ .ARM.attributes
+                0x000000ec       0x2a ../firmware/uart.o
+ .ARM.attributes
+                0x00000116       0x2a ../firmware/i2c.o
+ .ARM.attributes
+                0x00000140       0x2a ../firmware/can.o
+ .ARM.attributes
+                0x0000016a       0x2a ../firmware/hardware.o
+ .ARM.attributes
+                0x00000194       0x2a ../firmware/timerISR.o
+ .ARM.attributes
+                0x000001be       0x2a ../firmware/adc.o
+ .ARM.attributes
+                0x000001e8       0x2a ../firmware/printf.o
+ .ARM.attributes
+                0x00000212       0x2a ../firmware/utils.o
+ .ARM.attributes
+                0x0000023c       0x2a ../firmware/lutmath.o
+ .ARM.attributes
+                0x00000266       0x2a ../firmware/registers.o
+ .ARM.attributes
+                0x00000290       0x2a ../firmware/robot.o
+ .ARM.attributes
+                0x000002ba       0x2a main.o
+ .ARM.attributes
+                0x000002e4       0x2a c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a(lib_a-memset.o)
+ .ARM.attributes
+                0x0000030e       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldf3.o)
+ .ARM.attributes
+                0x0000032a       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x00000346       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_dvmd_tls.o)
+ .ARM.attributes
+                0x00000362       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+ .ARM.attributes
+                0x0000037e       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+ .ARM.attributes
+                0x0000039a       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+ .ARM.attributes
+                0x000003b6       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_fixunsdfsi.o)
+ .ARM.attributes
+                0x000003d2       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_truncdfsf2.o)
+ .ARM.attributes
+                0x000003ee       0x1c c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges  0x00000000      0x240
+ *(.debug_aranges)
+ .debug_aranges
+                0x00000000       0x20 ../firmware/crt0.o
+ .debug_aranges
+                0x00000020       0x20 ../firmware/uartISR.o
+ .debug_aranges
+                0x00000040       0x20 ../firmware/armVIC.o
+ .debug_aranges
+                0x00000060       0x20 ../firmware/radio.o
+ .debug_aranges
+                0x00000080       0x20 ../firmware/LPC_CANAll.o
+ .debug_aranges
+                0x000000a0       0x20 ../firmware/sysTime.o
+ .debug_aranges
+                0x000000c0       0x20 ../firmware/uart.o
+ .debug_aranges
+                0x000000e0       0x20 ../firmware/i2c.o
+ .debug_aranges
+                0x00000100       0x20 ../firmware/can.o
+ .debug_aranges
+                0x00000120       0x20 ../firmware/hardware.o
+ .debug_aranges
+                0x00000140       0x20 ../firmware/timerISR.o
+ .debug_aranges
+                0x00000160       0x20 ../firmware/adc.o
+ .debug_aranges
+                0x00000180       0x20 ../firmware/printf.o
+ .debug_aranges
+                0x000001a0       0x20 ../firmware/utils.o
+ .debug_aranges
+                0x000001c0       0x20 ../firmware/lutmath.o
+ .debug_aranges
+                0x000001e0       0x20 ../firmware/registers.o
+ .debug_aranges
+                0x00000200       0x20 ../firmware/robot.o
+ .debug_aranges
+                0x00000220       0x20 main.o
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info     0x00000000     0x5e5d
+ *(.debug_info .gnu.linkonce.wi.*)
+ .debug_info    0x00000000       0x26 ../firmware/crt0.o
+ .debug_info    0x00000026      0x5c9 ../firmware/uartISR.o
+ .debug_info    0x000005ef      0x3a8 ../firmware/armVIC.o
+ .debug_info    0x00000997      0x9c0 ../firmware/radio.o
+ .debug_info    0x00001357      0x7a2 ../firmware/LPC_CANAll.o
+ .debug_info    0x00001af9      0x309 ../firmware/sysTime.o
+ .debug_info    0x00001e02      0x428 ../firmware/uart.o
+ .debug_info    0x0000222a      0x399 ../firmware/i2c.o
+ .debug_info    0x000025c3      0x8a0 ../firmware/can.o
+ .debug_info    0x00002e63      0xda6 ../firmware/hardware.o
+ .debug_info    0x00003c09      0x762 ../firmware/timerISR.o
+ .debug_info    0x0000436b      0x267 ../firmware/adc.o
+ .debug_info    0x000045d2      0x622 ../firmware/printf.o
+ .debug_info    0x00004bf4      0x246 ../firmware/utils.o
+ .debug_info    0x00004e3a      0x28a ../firmware/lutmath.o
+ .debug_info    0x000050c4      0x197 ../firmware/registers.o
+ .debug_info    0x0000525b      0xa68 ../firmware/robot.o
+ .debug_info    0x00005cc3      0x19a main.o
+
+.debug_abbrev   0x00000000     0x1a05
+ *(.debug_abbrev)
+ .debug_abbrev  0x00000000       0x14 ../firmware/crt0.o
+ .debug_abbrev  0x00000014      0x14d ../firmware/uartISR.o
+ .debug_abbrev  0x00000161      0x117 ../firmware/armVIC.o
+ .debug_abbrev  0x00000278      0x2a9 ../firmware/radio.o
+ .debug_abbrev  0x00000521      0x1a3 ../firmware/LPC_CANAll.o
+ .debug_abbrev  0x000006c4      0x166 ../firmware/sysTime.o
+ .debug_abbrev  0x0000082a      0x1c9 ../firmware/uart.o
+ .debug_abbrev  0x000009f3      0x165 ../firmware/i2c.o
+ .debug_abbrev  0x00000b58      0x183 ../firmware/can.o
+ .debug_abbrev  0x00000cdb      0x214 ../firmware/hardware.o
+ .debug_abbrev  0x00000eef      0x195 ../firmware/timerISR.o
+ .debug_abbrev  0x00001084      0x172 ../firmware/adc.o
+ .debug_abbrev  0x000011f6      0x24e ../firmware/printf.o
+ .debug_abbrev  0x00001444       0xe2 ../firmware/utils.o
+ .debug_abbrev  0x00001526      0x13f ../firmware/lutmath.o
+ .debug_abbrev  0x00001665       0xab ../firmware/registers.o
+ .debug_abbrev  0x00001710      0x206 ../firmware/robot.o
+ .debug_abbrev  0x00001916       0xef main.o
+
+.debug_line     0x00000000     0x2ee6
+ *(.debug_line)
+ .debug_line    0x00000000       0x9b ../firmware/crt0.o
+ .debug_line    0x0000009b      0x1b3 ../firmware/uartISR.o
+ .debug_line    0x0000024e      0x1a1 ../firmware/armVIC.o
+ .debug_line    0x000003ef      0x4e3 ../firmware/radio.o
+ .debug_line    0x000008d2      0x353 ../firmware/LPC_CANAll.o
+ .debug_line    0x00000c25      0x192 ../firmware/sysTime.o
+ .debug_line    0x00000db7      0x22c ../firmware/uart.o
+ .debug_line    0x00000fe3      0x418 ../firmware/i2c.o
+ .debug_line    0x000013fb      0x45d ../firmware/can.o
+ .debug_line    0x00001858      0x3f6 ../firmware/hardware.o
+ .debug_line    0x00001c4e      0x318 ../firmware/timerISR.o
+ .debug_line    0x00001f66      0x198 ../firmware/adc.o
+ .debug_line    0x000020fe      0x540 ../firmware/printf.o
+ .debug_line    0x0000263e      0x169 ../firmware/utils.o
+ .debug_line    0x000027a7      0x13b ../firmware/lutmath.o
+ .debug_line    0x000028e2      0x116 ../firmware/registers.o
+ .debug_line    0x000029f8      0x3bd ../firmware/robot.o
+ .debug_line    0x00002db5      0x131 main.o
+
+.debug_frame    0x00000000      0xe28
+ *(.debug_frame)
+ .debug_frame   0x00000000       0x40 ../firmware/uartISR.o
+ .debug_frame   0x00000040       0x70 ../firmware/armVIC.o
+ .debug_frame   0x000000b0       0xcc ../firmware/radio.o
+ .debug_frame   0x0000017c       0x94 ../firmware/LPC_CANAll.o
+ .debug_frame   0x00000210       0x70 ../firmware/sysTime.o
+ .debug_frame   0x00000280       0xac ../firmware/uart.o
+ .debug_frame   0x0000032c       0x80 ../firmware/i2c.o
+ .debug_frame   0x000003ac      0x100 ../firmware/can.o
+ .debug_frame   0x000004ac      0x138 ../firmware/hardware.o
+ .debug_frame   0x000005e4       0xb0 ../firmware/timerISR.o
+ .debug_frame   0x00000694       0x64 ../firmware/adc.o
+ .debug_frame   0x000006f8      0x13c ../firmware/printf.o
+ .debug_frame   0x00000834       0x60 ../firmware/utils.o
+ .debug_frame   0x00000894       0x60 ../firmware/lutmath.o
+ .debug_frame   0x000008f4       0x20 ../firmware/registers.o
+ .debug_frame   0x00000914      0x184 ../firmware/robot.o
+ .debug_frame   0x00000a98       0x28 main.o
+ .debug_frame   0x00000ac0       0x48 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a(lib_a-memset.o)
+ .debug_frame   0x00000b08       0x30 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldf3.o)
+ .debug_frame   0x00000b38       0x20 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+ .debug_frame   0x00000b58       0xac c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+ .debug_frame   0x00000c04       0x50 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+ .debug_frame   0x00000c54       0xc4 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+ .debug_frame   0x00000d18       0x24 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_fixunsdfsi.o)
+ .debug_frame   0x00000d3c       0x24 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_truncdfsf2.o)
+ .debug_frame   0x00000d60       0xc8 c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+
+.debug_str      0x00000000      0xed7
+ *(.debug_str)
+ .debug_str     0x00000000       0x53 ../firmware/crt0.o
+ .debug_str     0x00000053      0x322 ../firmware/uartISR.o
+                                0x399 (size before relaxing)
+ .debug_str     0x00000375       0x7a ../firmware/armVIC.o
+                                0x1a7 (size before relaxing)
+ .debug_str     0x000003ef      0x27f ../firmware/radio.o
+                                0x41e (size before relaxing)
+ .debug_str     0x0000066e      0x13a ../firmware/LPC_CANAll.o
+                                0x446 (size before relaxing)
+ .debug_str     0x000007a8       0x76 ../firmware/sysTime.o
+                                0x1b1 (size before relaxing)
+ .debug_str     0x0000081e       0x6a ../firmware/uart.o
+                                0x23c (size before relaxing)
+ .debug_str     0x00000888       0x87 ../firmware/i2c.o
+                                0x221 (size before relaxing)
+ .debug_str     0x0000090f      0x103 ../firmware/can.o
+                                0x2d8 (size before relaxing)
+ .debug_str     0x00000a12      0x17f ../firmware/hardware.o
+                                0x59d (size before relaxing)
+ .debug_str     0x00000b91       0x95 ../firmware/timerISR.o
+                                0x43b (size before relaxing)
+ .debug_str     0x00000c26       0x35 ../firmware/adc.o
+                                0x1e6 (size before relaxing)
+ .debug_str     0x00000c5b       0xbb ../firmware/printf.o
+                                0x21f (size before relaxing)
+ .debug_str     0x00000d16       0x1b ../firmware/utils.o
+                                0x1c6 (size before relaxing)
+ .debug_str     0x00000d31       0xc0 ../firmware/lutmath.o
+                                0x219 (size before relaxing)
+ .debug_str     0x00000df1       0x18 ../firmware/registers.o
+                                0x1e6 (size before relaxing)
+ .debug_str     0x00000e09       0xc2 ../firmware/robot.o
+                                0x285 (size before relaxing)
+ .debug_str     0x00000ecb        0xc main.o
+                                0x193 (size before relaxing)
+
+.debug_loc      0x00000000     0x31b0
+ *(.debug_loc)
+ .debug_loc     0x00000000       0x2c ../firmware/uartISR.o
+ .debug_loc     0x0000002c      0x28b ../firmware/armVIC.o
+ .debug_loc     0x000002b7      0x4df ../firmware/radio.o
+ .debug_loc     0x00000796      0x474 ../firmware/LPC_CANAll.o
+ .debug_loc     0x00000c0a      0x108 ../firmware/sysTime.o
+ .debug_loc     0x00000d12      0x191 ../firmware/uart.o
+ .debug_loc     0x00000ea3      0x1a0 ../firmware/i2c.o
+ .debug_loc     0x00001043      0x655 ../firmware/can.o
+ .debug_loc     0x00001698      0x298 ../firmware/hardware.o
+ .debug_loc     0x00001930      0x1ae ../firmware/timerISR.o
+ .debug_loc     0x00001ade       0xaa ../firmware/adc.o
+ .debug_loc     0x00001b88      0x9ea ../firmware/printf.o
+ .debug_loc     0x00002572      0x1c2 ../firmware/utils.o
+ .debug_loc     0x00002734       0xf6 ../firmware/lutmath.o
+ .debug_loc     0x0000282a       0x5c ../firmware/registers.o
+ .debug_loc     0x00002886      0x90a ../firmware/robot.o
+ .debug_loc     0x00003190       0x20 main.o
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+OUTPUT(main.elf elf32-littlearm)
+LOAD linker stubs
+
+.debug_ranges   0x00000000      0x1c8
+ .debug_ranges  0x00000000       0xd0 ../firmware/armVIC.o
+ .debug_ranges  0x000000d0       0x18 ../firmware/radio.o
+ .debug_ranges  0x000000e8       0x30 ../firmware/printf.o
+ .debug_ranges  0x00000118       0xa0 ../firmware/robot.o
+ .debug_ranges  0x000001b8       0x10 main.o
+
+Cross Reference Table
+
+Symbol                                            File
+CANAll_CANISR_Err                                 ../firmware/LPC_CANAll.o
+CANAll_CANISR_Rx1                                 ../firmware/LPC_CANAll.o
+CANAll_Init                                       ../firmware/LPC_CANAll.o
+                                                  ../firmware/can.o
+CANAll_PullMessage                                ../firmware/LPC_CANAll.o
+                                                  ../firmware/can.o
+CANAll_PushMessage                                ../firmware/LPC_CANAll.o
+                                                  ../firmware/can.o
+CANAll_SetErrIRQ                                  ../firmware/LPC_CANAll.o
+                                                  ../firmware/can.o
+__adddf3                                          c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__aeabi_cdcmpeq                                   c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__aeabi_cdcmple                                   c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__aeabi_cdrcmple                                  c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__aeabi_cfcmpeq                                   c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__aeabi_cfcmple                                   c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__aeabi_cfrcmple                                  c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__aeabi_d2f                                       c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_truncdfsf2.o)
+                                                  ../firmware/lutmath.o
+__aeabi_d2uiz                                     c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_fixunsdfsi.o)
+                                                  ../firmware/lutmath.o
+__aeabi_dadd                                      c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+                                                  ../firmware/lutmath.o
+__aeabi_dcmpeq                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__aeabi_dcmpge                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+                                                  ../firmware/lutmath.o
+__aeabi_dcmpgt                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__aeabi_dcmple                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__aeabi_dcmplt                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__aeabi_ddiv                                      c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+                                                  ../firmware/lutmath.o
+__aeabi_dmul                                      c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+                                                  c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldf3.o)
+                                                  ../firmware/lutmath.o
+__aeabi_drsub                                     c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__aeabi_dsub                                      c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+                                                  ../firmware/lutmath.o
+__aeabi_f2d                                       c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+                                                  ../firmware/lutmath.o
+__aeabi_fcmpeq                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__aeabi_fcmpge                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__aeabi_fcmpgt                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__aeabi_fcmple                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__aeabi_fcmplt                                    c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+                                                  ../firmware/lutmath.o
+__aeabi_i2d                                       c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__aeabi_idiv0                                     c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_dvmd_tls.o)
+                                                  c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+__aeabi_l2d                                       c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__aeabi_ldiv0                                     c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_dvmd_tls.o)
+__aeabi_ui2d                                      c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__aeabi_uidiv                                     c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+__aeabi_uidivmod                                  c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+                                                  ../firmware/printf.o
+__aeabi_ul2d                                      c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__bss_end__                                       ../firmware/crt0.o
+__bss_start                                       ../firmware/crt0.o
+__cmpdf2                                          c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__cmpsf2                                          c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__ctors_end__                                     ../firmware/crt0.o
+__ctors_start__                                   ../firmware/crt0.o
+__divdf3                                          c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+__eqdf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__eqsf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__extendsfdf2                                     c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__fixunsdfsi                                      c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_fixunsdfsi.o)
+__floatdidf                                       c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__floatsidf                                       c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__floatundidf                                     c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__floatunsidf                                     c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__gedf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__gesf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__gtdf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__gtsf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__ledf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__lesf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__ltdf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__ltsf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__muldf3                                          c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldivdf3.o)
+                                                  c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_muldf3.o)
+__nedf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpdf2.o)
+__nesf2                                           c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_cmpsf2.o)
+__subdf3                                          c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_addsubdf3.o)
+__truncdfsf2                                      c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_arm_truncdfsf2.o)
+__udivsi3                                         c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1\libgcc.a(_udivsi3.o)
+_boot                                             ../firmware/crt0.o
+_data                                             ../firmware/crt0.o
+_edata                                            ../firmware/crt0.o
+_etext                                            ../firmware/crt0.o
+_mainCRTStartup                                   ../firmware/crt0.o
+_reset                                            ../firmware/crt0.o
+_stack                                            ../firmware/crt0.o
+_start                                            ../firmware/crt0.o
+abort                                             ../firmware/crt0.o
+adc_init                                          ../firmware/adc.o
+                                                  ../firmware/hardware.o
+adc_read                                          ../firmware/adc.o
+adc_read_ch                                       ../firmware/adc.o
+                                                  ../firmware/hardware.o
+adc_set_channel                                   ../firmware/adc.o
+bus_get                                           ../firmware/robot.o
+bus_set                                           ../firmware/robot.o
+can_head_init                                     ../firmware/can.o
+                                                  ../firmware/hardware.o
+coslut                                            ../firmware/lutmath.o
+disableFIQ                                        ../firmware/armVIC.o
+disableIRQ                                        ../firmware/armVIC.o
+disable_timer1_irq                                ../firmware/timerISR.o
+                                                  ../firmware/adc.o
+                                                  ../firmware/i2c.o
+enableFIQ                                         ../firmware/armVIC.o
+enableIRQ                                         ../firmware/armVIC.o
+                                                  ../firmware/hardware.o
+enable_timer1_irq                                 ../firmware/timerISR.o
+exit                                              ../firmware/crt0.o
+getElapsedSysTICs                                 ../firmware/sysTime.o
+getSysTICs                                        ../firmware/sysTime.o
+get_batt_current                                  ../firmware/hardware.o
+get_batt_current_acc                              ../firmware/hardware.o
+get_batt_voltage                                  ../firmware/hardware.o
+get_ext_voltage                                   ../firmware/hardware.o
+get_reg_value_b                                   ../firmware/can.o
+                                                  ../firmware/robot.o
+get_reg_value_dw                                  ../firmware/can.o
+get_reg_value_w                                   ../firmware/can.o
+                                                  ../firmware/robot.o
+get_temperature                                   ../firmware/hardware.o
+hardware_init                                     ../firmware/hardware.o
+                                                  main.o
+i2c_get                                           ../firmware/i2c.o
+                                                  ../firmware/hardware.o
+i2c_init                                          ../firmware/i2c.o
+                                                  ../firmware/hardware.o
+i2c_reset                                         ../firmware/i2c.o
+i2c_set                                           ../firmware/i2c.o
+                                                  ../firmware/hardware.o
+initSysTime                                       ../firmware/sysTime.o
+                                                  ../firmware/hardware.o
+init_body_module                                  ../firmware/robot.o
+init_limb_module                                  ../firmware/robot.o
+init_rgb_led                                      ../firmware/hardware.o
+init_uart0_isr                                    ../firmware/uartISR.o
+                                                  ../firmware/radio.o
+mRxCAN                                            ../firmware/LPC_CANAll.o
+mRxIN                                             ../firmware/LPC_CANAll.o
+mRxOUT                                            ../firmware/LPC_CANAll.o
+main                                              main.o
+                                                  ../firmware/crt0.o
+memset                                            c:/arm-gcc/bin/../lib/gcc/arm-none-eabi/10.3.1/../../../../arm-none-eabi/lib\libc.a(lib_a-memset.o)
+                                                  ../firmware/radio.o
+pause                                             ../firmware/sysTime.o
+                                                  main.o
+                                                  ../firmware/adc.o
+                                                  ../firmware/can.o
+process_UART_in                                   ../firmware/radio.o
+                                                  ../firmware/uartISR.o
+radio_add_reg_callback                            ../firmware/radio.o
+radio_del_reg_callback                            ../firmware/radio.o
+radio_init                                        ../firmware/radio.o
+                                                  ../firmware/hardware.o
+reg16_table                                       ../firmware/radio.o
+                                                  ../firmware/registers.o
+reg32_table                                       ../firmware/radio.o
+                                                  main.o
+                                                  ../firmware/registers.o
+                                                  ../firmware/hardware.o
+reg8_table                                        ../firmware/radio.o
+                                                  ../firmware/registers.o
+registers_init                                    ../firmware/registers.o
+                                                  ../firmware/hardware.o
+reset                                             ../firmware/crt0.o
+                                                  ../firmware/hardware.o
+reset_pos                                         ../firmware/robot.o
+restoreFIQ                                        ../firmware/armVIC.o
+restoreIRQ                                        ../firmware/armVIC.o
+restore_timer1_irq                                ../firmware/timerISR.o
+                                                  ../firmware/adc.o
+                                                  ../firmware/i2c.o
+safe_bus_set                                      ../firmware/robot.o
+safe_bus_setw                                     ../firmware/robot.o
+set_color                                         ../firmware/hardware.o
+set_color_i                                       ../firmware/hardware.o
+set_leg_setpoint                                  ../firmware/robot.o
+set_printf_uart                                   ../firmware/printf.o
+set_reg_value_b                                   ../firmware/can.o
+                                                  ../firmware/robot.o
+set_reg_value_dw                                  ../firmware/can.o
+set_reg_value_w                                   ../firmware/can.o
+                                                  ../firmware/robot.o
+set_rgb                                           ../firmware/hardware.o
+                                                  main.o
+sinlut                                            ../firmware/lutmath.o
+sprintf                                           ../firmware/printf.o
+start                                             ../firmware/crt0.o
+start_pid                                         ../firmware/robot.o
+timer1_add_user_function                          ../firmware/timerISR.o
+                                                  ../firmware/hardware.o
+timer1_init                                       ../firmware/timerISR.o
+                                                  ../firmware/hardware.o
+timer1_init_isr                                   ../firmware/timerISR.o
+                                                  ../firmware/hardware.o
+timer1_remove_user_function                       ../firmware/timerISR.o
+uart0Getch                                        ../firmware/uart.o
+uart0ISR                                          ../firmware/uartISR.o
+uart0Init                                         ../firmware/uart.o
+                                                  ../firmware/radio.o
+uart0Putch                                        ../firmware/uart.o
+                                                  ../firmware/printf.o
+                                                  ../firmware/radio.o
+uart0Puts                                         ../firmware/uart.o
+uart0Space                                        ../firmware/uart.o
+uart0TxEmpty                                      ../firmware/uart.o
+uart0TxFlush                                      ../firmware/uart.o
+uart0Write                                        ../firmware/uart.o
+uart0_waitch                                      ../firmware/uartISR.o
+                                                  ../firmware/radio.o
+uart_printf                                       ../firmware/printf.o
+uc_init                                           ../firmware/hardware.o
+unaligned_read_16                                 ../firmware/utils.o
+                                                  ../firmware/can.o
+unaligned_read_32                                 ../firmware/utils.o
+                                                  ../firmware/can.o
+unaligned_write_16                                ../firmware/utils.o
+                                                  ../firmware/can.o
+unaligned_write_32                                ../firmware/utils.o
+                                                  ../firmware/can.o

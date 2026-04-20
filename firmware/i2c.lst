@@ -1,0 +1,776 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"i2c.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	i2c_reset
+  19              		.syntax unified
+  20              		.arm
+  22              	i2c_reset:
+  23              	.LFB1:
+  24              		.file 1 "../firmware/i2c.c"
+   1:../firmware/i2c.c **** /******************************************************************************
+   2:../firmware/i2c.c ****  * Routines for accessing the I2C bus on the LPC2129 microcontroller.
+   3:../firmware/i2c.c ****  * Alessandro Crespi, Mar. 2009
+   4:../firmware/i2c.c ****  *****************************************************************************/
+   5:../firmware/i2c.c **** 
+   6:../firmware/i2c.c **** #include "i2c.h"
+   7:../firmware/i2c.c **** #include "hwconfig.h"
+   8:../firmware/i2c.c **** #include "LPC21xx.h"
+   9:../firmware/i2c.c **** #include "armVIC.h"
+  10:../firmware/i2c.c **** #include "timerISR.h"
+  11:../firmware/i2c.c **** 
+  12:../firmware/i2c.c **** void i2c_init()
+  13:../firmware/i2c.c **** {
+  14:../firmware/i2c.c ****   uint32_t i;
+  15:../firmware/i2c.c **** 
+  16:../firmware/i2c.c ****   PINSEL0 &= 0xFFFFFF0F;         // select SCL & SDA functions
+  17:../firmware/i2c.c ****   PINSEL0 |= 0x00000050;         // for the concerned pins
+  18:../firmware/i2c.c ****   i = PCLK / (2 * 100000);       // I2C rate = 100 kbps
+  19:../firmware/i2c.c ****   I2SCLH = i;                    // i = 150 for 60 MHz clock
+  20:../firmware/i2c.c ****   I2SCLL = i;
+  21:../firmware/i2c.c ****   i2c_reset();
+  22:../firmware/i2c.c **** }
+  23:../firmware/i2c.c **** 
+  24:../firmware/i2c.c **** void i2c_reset()
+  25:../firmware/i2c.c **** {
+  25              		.loc 1 25 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  26:../firmware/i2c.c ****   I2CONCLR = 0x6C;               // clear all
+  31              		.loc 1 26 3 view .LVU1
+  32              		.loc 1 26 12 is_stmt 0 view .LVU2
+  33 0000 6C20A0E3 		mov	r2, #108
+  34 0004 0C309FE5 		ldr	r3, .L2
+  35 0008 1820C3E5 		strb	r2, [r3, #24]
+  27:../firmware/i2c.c ****   I2CONSET = 0x40;               // enable the I2C module
+  36              		.loc 1 27 3 is_stmt 1 view .LVU3
+  37              		.loc 1 27 12 is_stmt 0 view .LVU4
+  38 000c 4020A0E3 		mov	r2, #64
+  39 0010 0020C3E5 		strb	r2, [r3]
+  28:../firmware/i2c.c **** }
+  40              		.loc 1 28 1 view .LVU5
+  41 0014 1EFF2FE1 		bx	lr
+  42              	.L3:
+  43              		.align	2
+  44              	.L2:
+  45 0018 00C001E0 		.word	-536756224
+  46              		.cfi_endproc
+  47              	.LFE1:
+  49              		.align	2
+  50              		.global	i2c_init
+  51              		.syntax unified
+  52              		.arm
+  54              	i2c_init:
+  55              	.LFB0:
+  13:../firmware/i2c.c ****   uint32_t i;
+  56              		.loc 1 13 1 is_stmt 1 view -0
+  57              		.cfi_startproc
+  58              		@ Function supports interworking.
+  59              		@ args = 0, pretend = 0, frame = 0
+  60              		@ frame_needed = 0, uses_anonymous_args = 0
+  61              		@ link register save eliminated.
+  14:../firmware/i2c.c **** 
+  62              		.loc 1 14 3 view .LVU7
+  16:../firmware/i2c.c ****   PINSEL0 |= 0x00000050;         // for the concerned pins
+  63              		.loc 1 16 3 view .LVU8
+  16:../firmware/i2c.c ****   PINSEL0 |= 0x00000050;         // for the concerned pins
+  64              		.loc 1 16 11 is_stmt 0 view .LVU9
+  65 001c 28309FE5 		ldr	r3, .L5
+  66 0020 002093E5 		ldr	r2, [r3]
+  67 0024 F020C2E3 		bic	r2, r2, #240
+  68 0028 002083E5 		str	r2, [r3]
+  17:../firmware/i2c.c ****   i = PCLK / (2 * 100000);       // I2C rate = 100 kbps
+  69              		.loc 1 17 3 is_stmt 1 view .LVU10
+  17:../firmware/i2c.c ****   i = PCLK / (2 * 100000);       // I2C rate = 100 kbps
+  70              		.loc 1 17 11 is_stmt 0 view .LVU11
+  71 002c 002093E5 		ldr	r2, [r3]
+  72 0030 502082E3 		orr	r2, r2, #80
+  73 0034 002083E5 		str	r2, [r3]
+  18:../firmware/i2c.c ****   I2SCLH = i;                    // i = 150 for 60 MHz clock
+  74              		.loc 1 18 3 is_stmt 1 view .LVU12
+  75              	.LVL0:
+  19:../firmware/i2c.c ****   I2SCLL = i;
+  76              		.loc 1 19 3 view .LVU13
+  19:../firmware/i2c.c ****   I2SCLL = i;
+  77              		.loc 1 19 10 is_stmt 0 view .LVU14
+  78 0038 9620A0E3 		mov	r2, #150
+  79 003c 013843E2 		sub	r3, r3, #65536
+  80 0040 B021C3E1 		strh	r2, [r3, #16]	@ movhi
+  20:../firmware/i2c.c ****   i2c_reset();
+  81              		.loc 1 20 3 is_stmt 1 view .LVU15
+  20:../firmware/i2c.c ****   i2c_reset();
+  82              		.loc 1 20 10 is_stmt 0 view .LVU16
+  83 0044 B421C3E1 		strh	r2, [r3, #20]	@ movhi
+  21:../firmware/i2c.c **** }
+  84              		.loc 1 21 3 is_stmt 1 view .LVU17
+  85 0048 FEFFFFEA 		b	i2c_reset
+  86              	.LVL1:
+  87              	.L6:
+  88              		.align	2
+  89              	.L5:
+  90 004c 00C002E0 		.word	-536690688
+  91              		.cfi_endproc
+  92              	.LFE0:
+  94              		.align	2
+  95              		.global	i2c_set
+  96              		.syntax unified
+  97              		.arm
+  99              	i2c_set:
+ 100              	.LVL2:
+ 101              	.LFB2:
+  29:../firmware/i2c.c **** 
+  30:../firmware/i2c.c **** uint8_t i2c_set(uint8_t addr, uint8_t reg, uint8_t val)
+  31:../firmware/i2c.c **** {
+ 102              		.loc 1 31 1 view -0
+ 103              		.cfi_startproc
+ 104              		@ Function supports interworking.
+ 105              		@ args = 0, pretend = 0, frame = 0
+ 106              		@ frame_needed = 0, uses_anonymous_args = 0
+  32:../firmware/i2c.c ****   unsigned irqs = disable_timer1_irq();  // save T1 interrupt status & ensure disabled (T1 ISR uses
+ 107              		.loc 1 32 3 view .LVU19
+  31:../firmware/i2c.c ****   unsigned irqs = disable_timer1_irq();  // save T1 interrupt status & ensure disabled (T1 ISR uses
+ 108              		.loc 1 31 1 is_stmt 0 view .LVU20
+ 109 0050 70402DE9 		push	{r4, r5, r6, lr}
+ 110              	.LCFI0:
+ 111              		.cfi_def_cfa_offset 16
+ 112              		.cfi_offset 4, -16
+ 113              		.cfi_offset 5, -12
+ 114              		.cfi_offset 6, -8
+ 115              		.cfi_offset 14, -4
+  31:../firmware/i2c.c ****   unsigned irqs = disable_timer1_irq();  // save T1 interrupt status & ensure disabled (T1 ISR uses
+ 116              		.loc 1 31 1 view .LVU21
+ 117 0054 0250A0E1 		mov	r5, r2
+ 118 0058 0040A0E1 		mov	r4, r0
+ 119 005c 0160A0E1 		mov	r6, r1
+ 120              		.loc 1 32 19 view .LVU22
+ 121 0060 FEFFFFEB 		bl	disable_timer1_irq
+ 122              	.LVL3:
+  33:../firmware/i2c.c ****   I2CONCLR = 0x2C;               // clear STA, SI & AA
+ 123              		.loc 1 33 3 is_stmt 1 view .LVU23
+ 124              		.loc 1 33 12 is_stmt 0 view .LVU24
+ 125 0064 2C20A0E3 		mov	r2, #44
+ 126 0068 CC309FE5 		ldr	r3, .L28
+ 127 006c 1820C3E5 		strb	r2, [r3, #24]
+  34:../firmware/i2c.c ****   I2CONSET = 0x20;               // send start condition
+ 128              		.loc 1 34 3 is_stmt 1 view .LVU25
+ 129              		.loc 1 34 12 is_stmt 0 view .LVU26
+ 130 0070 2020A0E3 		mov	r2, #32
+ 131 0074 0020C3E5 		strb	r2, [r3]
+  35:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for complete start condition
+ 132              		.loc 1 35 3 is_stmt 1 view .LVU27
+ 133              	.L8:
+ 134              		.loc 1 35 25 discriminator 1 view .LVU28
+ 135              		.loc 1 35 9 discriminator 1 view .LVU29
+ 136              		.loc 1 35 10 is_stmt 0 discriminator 1 view .LVU30
+ 137 0078 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 138              		.loc 1 35 9 discriminator 1 view .LVU31
+ 139 007c F80052E3 		cmp	r2, #248
+ 140 0080 FCFFFF0A 		beq	.L8
+  36:../firmware/i2c.c ****   if (I2STAT != 0x08) {          // start error
+ 141              		.loc 1 36 3 is_stmt 1 view .LVU32
+ 142              		.loc 1 36 7 is_stmt 0 view .LVU33
+ 143 0084 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 144              		.loc 1 36 6 view .LVU34
+ 145 0088 080052E3 		cmp	r2, #8
+ 146 008c 0400000A 		beq	.L9
+ 147              	.L27:
+  37:../firmware/i2c.c ****     i2c_reset();
+  38:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+  39:../firmware/i2c.c ****     return 0;
+  40:../firmware/i2c.c ****   }
+  41:../firmware/i2c.c ****   I2DAT = (addr << 1);           // send destination address + W/
+  42:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+  43:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+  44:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+  45:../firmware/i2c.c ****     i2c_reset();
+  46:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+  47:../firmware/i2c.c ****     return 0;
+  48:../firmware/i2c.c ****   }
+  49:../firmware/i2c.c ****   I2DAT = reg;                   // send destination register
+  50:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+  51:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+  52:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+  53:../firmware/i2c.c ****     i2c_reset();
+  54:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+  55:../firmware/i2c.c ****     return 0;
+  56:../firmware/i2c.c ****   }
+  57:../firmware/i2c.c ****   I2DAT = val;                   // send data
+  58:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+  59:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+  60:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+  61:../firmware/i2c.c ****     i2c_reset();
+ 148              		.loc 1 61 5 is_stmt 1 view .LVU35
+ 149 0090 FEFFFFEB 		bl	i2c_reset
+ 150              	.LVL4:
+  62:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+ 151              		.loc 1 62 5 view .LVU36
+ 152 0094 FEFFFFEB 		bl	restore_timer1_irq
+ 153              	.LVL5:
+  63:../firmware/i2c.c ****     return 0;
+ 154              		.loc 1 63 5 view .LVU37
+ 155              		.loc 1 63 12 is_stmt 0 view .LVU38
+ 156 0098 0000A0E3 		mov	r0, #0
+ 157              	.L10:
+  64:../firmware/i2c.c ****   }
+  65:../firmware/i2c.c ****   I2CONSET = 0x10;               // send stop condition
+  66:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+  67:../firmware/i2c.c ****   restore_timer1_irq(irqs);      // enable T1 interrupts if active before
+  68:../firmware/i2c.c ****   return 1;
+  69:../firmware/i2c.c **** }
+ 158              		.loc 1 69 1 view .LVU39
+ 159 009c 7040BDE8 		pop	{r4, r5, r6, lr}
+ 160              	.LCFI1:
+ 161              		.cfi_remember_state
+ 162              		.cfi_restore 14
+ 163              		.cfi_restore 6
+ 164              		.cfi_restore 5
+ 165              		.cfi_restore 4
+ 166              		.cfi_def_cfa_offset 0
+ 167 00a0 1EFF2FE1 		bx	lr
+ 168              	.LVL6:
+ 169              	.L9:
+ 170              	.LCFI2:
+ 171              		.cfi_restore_state
+  41:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 172              		.loc 1 41 3 is_stmt 1 view .LVU40
+  42:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 173              		.loc 1 42 12 is_stmt 0 view .LVU41
+ 174 00a4 2820A0E3 		mov	r2, #40
+  41:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 175              		.loc 1 41 17 view .LVU42
+ 176 00a8 8440A0E1 		lsl	r4, r4, #1
+ 177 00ac FF4004E2 		and	r4, r4, #255
+  41:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 178              		.loc 1 41 9 view .LVU43
+ 179 00b0 0840C3E5 		strb	r4, [r3, #8]
+  42:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 180              		.loc 1 42 3 is_stmt 1 view .LVU44
+  42:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 181              		.loc 1 42 12 is_stmt 0 view .LVU45
+ 182 00b4 1820C3E5 		strb	r2, [r3, #24]
+  43:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 183              		.loc 1 43 3 is_stmt 1 view .LVU46
+  43:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 184              		.loc 1 43 10 is_stmt 0 view .LVU47
+ 185 00b8 7C309FE5 		ldr	r3, .L28
+ 186              	.L11:
+  43:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 187              		.loc 1 43 25 is_stmt 1 discriminator 1 view .LVU48
+  43:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 188              		.loc 1 43 9 discriminator 1 view .LVU49
+  43:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 189              		.loc 1 43 10 is_stmt 0 discriminator 1 view .LVU50
+ 190 00bc 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+  43:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 191              		.loc 1 43 9 discriminator 1 view .LVU51
+ 192 00c0 F80052E3 		cmp	r2, #248
+ 193 00c4 FCFFFF0A 		beq	.L11
+  44:../firmware/i2c.c ****     i2c_reset();
+ 194              		.loc 1 44 3 is_stmt 1 view .LVU52
+  44:../firmware/i2c.c ****     i2c_reset();
+ 195              		.loc 1 44 7 is_stmt 0 view .LVU53
+ 196 00c8 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+  44:../firmware/i2c.c ****     i2c_reset();
+ 197              		.loc 1 44 6 view .LVU54
+ 198 00cc 180052E3 		cmp	r2, #24
+  50:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 199              		.loc 1 50 12 view .LVU55
+ 200 00d0 0C20A003 		moveq	r2, #12
+  49:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 201              		.loc 1 49 9 view .LVU56
+ 202 00d4 0860C305 		strbeq	r6, [r3, #8]
+  50:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 203              		.loc 1 50 3 is_stmt 1 view .LVU57
+  50:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 204              		.loc 1 50 12 is_stmt 0 view .LVU58
+ 205 00d8 1820C305 		strbeq	r2, [r3, #24]
+  44:../firmware/i2c.c ****     i2c_reset();
+ 206              		.loc 1 44 6 view .LVU59
+ 207 00dc EBFFFF1A 		bne	.L27
+ 208              	.L13:
+  51:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 209              		.loc 1 51 25 is_stmt 1 discriminator 1 view .LVU60
+  51:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 210              		.loc 1 51 9 discriminator 1 view .LVU61
+  51:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 211              		.loc 1 51 10 is_stmt 0 discriminator 1 view .LVU62
+ 212 00e0 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+  51:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 213              		.loc 1 51 9 discriminator 1 view .LVU63
+ 214 00e4 F80052E3 		cmp	r2, #248
+ 215 00e8 FCFFFF0A 		beq	.L13
+  52:../firmware/i2c.c ****     i2c_reset();
+ 216              		.loc 1 52 3 is_stmt 1 view .LVU64
+  52:../firmware/i2c.c ****     i2c_reset();
+ 217              		.loc 1 52 7 is_stmt 0 view .LVU65
+ 218 00ec 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+  52:../firmware/i2c.c ****     i2c_reset();
+ 219              		.loc 1 52 6 view .LVU66
+ 220 00f0 280052E3 		cmp	r2, #40
+ 221 00f4 E5FFFF1A 		bne	.L27
+  57:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 222              		.loc 1 57 3 is_stmt 1 view .LVU67
+  58:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 223              		.loc 1 58 12 is_stmt 0 view .LVU68
+ 224 00f8 0C20A0E3 		mov	r2, #12
+  57:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 225              		.loc 1 57 9 view .LVU69
+ 226 00fc 0850C3E5 		strb	r5, [r3, #8]
+  58:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 227              		.loc 1 58 3 is_stmt 1 view .LVU70
+  58:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 228              		.loc 1 58 12 is_stmt 0 view .LVU71
+ 229 0100 1820C3E5 		strb	r2, [r3, #24]
+  59:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 230              		.loc 1 59 3 is_stmt 1 view .LVU72
+  59:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 231              		.loc 1 59 10 is_stmt 0 view .LVU73
+ 232 0104 30309FE5 		ldr	r3, .L28
+ 233              	.L15:
+  59:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 234              		.loc 1 59 25 is_stmt 1 discriminator 1 view .LVU74
+  59:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 235              		.loc 1 59 9 discriminator 1 view .LVU75
+  59:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 236              		.loc 1 59 10 is_stmt 0 discriminator 1 view .LVU76
+ 237 0108 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+  59:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 238              		.loc 1 59 9 discriminator 1 view .LVU77
+ 239 010c F80052E3 		cmp	r2, #248
+ 240 0110 FCFFFF0A 		beq	.L15
+  60:../firmware/i2c.c ****     i2c_reset();
+ 241              		.loc 1 60 3 is_stmt 1 view .LVU78
+  60:../firmware/i2c.c ****     i2c_reset();
+ 242              		.loc 1 60 7 is_stmt 0 view .LVU79
+ 243 0114 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+  60:../firmware/i2c.c ****     i2c_reset();
+ 244              		.loc 1 60 6 view .LVU80
+ 245 0118 280052E3 		cmp	r2, #40
+ 246 011c DBFFFF1A 		bne	.L27
+  65:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 247              		.loc 1 65 3 is_stmt 1 view .LVU81
+  65:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 248              		.loc 1 65 12 is_stmt 0 view .LVU82
+ 249 0120 1020A0E3 		mov	r2, #16
+ 250 0124 0020C3E5 		strb	r2, [r3]
+  66:../firmware/i2c.c ****   restore_timer1_irq(irqs);      // enable T1 interrupts if active before
+ 251              		.loc 1 66 3 is_stmt 1 view .LVU83
+  66:../firmware/i2c.c ****   restore_timer1_irq(irqs);      // enable T1 interrupts if active before
+ 252              		.loc 1 66 12 is_stmt 0 view .LVU84
+ 253 0128 0C20A0E3 		mov	r2, #12
+ 254 012c 1820C3E5 		strb	r2, [r3, #24]
+  67:../firmware/i2c.c ****   return 1;
+ 255              		.loc 1 67 3 is_stmt 1 view .LVU85
+ 256 0130 FEFFFFEB 		bl	restore_timer1_irq
+ 257              	.LVL7:
+  68:../firmware/i2c.c **** }
+ 258              		.loc 1 68 3 view .LVU86
+  68:../firmware/i2c.c **** }
+ 259              		.loc 1 68 10 is_stmt 0 view .LVU87
+ 260 0134 0100A0E3 		mov	r0, #1
+ 261 0138 D7FFFFEA 		b	.L10
+ 262              	.L29:
+ 263              		.align	2
+ 264              	.L28:
+ 265 013c 00C001E0 		.word	-536756224
+ 266              		.cfi_endproc
+ 267              	.LFE2:
+ 269              		.align	2
+ 270              		.global	i2c_get
+ 271              		.syntax unified
+ 272              		.arm
+ 274              	i2c_get:
+ 275              	.LVL8:
+ 276              	.LFB3:
+  70:../firmware/i2c.c **** 
+  71:../firmware/i2c.c **** uint8_t i2c_get(uint8_t addr, uint8_t reg)
+  72:../firmware/i2c.c **** {
+ 277              		.loc 1 72 1 is_stmt 1 view -0
+ 278              		.cfi_startproc
+ 279              		@ Function supports interworking.
+ 280              		@ args = 0, pretend = 0, frame = 0
+ 281              		@ frame_needed = 0, uses_anonymous_args = 0
+  73:../firmware/i2c.c ****   uint8_t res = 0xFF;
+ 282              		.loc 1 73 3 view .LVU89
+  74:../firmware/i2c.c ****   unsigned irqs = disable_timer1_irq();  // save T1 interrupt status & ensure disabled
+ 283              		.loc 1 74 3 view .LVU90
+  72:../firmware/i2c.c ****   uint8_t res = 0xFF;
+ 284              		.loc 1 72 1 is_stmt 0 view .LVU91
+ 285 0140 70402DE9 		push	{r4, r5, r6, lr}
+ 286              	.LCFI3:
+ 287              		.cfi_def_cfa_offset 16
+ 288              		.cfi_offset 4, -16
+ 289              		.cfi_offset 5, -12
+ 290              		.cfi_offset 6, -8
+ 291              		.cfi_offset 14, -4
+  72:../firmware/i2c.c ****   uint8_t res = 0xFF;
+ 292              		.loc 1 72 1 view .LVU92
+ 293 0144 0050A0E1 		mov	r5, r0
+ 294 0148 0140A0E1 		mov	r4, r1
+ 295              		.loc 1 74 19 view .LVU93
+ 296 014c FEFFFFEB 		bl	disable_timer1_irq
+ 297              	.LVL9:
+  75:../firmware/i2c.c ****   I2CONCLR = 0x2C;               // clear STA, SI & AA
+ 298              		.loc 1 75 3 is_stmt 1 view .LVU94
+ 299              		.loc 1 75 12 is_stmt 0 view .LVU95
+ 300 0150 2C30A0E3 		mov	r3, #44
+ 301 0154 28219FE5 		ldr	r2, .L59
+ 302 0158 1830C2E5 		strb	r3, [r2, #24]
+  76:../firmware/i2c.c ****   I2CONSET = 0x20;               // send start condition
+ 303              		.loc 1 76 3 is_stmt 1 view .LVU96
+ 304              		.loc 1 76 12 is_stmt 0 view .LVU97
+ 305 015c 2030A0E3 		mov	r3, #32
+ 306 0160 0030C2E5 		strb	r3, [r2]
+  77:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for complete start condition
+ 307              		.loc 1 77 3 is_stmt 1 view .LVU98
+ 308              	.L31:
+ 309              		.loc 1 77 25 discriminator 1 view .LVU99
+ 310              		.loc 1 77 9 discriminator 1 view .LVU100
+ 311              		.loc 1 77 10 is_stmt 0 discriminator 1 view .LVU101
+ 312 0164 0430D2E5 		ldrb	r3, [r2, #4]	@ zero_extendqisi2
+ 313              		.loc 1 77 9 discriminator 1 view .LVU102
+ 314 0168 F80053E3 		cmp	r3, #248
+ 315 016c FCFFFF0A 		beq	.L31
+  78:../firmware/i2c.c ****   if (I2STAT != 0x08) {          // start error
+ 316              		.loc 1 78 3 is_stmt 1 view .LVU103
+ 317              		.loc 1 78 7 is_stmt 0 view .LVU104
+ 318 0170 0430D2E5 		ldrb	r3, [r2, #4]	@ zero_extendqisi2
+ 319              		.loc 1 78 6 view .LVU105
+ 320 0174 080053E3 		cmp	r3, #8
+ 321 0178 0500000A 		beq	.L32
+ 322              	.L58:
+  79:../firmware/i2c.c ****     i2c_reset();
+  80:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+  81:../firmware/i2c.c ****     return 0xFF;
+  82:../firmware/i2c.c ****   }
+  83:../firmware/i2c.c ****   I2DAT = (addr << 1);           // send destination address + W/
+  84:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+  85:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+  86:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+  87:../firmware/i2c.c ****     i2c_reset();
+  88:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+  89:../firmware/i2c.c ****     return 0xFF;
+  90:../firmware/i2c.c ****   }
+  91:../firmware/i2c.c ****   I2DAT = reg;                   // send destination register
+  92:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+  93:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+  94:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+  95:../firmware/i2c.c ****     i2c_reset();
+  96:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+  97:../firmware/i2c.c ****     return 0xFF;
+  98:../firmware/i2c.c ****   }
+  99:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 100:../firmware/i2c.c ****   I2CONSET = 0x20;               // send repeated start condition
+ 101:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for complete RS
+ 102:../firmware/i2c.c ****   if (I2STAT != 0x10) {          // repeated start error
+ 103:../firmware/i2c.c ****     i2c_reset();
+ 104:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+ 105:../firmware/i2c.c ****     return 0xFF;
+ 106:../firmware/i2c.c ****   }
+ 107:../firmware/i2c.c ****   I2DAT = (addr << 1) | 1;       // send destination address + R
+ 108:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 109:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 110:../firmware/i2c.c ****   if (I2STAT != 0x40) {          // return on error or no ACK
+ 111:../firmware/i2c.c ****     i2c_reset();
+ 112:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+ 113:../firmware/i2c.c ****     return 0xFF;
+ 114:../firmware/i2c.c ****   }
+ 115:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 116:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 117:../firmware/i2c.c ****   if (I2STAT != 0x58) {          // return if !(data received, no ACK)
+ 118:../firmware/i2c.c ****     i2c_reset();
+ 323              		.loc 1 118 5 is_stmt 1 view .LVU106
+ 324 017c FEFFFFEB 		bl	i2c_reset
+ 325              	.LVL10:
+ 119:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+ 326              		.loc 1 119 5 view .LVU107
+ 120:../firmware/i2c.c ****     return 0xFF;
+ 327              		.loc 1 120 12 is_stmt 0 view .LVU108
+ 328 0180 FF40A0E3 		mov	r4, #255
+ 119:../firmware/i2c.c ****     restore_timer1_irq(irqs);
+ 329              		.loc 1 119 5 view .LVU109
+ 330 0184 FEFFFFEB 		bl	restore_timer1_irq
+ 331              	.LVL11:
+ 332              		.loc 1 120 5 is_stmt 1 view .LVU110
+ 333              	.L33:
+ 121:../firmware/i2c.c ****   }
+ 122:../firmware/i2c.c ****   res = I2DAT;                   // read incoming data
+ 123:../firmware/i2c.c ****   I2CONSET = 0x10;               // send stop condition
+ 124:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 125:../firmware/i2c.c ****   restore_timer1_irq(irqs);      // restore T1 interrupt status
+ 126:../firmware/i2c.c ****   return res;
+ 127:../firmware/i2c.c **** }
+ 334              		.loc 1 127 1 is_stmt 0 view .LVU111
+ 335 0188 0400A0E1 		mov	r0, r4
+ 336 018c 7040BDE8 		pop	{r4, r5, r6, lr}
+ 337              	.LCFI4:
+ 338              		.cfi_remember_state
+ 339              		.cfi_restore 14
+ 340              		.cfi_restore 6
+ 341              		.cfi_restore 5
+ 342              		.cfi_restore 4
+ 343              		.cfi_def_cfa_offset 0
+ 344 0190 1EFF2FE1 		bx	lr
+ 345              	.LVL12:
+ 346              	.L32:
+ 347              	.LCFI5:
+ 348              		.cfi_restore_state
+  83:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 349              		.loc 1 83 3 is_stmt 1 view .LVU112
+  83:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 350              		.loc 1 83 17 is_stmt 0 view .LVU113
+ 351 0194 8530A0E1 		lsl	r3, r5, #1
+ 352 0198 FF1003E2 		and	r1, r3, #255
+  83:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 353              		.loc 1 83 9 view .LVU114
+ 354 019c 0810C2E5 		strb	r1, [r2, #8]
+  84:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 355              		.loc 1 84 3 is_stmt 1 view .LVU115
+  84:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 356              		.loc 1 84 12 is_stmt 0 view .LVU116
+ 357 01a0 2810A0E3 		mov	r1, #40
+ 358 01a4 1810C2E5 		strb	r1, [r2, #24]
+  85:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 359              		.loc 1 85 3 is_stmt 1 view .LVU117
+  85:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 360              		.loc 1 85 10 is_stmt 0 view .LVU118
+ 361 01a8 D4209FE5 		ldr	r2, .L59
+ 362              	.L34:
+  85:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 363              		.loc 1 85 25 is_stmt 1 discriminator 1 view .LVU119
+  85:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 364              		.loc 1 85 9 discriminator 1 view .LVU120
+  85:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 365              		.loc 1 85 10 is_stmt 0 discriminator 1 view .LVU121
+ 366 01ac 0410D2E5 		ldrb	r1, [r2, #4]	@ zero_extendqisi2
+  85:../firmware/i2c.c ****   if (I2STAT != 0x18) {          // no ACK or other error
+ 367              		.loc 1 85 9 discriminator 1 view .LVU122
+ 368 01b0 F80051E3 		cmp	r1, #248
+ 369 01b4 FCFFFF0A 		beq	.L34
+  86:../firmware/i2c.c ****     i2c_reset();
+ 370              		.loc 1 86 3 is_stmt 1 view .LVU123
+  86:../firmware/i2c.c ****     i2c_reset();
+ 371              		.loc 1 86 7 is_stmt 0 view .LVU124
+ 372 01b8 0410D2E5 		ldrb	r1, [r2, #4]	@ zero_extendqisi2
+  86:../firmware/i2c.c ****     i2c_reset();
+ 373              		.loc 1 86 6 view .LVU125
+ 374 01bc 180051E3 		cmp	r1, #24
+  92:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 375              		.loc 1 92 12 view .LVU126
+ 376 01c0 0C10A003 		moveq	r1, #12
+  91:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 377              		.loc 1 91 9 view .LVU127
+ 378 01c4 0840C205 		strbeq	r4, [r2, #8]
+  92:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 379              		.loc 1 92 3 is_stmt 1 view .LVU128
+  92:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 380              		.loc 1 92 12 is_stmt 0 view .LVU129
+ 381 01c8 1810C205 		strbeq	r1, [r2, #24]
+  86:../firmware/i2c.c ****     i2c_reset();
+ 382              		.loc 1 86 6 view .LVU130
+ 383 01cc EAFFFF1A 		bne	.L58
+ 384              	.L36:
+  93:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 385              		.loc 1 93 25 is_stmt 1 discriminator 1 view .LVU131
+  93:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 386              		.loc 1 93 9 discriminator 1 view .LVU132
+  93:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 387              		.loc 1 93 10 is_stmt 0 discriminator 1 view .LVU133
+ 388 01d0 0410D2E5 		ldrb	r1, [r2, #4]	@ zero_extendqisi2
+  93:../firmware/i2c.c ****   if (I2STAT != 0x28) {          // return on error or no ACK
+ 389              		.loc 1 93 9 discriminator 1 view .LVU134
+ 390 01d4 F80051E3 		cmp	r1, #248
+ 391 01d8 FCFFFF0A 		beq	.L36
+  94:../firmware/i2c.c ****     i2c_reset();
+ 392              		.loc 1 94 3 is_stmt 1 view .LVU135
+  94:../firmware/i2c.c ****     i2c_reset();
+ 393              		.loc 1 94 7 is_stmt 0 view .LVU136
+ 394 01dc 0410D2E5 		ldrb	r1, [r2, #4]	@ zero_extendqisi2
+  94:../firmware/i2c.c ****     i2c_reset();
+ 395              		.loc 1 94 6 view .LVU137
+ 396 01e0 280051E3 		cmp	r1, #40
+ 397 01e4 E4FFFF1A 		bne	.L58
+  99:../firmware/i2c.c ****   I2CONSET = 0x20;               // send repeated start condition
+ 398              		.loc 1 99 3 is_stmt 1 view .LVU138
+  99:../firmware/i2c.c ****   I2CONSET = 0x20;               // send repeated start condition
+ 399              		.loc 1 99 12 is_stmt 0 view .LVU139
+ 400 01e8 0C10A0E3 		mov	r1, #12
+ 401 01ec 1810C2E5 		strb	r1, [r2, #24]
+ 100:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for complete RS
+ 402              		.loc 1 100 3 is_stmt 1 view .LVU140
+ 100:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for complete RS
+ 403              		.loc 1 100 12 is_stmt 0 view .LVU141
+ 404 01f0 2010A0E3 		mov	r1, #32
+ 405 01f4 0010C2E5 		strb	r1, [r2]
+ 101:../firmware/i2c.c ****   if (I2STAT != 0x10) {          // repeated start error
+ 406              		.loc 1 101 3 is_stmt 1 view .LVU142
+ 101:../firmware/i2c.c ****   if (I2STAT != 0x10) {          // repeated start error
+ 407              		.loc 1 101 10 is_stmt 0 view .LVU143
+ 408 01f8 84209FE5 		ldr	r2, .L59
+ 409              	.L38:
+ 101:../firmware/i2c.c ****   if (I2STAT != 0x10) {          // repeated start error
+ 410              		.loc 1 101 25 is_stmt 1 discriminator 1 view .LVU144
+ 101:../firmware/i2c.c ****   if (I2STAT != 0x10) {          // repeated start error
+ 411              		.loc 1 101 9 discriminator 1 view .LVU145
+ 101:../firmware/i2c.c ****   if (I2STAT != 0x10) {          // repeated start error
+ 412              		.loc 1 101 10 is_stmt 0 discriminator 1 view .LVU146
+ 413 01fc 0410D2E5 		ldrb	r1, [r2, #4]	@ zero_extendqisi2
+ 101:../firmware/i2c.c ****   if (I2STAT != 0x10) {          // repeated start error
+ 414              		.loc 1 101 9 discriminator 1 view .LVU147
+ 415 0200 F80051E3 		cmp	r1, #248
+ 416 0204 FCFFFF0A 		beq	.L38
+ 102:../firmware/i2c.c ****     i2c_reset();
+ 417              		.loc 1 102 3 is_stmt 1 view .LVU148
+ 102:../firmware/i2c.c ****     i2c_reset();
+ 418              		.loc 1 102 7 is_stmt 0 view .LVU149
+ 419 0208 0410D2E5 		ldrb	r1, [r2, #4]	@ zero_extendqisi2
+ 102:../firmware/i2c.c ****     i2c_reset();
+ 420              		.loc 1 102 6 view .LVU150
+ 421 020c 100051E3 		cmp	r1, #16
+ 422 0210 D9FFFF1A 		bne	.L58
+ 107:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 423              		.loc 1 107 3 is_stmt 1 view .LVU151
+ 107:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 424              		.loc 1 107 23 is_stmt 0 view .LVU152
+ 425 0214 013083E3 		orr	r3, r3, #1
+ 426 0218 FF3003E2 		and	r3, r3, #255
+ 107:../firmware/i2c.c ****   I2CONCLR = 0x28;               // clear STA & SI
+ 427              		.loc 1 107 9 view .LVU153
+ 428 021c 0830C2E5 		strb	r3, [r2, #8]
+ 108:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 429              		.loc 1 108 3 is_stmt 1 view .LVU154
+ 108:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 430              		.loc 1 108 12 is_stmt 0 view .LVU155
+ 431 0220 2830A0E3 		mov	r3, #40
+ 432 0224 1830C2E5 		strb	r3, [r2, #24]
+ 109:../firmware/i2c.c ****   if (I2STAT != 0x40) {          // return on error or no ACK
+ 433              		.loc 1 109 3 is_stmt 1 view .LVU156
+ 109:../firmware/i2c.c ****   if (I2STAT != 0x40) {          // return on error or no ACK
+ 434              		.loc 1 109 10 is_stmt 0 view .LVU157
+ 435 0228 54309FE5 		ldr	r3, .L59
+ 436              	.L40:
+ 109:../firmware/i2c.c ****   if (I2STAT != 0x40) {          // return on error or no ACK
+ 437              		.loc 1 109 25 is_stmt 1 discriminator 1 view .LVU158
+ 109:../firmware/i2c.c ****   if (I2STAT != 0x40) {          // return on error or no ACK
+ 438              		.loc 1 109 9 discriminator 1 view .LVU159
+ 109:../firmware/i2c.c ****   if (I2STAT != 0x40) {          // return on error or no ACK
+ 439              		.loc 1 109 10 is_stmt 0 discriminator 1 view .LVU160
+ 440 022c 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 109:../firmware/i2c.c ****   if (I2STAT != 0x40) {          // return on error or no ACK
+ 441              		.loc 1 109 9 discriminator 1 view .LVU161
+ 442 0230 F80052E3 		cmp	r2, #248
+ 443 0234 FCFFFF0A 		beq	.L40
+ 110:../firmware/i2c.c ****     i2c_reset();
+ 444              		.loc 1 110 3 is_stmt 1 view .LVU162
+ 110:../firmware/i2c.c ****     i2c_reset();
+ 445              		.loc 1 110 7 is_stmt 0 view .LVU163
+ 446 0238 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 110:../firmware/i2c.c ****     i2c_reset();
+ 447              		.loc 1 110 6 view .LVU164
+ 448 023c 400052E3 		cmp	r2, #64
+ 115:../firmware/i2c.c ****   while (I2STAT == 0xF8);        // wait for status change
+ 449              		.loc 1 115 12 view .LVU165
+ 450 0240 0C20A003 		moveq	r2, #12
+ 451 0244 1820C305 		strbeq	r2, [r3, #24]
+ 110:../firmware/i2c.c ****     i2c_reset();
+ 452              		.loc 1 110 6 view .LVU166
+ 453 0248 CBFFFF1A 		bne	.L58
+ 454              	.L42:
+ 116:../firmware/i2c.c ****   if (I2STAT != 0x58) {          // return if !(data received, no ACK)
+ 455              		.loc 1 116 25 is_stmt 1 discriminator 1 view .LVU167
+ 116:../firmware/i2c.c ****   if (I2STAT != 0x58) {          // return if !(data received, no ACK)
+ 456              		.loc 1 116 9 discriminator 1 view .LVU168
+ 116:../firmware/i2c.c ****   if (I2STAT != 0x58) {          // return if !(data received, no ACK)
+ 457              		.loc 1 116 10 is_stmt 0 discriminator 1 view .LVU169
+ 458 024c 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 116:../firmware/i2c.c ****   if (I2STAT != 0x58) {          // return if !(data received, no ACK)
+ 459              		.loc 1 116 9 discriminator 1 view .LVU170
+ 460 0250 F80052E3 		cmp	r2, #248
+ 461 0254 FCFFFF0A 		beq	.L42
+ 117:../firmware/i2c.c ****     i2c_reset();
+ 462              		.loc 1 117 3 is_stmt 1 view .LVU171
+ 117:../firmware/i2c.c ****     i2c_reset();
+ 463              		.loc 1 117 7 is_stmt 0 view .LVU172
+ 464 0258 0420D3E5 		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 117:../firmware/i2c.c ****     i2c_reset();
+ 465              		.loc 1 117 6 view .LVU173
+ 466 025c 580052E3 		cmp	r2, #88
+ 467 0260 C5FFFF1A 		bne	.L58
+ 122:../firmware/i2c.c ****   I2CONSET = 0x10;               // send stop condition
+ 468              		.loc 1 122 3 is_stmt 1 view .LVU174
+ 123:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 469              		.loc 1 123 12 is_stmt 0 view .LVU175
+ 470 0264 1020A0E3 		mov	r2, #16
+ 122:../firmware/i2c.c ****   I2CONSET = 0x10;               // send stop condition
+ 471              		.loc 1 122 7 view .LVU176
+ 472 0268 0840D3E5 		ldrb	r4, [r3, #8]	@ zero_extendqisi2
+ 123:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 473              		.loc 1 123 12 view .LVU177
+ 474 026c 0020C3E5 		strb	r2, [r3]
+ 124:../firmware/i2c.c ****   restore_timer1_irq(irqs);      // restore T1 interrupt status
+ 475              		.loc 1 124 12 view .LVU178
+ 476 0270 0C20A0E3 		mov	r2, #12
+ 477 0274 1820C3E5 		strb	r2, [r3, #24]
+ 122:../firmware/i2c.c ****   I2CONSET = 0x10;               // send stop condition
+ 478              		.loc 1 122 7 view .LVU179
+ 479 0278 FF4004E2 		and	r4, r4, #255
+ 480              	.LVL13:
+ 123:../firmware/i2c.c ****   I2CONCLR = 0x0C;               // clear SI & AA
+ 481              		.loc 1 123 3 is_stmt 1 view .LVU180
+ 124:../firmware/i2c.c ****   restore_timer1_irq(irqs);      // restore T1 interrupt status
+ 482              		.loc 1 124 3 view .LVU181
+ 125:../firmware/i2c.c ****   return res;
+ 483              		.loc 1 125 3 view .LVU182
+ 484 027c FEFFFFEB 		bl	restore_timer1_irq
+ 485              	.LVL14:
+ 126:../firmware/i2c.c **** }
+ 486              		.loc 1 126 3 view .LVU183
+ 126:../firmware/i2c.c **** }
+ 487              		.loc 1 126 10 is_stmt 0 view .LVU184
+ 488 0280 C0FFFFEA 		b	.L33
+ 489              	.L60:
+ 490              		.align	2
+ 491              	.L59:
+ 492 0284 00C001E0 		.word	-536756224
+ 493              		.cfi_endproc
+ 494              	.LFE3:
+ 496              	.Letext0:
+ 497              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 498              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 499              		.file 4 "../firmware/lpcI2C.h"
+ 500              		.file 5 "../firmware/lpcPIN.h"
+ 501              		.file 6 "../firmware/timerISR.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 i2c.c
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:22     .text:00000000 i2c_reset
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:45     .text:00000018 $d
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:49     .text:0000001c $a
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:54     .text:0000001c i2c_init
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:90     .text:0000004c $d
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:94     .text:00000050 $a
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:99     .text:00000050 i2c_set
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:265    .text:0000013c $d
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:269    .text:00000140 $a
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:274    .text:00000140 i2c_get
+C:\Users\ishin\AppData\Local\Temp\ccmfVb67.s:492    .text:00000284 $d
+
+UNDEFINED SYMBOLS
+disable_timer1_irq
+restore_timer1_irq

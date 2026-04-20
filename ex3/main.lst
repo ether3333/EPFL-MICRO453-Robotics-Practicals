@@ -1,0 +1,305 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"main.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.syntax unified
+  19              		.arm
+  21              	register_handler:
+  22              	.LVL0:
+  23              	.LFB0:
+  24              		.file 1 "main.c"
+   1:main.c        **** #include "hardware.h"
+   2:main.c        **** #include "module.h"
+   3:main.c        **** #include "robot.h"
+   4:main.c        **** #include "registers.h"
+   5:main.c        **** #include "radio.h"
+   6:main.c        **** 
+   7:main.c        **** 
+   8:main.c        **** // Define how many motors we have
+   9:main.c        **** #define MOTOR_COUNT 4
+  10:main.c        **** #define POSITION_REG_ADDR 10
+  11:main.c        **** 
+  12:main.c        **** volatile int8_t positions[MOTOR_COUNT];
+  13:main.c        **** 
+  14:main.c        **** // Addresses of the motors
+  15:main.c        **** const uint8_t MOTOR_ADDR[MOTOR_COUNT] = {21, 72, 73, 74};
+  16:main.c        **** 
+  17:main.c        **** static int8_t register_handler(uint8_t operation, uint8_t address, RadioData* radio_data)
+  18:main.c        **** {
+  25              		.loc 1 18 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  19:main.c        ****   uint8_t i;
+  31              		.loc 1 19 3 view .LVU1
+  20:main.c        ****   if (operation == ROP_READ_MB && address == POSITION_REG_ADDR) {
+  32              		.loc 1 20 3 view .LVU2
+  33              		.loc 1 20 6 is_stmt 0 view .LVU3
+  34 0000 030050E3 		cmp	r0, #3
+  35 0004 0A005103 		cmpeq	r1, #10
+  36 0008 1EFF2F11 		bxne	lr
+  21:main.c        ****     radio_data->multibyte.size = MOTOR_COUNT;
+  37              		.loc 1 21 5 is_stmt 1 view .LVU4
+  38              		.loc 1 21 32 is_stmt 0 view .LVU5
+  39 000c 0430A0E3 		mov	r3, #4
+  40 0010 0030C2E5 		strb	r3, [r2]
+  22:main.c        ****     for (i = 0; i < MOTOR_COUNT; i++) {
+  41              		.loc 1 22 5 is_stmt 1 view .LVU6
+  42              	.LVL1:
+  43              	.LBB4:
+  44              	.LBI4:
+  17:main.c        **** {
+  45              		.loc 1 17 15 view .LVU7
+  46              	.LBB5:
+  47              		.loc 1 22 17 view .LVU8
+  23:main.c        ****       radio_data->multibyte.data[i] = positions[i];
+  48              		.loc 1 23 7 view .LVU9
+  49              		.loc 1 23 48 is_stmt 0 view .LVU10
+  50 0014 24309FE5 		ldr	r3, .L3
+  51 0018 0010D3E5 		ldrb	r1, [r3]	@ zero_extendqisi2
+  52              	.LVL2:
+  53              		.loc 1 23 37 view .LVU11
+  54 001c 0110C2E5 		strb	r1, [r2, #1]
+  22:main.c        ****     for (i = 0; i < MOTOR_COUNT; i++) {
+  55              		.loc 1 22 34 is_stmt 1 view .LVU12
+  56              	.LVL3:
+  22:main.c        ****     for (i = 0; i < MOTOR_COUNT; i++) {
+  57              		.loc 1 22 17 view .LVU13
+  58              		.loc 1 23 7 view .LVU14
+  59              		.loc 1 23 48 is_stmt 0 view .LVU15
+  60 0020 0110D3E5 		ldrb	r1, [r3, #1]	@ zero_extendqisi2
+  61              		.loc 1 23 37 view .LVU16
+  62 0024 0210C2E5 		strb	r1, [r2, #2]
+  22:main.c        ****     for (i = 0; i < MOTOR_COUNT; i++) {
+  63              		.loc 1 22 34 is_stmt 1 view .LVU17
+  64              	.LVL4:
+  22:main.c        ****     for (i = 0; i < MOTOR_COUNT; i++) {
+  65              		.loc 1 22 17 view .LVU18
+  66              		.loc 1 23 7 view .LVU19
+  67              		.loc 1 23 48 is_stmt 0 view .LVU20
+  68 0028 0210D3E5 		ldrb	r1, [r3, #2]	@ zero_extendqisi2
+  69              		.loc 1 23 37 view .LVU21
+  70 002c 0310C2E5 		strb	r1, [r2, #3]
+  22:main.c        ****     for (i = 0; i < MOTOR_COUNT; i++) {
+  71              		.loc 1 22 34 is_stmt 1 view .LVU22
+  72              	.LVL5:
+  22:main.c        ****     for (i = 0; i < MOTOR_COUNT; i++) {
+  73              		.loc 1 22 17 view .LVU23
+  74              		.loc 1 23 7 view .LVU24
+  75              		.loc 1 23 48 is_stmt 0 view .LVU25
+  76 0030 0330D3E5 		ldrb	r3, [r3, #3]	@ zero_extendqisi2
+  77              	.LBE5:
+  78              	.LBE4:
+  24:main.c        ****     }
+  25:main.c        ****     return TRUE;
+  26:main.c        ****   }
+  27:main.c        **** }
+  79              		.loc 1 27 1 view .LVU26
+  80 0034 0100A0E3 		mov	r0, #1
+  81              	.LVL6:
+  82              	.LBB7:
+  83              	.LBB6:
+  23:main.c        ****       radio_data->multibyte.data[i] = positions[i];
+  84              		.loc 1 23 37 view .LVU27
+  85 0038 0430C2E5 		strb	r3, [r2, #4]
+  22:main.c        ****       radio_data->multibyte.data[i] = positions[i];
+  86              		.loc 1 22 34 is_stmt 1 view .LVU28
+  87              	.LVL7:
+  22:main.c        ****       radio_data->multibyte.data[i] = positions[i];
+  88              		.loc 1 22 17 view .LVU29
+  25:main.c        ****   }
+  89              		.loc 1 25 5 view .LVU30
+  25:main.c        ****   }
+  90              		.loc 1 25 5 is_stmt 0 view .LVU31
+  91 003c 1EFF2FE1 		bx	lr
+  92              	.L4:
+  93              		.align	2
+  94              	.L3:
+  95 0040 00000000 		.word	.LANCHOR0
+  96              	.LBE6:
+  97              	.LBE7:
+  98              		.cfi_endproc
+  99              	.LFE0:
+ 101              		.section	.text.startup,"ax",%progbits
+ 102              		.align	2
+ 103              		.global	main
+ 104              		.syntax unified
+ 105              		.arm
+ 107              	main:
+ 108              	.LFB1:
+  28:main.c        **** 
+  29:main.c        **** int main(void)
+  30:main.c        **** {
+ 109              		.loc 1 30 1 is_stmt 1 view -0
+ 110              		.cfi_startproc
+ 111              		@ Function supports interworking.
+ 112              		@ args = 0, pretend = 0, frame = 0
+ 113              		@ frame_needed = 0, uses_anonymous_args = 0
+  31:main.c        ****   uint8_t i;
+ 114              		.loc 1 31 3 view .LVU33
+  32:main.c        **** 
+  33:main.c        ****   hardware_init();
+ 115              		.loc 1 33 3 view .LVU34
+  30:main.c        ****   uint8_t i;
+ 116              		.loc 1 30 1 is_stmt 0 view .LVU35
+ 117 0000 70402DE9 		push	{r4, r5, r6, lr}
+ 118              	.LCFI0:
+ 119              		.cfi_def_cfa_offset 16
+ 120              		.cfi_offset 4, -16
+ 121              		.cfi_offset 5, -12
+ 122              		.cfi_offset 6, -8
+ 123              		.cfi_offset 14, -4
+ 124              		.loc 1 33 3 view .LVU36
+ 125 0004 FEFFFFEB 		bl	hardware_init
+ 126              	.LVL8:
+  34:main.c        ****   
+  35:main.c        ****   // Changes the color of the led (red) to show the boot
+  36:main.c        ****   set_color_i(4, 0);
+ 127              		.loc 1 36 3 is_stmt 1 view .LVU37
+ 128 0008 0010A0E3 		mov	r1, #0
+ 129 000c 0400A0E3 		mov	r0, #4
+ 130 0010 FEFFFFEB 		bl	set_color_i
+ 131              	.LVL9:
+  37:main.c        **** 
+  38:main.c        ****   // Initialises the body module with the specified address (but do not start
+  39:main.c        ****   // the PD controller so the element can be manually moved)
+  40:main.c        ****   
+  41:main.c        ****   init_body_module(MOTOR_ADDR[0]);
+ 132              		.loc 1 41 3 view .LVU38
+ 133 0014 1500A0E3 		mov	r0, #21
+ 134 0018 FEFFFFEB 		bl	init_body_module
+ 135              	.LVL10:
+  42:main.c        ****   init_body_module(MOTOR_ADDR[1]);
+ 136              		.loc 1 42 3 view .LVU39
+ 137 001c 4800A0E3 		mov	r0, #72
+ 138 0020 FEFFFFEB 		bl	init_body_module
+ 139              	.LVL11:
+  43:main.c        ****   init_limb_module(MOTOR_ADDR[2]);
+ 140              		.loc 1 43 3 view .LVU40
+ 141 0024 4900A0E3 		mov	r0, #73
+ 142 0028 FEFFFFEB 		bl	init_limb_module
+ 143              	.LVL12:
+  44:main.c        ****   init_limb_module(MOTOR_ADDR[3]);
+ 144              		.loc 1 44 3 view .LVU41
+ 145 002c 4A00A0E3 		mov	r0, #74
+ 146 0030 FEFFFFEB 		bl	init_limb_module
+ 147              	.LVL13:
+  45:main.c        **** 
+  46:main.c        ****   radio_add_reg_callback(register_handler);
+ 148              		.loc 1 46 3 view .LVU42
+ 149 0034 40009FE5 		ldr	r0, .L10
+ 150 0038 FEFFFFEB 		bl	radio_add_reg_callback
+ 151              	.LVL14:
+  47:main.c        **** 
+  48:main.c        ****   set_color_i(2,0);
+ 152              		.loc 1 48 3 view .LVU43
+ 153 003c 0010A0E3 		mov	r1, #0
+ 154 0040 0200A0E3 		mov	r0, #2
+ 155 0044 FEFFFFEB 		bl	set_color_i
+ 156              	.LVL15:
+  49:main.c        ****   
+  50:main.c        ****   // Main loop
+  51:main.c        ****   while (1) {
+  52:main.c        **** 
+  53:main.c        ****     for (i=0;i<MOTOR_COUNT;i++){
+  54:main.c        ****       positions[i] = (int8_t) bus_get(MOTOR_ADDR[i],MREG_POSITION);
+ 157              		.loc 1 54 20 is_stmt 0 view .LVU44
+ 158 0048 30609FE5 		ldr	r6, .L10+4
+ 159              	.L7:
+  51:main.c        **** 
+ 160              		.loc 1 51 3 is_stmt 1 view .LVU45
+  53:main.c        ****       positions[i] = (int8_t) bus_get(MOTOR_ADDR[i],MREG_POSITION);
+ 161              		.loc 1 53 5 view .LVU46
+ 162              	.LVL16:
+  53:main.c        ****       positions[i] = (int8_t) bus_get(MOTOR_ADDR[i],MREG_POSITION);
+ 163              		.loc 1 53 14 view .LVU47
+  30:main.c        ****   uint8_t i;
+ 164              		.loc 1 30 1 is_stmt 0 view .LVU48
+ 165 004c 0040A0E3 		mov	r4, #0
+ 166 0050 2C509FE5 		ldr	r5, .L10+8
+ 167              	.LVL17:
+ 168              	.L6:
+ 169              		.loc 1 54 7 is_stmt 1 discriminator 3 view .LVU49
+ 170              		.loc 1 54 31 is_stmt 0 discriminator 3 view .LVU50
+ 171 0054 3010A0E3 		mov	r1, #48
+ 172 0058 0100D5E4 		ldrb	r0, [r5], #1	@ zero_extendqisi2
+ 173 005c FEFFFFEB 		bl	bus_get
+ 174              	.LVL18:
+ 175              		.loc 1 54 22 discriminator 3 view .LVU51
+ 176 0060 000CA0E1 		lsl	r0, r0, #24
+ 177 0064 400CA0E1 		asr	r0, r0, #24
+ 178              		.loc 1 54 20 discriminator 3 view .LVU52
+ 179 0068 0400C6E7 		strb	r0, [r6, r4]
+  53:main.c        ****       positions[i] = (int8_t) bus_get(MOTOR_ADDR[i],MREG_POSITION);
+ 180              		.loc 1 53 28 is_stmt 1 discriminator 3 view .LVU53
+ 181              	.LVL19:
+  53:main.c        ****       positions[i] = (int8_t) bus_get(MOTOR_ADDR[i],MREG_POSITION);
+ 182              		.loc 1 53 14 discriminator 3 view .LVU54
+  53:main.c        ****       positions[i] = (int8_t) bus_get(MOTOR_ADDR[i],MREG_POSITION);
+ 183              		.loc 1 53 5 is_stmt 0 discriminator 3 view .LVU55
+ 184 006c 014084E2 		add	r4, r4, #1
+ 185              	.LVL20:
+  53:main.c        ****       positions[i] = (int8_t) bus_get(MOTOR_ADDR[i],MREG_POSITION);
+ 186              		.loc 1 53 5 discriminator 3 view .LVU56
+ 187 0070 040054E3 		cmp	r4, #4
+ 188 0074 F6FFFF1A 		bne	.L6
+ 189 0078 F3FFFFEA 		b	.L7
+ 190              	.L11:
+ 191              		.align	2
+ 192              	.L10:
+ 193 007c 00000000 		.word	register_handler
+ 194 0080 00000000 		.word	.LANCHOR0
+ 195 0084 00000000 		.word	.LANCHOR1
+ 196              		.cfi_endproc
+ 197              	.LFE1:
+ 199              		.global	MOTOR_ADDR
+ 200              		.global	positions
+ 201              		.section	.rodata
+ 202              		.set	.LANCHOR1,. + 0
+ 205              	MOTOR_ADDR:
+ 206 0000 1548494A 		.ascii	"\025HIJ"
+ 207              		.bss
+ 208              		.set	.LANCHOR0,. + 0
+ 211              	positions:
+ 212 0000 00000000 		.space	4
+ 213              		.text
+ 214              	.Letext0:
+ 215              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 216              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 217              		.file 4 "../firmware/radio.h"
+ 218              		.file 5 "../firmware/hardware.h"
+ 219              		.file 6 "../firmware/robot.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:21     .text:00000000 register_handler
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:95     .text:00000040 $d
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:102    .text.startup:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:107    .text.startup:00000000 main
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:193    .text.startup:0000007c $d
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:205    .rodata:00000000 MOTOR_ADDR
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:211    .bss:00000000 positions
+C:\Users\ishin\AppData\Local\Temp\ccjTludQ.s:212    .bss:00000000 $d
+
+UNDEFINED SYMBOLS
+hardware_init
+set_color_i
+init_body_module
+init_limb_module
+radio_add_reg_callback
+bus_get

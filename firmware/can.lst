@@ -1,0 +1,1198 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"can.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	can_head_init
+  19              		.syntax unified
+  20              		.arm
+  22              	can_head_init:
+  23              	.LFB0:
+  24              		.file 1 "../firmware/can.c"
+   1:../firmware/can.c **** #include "sysTime.h"
+   2:../firmware/can.c **** #include "can.h"
+   3:../firmware/can.c **** #include "utils.h"
+   4:../firmware/can.c **** 
+   5:../firmware/can.c **** void can_head_init()
+   6:../firmware/can.c **** {
+  25              		.loc 1 6 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+   7:../firmware/can.c ****   CANAll_Init(1, 2, 0x00000009);   // Init CAN port 1, IRQ 2, 1 Mbps @ PCLK 30 MHz
+  30              		.loc 1 7 3 view .LVU1
+   6:../firmware/can.c ****   CANAll_Init(1, 2, 0x00000009);   // Init CAN port 1, IRQ 2, 1 Mbps @ PCLK 30 MHz
+  31              		.loc 1 6 1 is_stmt 0 view .LVU2
+  32 0000 10402DE9 		push	{r4, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 8
+  35              		.cfi_offset 4, -8
+  36              		.cfi_offset 14, -4
+  37              		.loc 1 7 3 view .LVU3
+  38 0004 0920A0E3 		mov	r2, #9
+  39 0008 0210A0E3 		mov	r1, #2
+  40 000c 0100A0E3 		mov	r0, #1
+  41 0010 FEFFFFEB 		bl	CANAll_Init
+  42              	.LVL0:
+   8:../firmware/can.c ****   CANAll_SetErrIRQ(3);
+  43              		.loc 1 8 3 is_stmt 1 view .LVU4
+  44 0014 0300A0E3 		mov	r0, #3
+  45 0018 FEFFFFEB 		bl	CANAll_SetErrIRQ
+  46              	.LVL1:
+   9:../firmware/can.c **** }
+  47              		.loc 1 9 1 is_stmt 0 view .LVU5
+  48 001c 1040BDE8 		pop	{r4, lr}
+  49              	.LCFI1:
+  50              		.cfi_restore 14
+  51              		.cfi_restore 4
+  52              		.cfi_def_cfa_offset 0
+  53 0020 1EFF2FE1 		bx	lr
+  54              		.cfi_endproc
+  55              	.LFE0:
+  57              		.align	2
+  58              		.global	set_reg_value_b
+  59              		.syntax unified
+  60              		.arm
+  62              	set_reg_value_b:
+  63              	.LVL2:
+  64              	.LFB1:
+  10:../firmware/can.c **** 
+  11:../firmware/can.c **** uint8_t set_reg_value_b(uint8_t dest, uint8_t reg, uint8_t val)
+  12:../firmware/can.c **** {
+  65              		.loc 1 12 1 is_stmt 1 view -0
+  66              		.cfi_startproc
+  67              		@ Function supports interworking.
+  68              		@ args = 0, pretend = 0, frame = 16
+  69              		@ frame_needed = 0, uses_anonymous_args = 0
+  13:../firmware/can.c ****   CANALL_MSG buf;
+  70              		.loc 1 13 3 view .LVU7
+  14:../firmware/can.c ****   struct can_frame* tx;
+  71              		.loc 1 14 3 view .LVU8
+  15:../firmware/can.c ****   uint8_t cnt = 0;
+  72              		.loc 1 15 3 view .LVU9
+  16:../firmware/can.c **** 
+  17:../firmware/can.c ****   tx = (struct can_frame*) &buf.DatA;
+  73              		.loc 1 17 3 view .LVU10
+  12:../firmware/can.c ****   CANALL_MSG buf;
+  74              		.loc 1 12 1 is_stmt 0 view .LVU11
+  75 0024 1F402DE9 		push	{r0, r1, r2, r3, r4, lr}
+  76              	.LCFI2:
+  77              		.cfi_def_cfa_offset 24
+  78              		.cfi_offset 4, -8
+  79              		.cfi_offset 14, -4
+  80              	.LVL3:
+  18:../firmware/can.c ****   buf.Frame = 0x00040000;   // 4 bytes
+  81              		.loc 1 18 3 is_stmt 1 view .LVU12
+  82              		.loc 1 18 13 is_stmt 0 view .LVU13
+  83 0028 0137A0E3 		mov	r3, #262144
+  15:../firmware/can.c **** 
+  84              		.loc 1 15 11 view .LVU14
+  85 002c 0040A0E3 		mov	r4, #0
+  86              		.loc 1 18 13 view .LVU15
+  87 0030 00308DE5 		str	r3, [sp]
+  19:../firmware/can.c ****   buf.MsgID = dest;
+  88              		.loc 1 19 3 is_stmt 1 view .LVU16
+  20:../firmware/can.c ****   tx->write = 1;
+  89              		.loc 1 20 13 is_stmt 0 view .LVU17
+  90 0034 B830DDE1 		ldrh	r3, [sp, #8]
+  91 0038 E03003E2 		and	r3, r3, #224
+  92 003c 153083E3 		orr	r3, r3, #21
+  19:../firmware/can.c ****   buf.MsgID = dest;
+  93              		.loc 1 19 13 view .LVU18
+  94 0040 04008DE5 		str	r0, [sp, #4]
+  95              		.loc 1 20 3 is_stmt 1 view .LVU19
+  21:../firmware/can.c ****   tx->size = 1;
+  96              		.loc 1 21 3 view .LVU20
+  22:../firmware/can.c ****   tx->reply = 0;
+  97              		.loc 1 22 3 view .LVU21
+  23:../firmware/can.c ****   tx->sendack = 1;
+  98              		.loc 1 23 3 view .LVU22
+  24:../firmware/can.c ****   tx->reg = reg;
+  99              		.loc 1 24 3 view .LVU23
+ 100              		.loc 1 24 11 is_stmt 0 view .LVU24
+ 101 0044 0A10CDE5 		strb	r1, [sp, #10]
+  25:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 102              		.loc 1 25 3 is_stmt 1 view .LVU25
+  20:../firmware/can.c ****   tx->size = 1;
+ 103              		.loc 1 20 13 is_stmt 0 view .LVU26
+ 104 0048 B830CDE1 		strh	r3, [sp, #8]	@ movhi
+  26:../firmware/can.c ****   tx->data[0] = val;
+ 105              		.loc 1 26 3 is_stmt 1 view .LVU27
+ 106              		.loc 1 26 15 is_stmt 0 view .LVU28
+ 107 004c 0B20CDE5 		strb	r2, [sp, #11]
+ 108              	.LVL4:
+ 109              	.L4:
+  27:../firmware/can.c **** 
+  28:../firmware/can.c ****   while (1) {
+ 110              		.loc 1 28 3 is_stmt 1 view .LVU29
+  29:../firmware/can.c ****     if (CANAll_PushMessage(1, &buf)) {
+ 111              		.loc 1 29 5 view .LVU30
+ 112              		.loc 1 29 9 is_stmt 0 view .LVU31
+ 113 0050 0D10A0E1 		mov	r1, sp
+ 114 0054 0100A0E3 		mov	r0, #1
+ 115 0058 FEFFFFEB 		bl	CANAll_PushMessage
+ 116              	.LVL5:
+ 117              		.loc 1 29 8 view .LVU32
+ 118 005c 000050E3 		cmp	r0, #0
+ 119 0060 0700001A 		bne	.L5
+  30:../firmware/can.c ****       while (!CANAll_PullMessage(1, &buf)) {
+  31:../firmware/can.c ****         cnt++;
+  32:../firmware/can.c ****         if (cnt==0x00) return 0;
+  33:../firmware/can.c ****         pause(CAN_TIMEOUT);
+  34:../firmware/can.c ****       }
+  35:../firmware/can.c ****       if (buf.MsgID==(LOCAL_ADDR | 0x100)) break;
+  36:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 120              		.loc 1 36 12 is_stmt 1 view .LVU33
+ 121 0064 7D0FA0E3 		mov	r0, #500
+ 122 0068 FEFFFFEB 		bl	pause
+ 123              	.LVL6:
+ 124 006c F7FFFFEA 		b	.L4
+ 125              	.L8:
+  31:../firmware/can.c ****         if (cnt==0x00) return 0;
+ 126              		.loc 1 31 9 view .LVU34
+  31:../firmware/can.c ****         if (cnt==0x00) return 0;
+ 127              		.loc 1 31 12 is_stmt 0 view .LVU35
+ 128 0070 014084E2 		add	r4, r4, #1
+ 129              	.LVL7:
+  32:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 130              		.loc 1 32 9 is_stmt 1 view .LVU36
+  32:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 131              		.loc 1 32 12 is_stmt 0 view .LVU37
+ 132 0074 FF4014E2 		ands	r4, r4, #255
+ 133              	.LVL8:
+  32:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 134              		.loc 1 32 12 view .LVU38
+ 135 0078 0A00000A 		beq	.L7
+  33:../firmware/can.c ****       }
+ 136              		.loc 1 33 9 is_stmt 1 view .LVU39
+ 137 007c 7D0FA0E3 		mov	r0, #500
+ 138 0080 FEFFFFEB 		bl	pause
+ 139              	.LVL9:
+ 140              	.L5:
+  30:../firmware/can.c ****         cnt++;
+ 141              		.loc 1 30 13 view .LVU40
+  30:../firmware/can.c ****         cnt++;
+ 142              		.loc 1 30 15 is_stmt 0 view .LVU41
+ 143 0084 0D10A0E1 		mov	r1, sp
+ 144 0088 0100A0E3 		mov	r0, #1
+ 145 008c FEFFFFEB 		bl	CANAll_PullMessage
+ 146              	.LVL10:
+  30:../firmware/can.c ****         cnt++;
+ 147              		.loc 1 30 13 view .LVU42
+ 148 0090 000050E3 		cmp	r0, #0
+ 149 0094 F5FFFF0A 		beq	.L8
+  35:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 150              		.loc 1 35 7 is_stmt 1 view .LVU43
+  35:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 151              		.loc 1 35 10 is_stmt 0 view .LVU44
+ 152 0098 04309DE5 		ldr	r3, [sp, #4]
+ 153 009c 010C53E3 		cmp	r3, #256
+ 154 00a0 EAFFFF1A 		bne	.L4
+  37:../firmware/can.c ****   }
+  38:../firmware/can.c ****   return 1;
+ 155              		.loc 1 38 10 view .LVU45
+ 156 00a4 0140A0E3 		mov	r4, #1
+ 157              	.LVL11:
+ 158              	.L7:
+  39:../firmware/can.c **** }
+ 159              		.loc 1 39 1 view .LVU46
+ 160 00a8 0400A0E1 		mov	r0, r4
+ 161 00ac 10D08DE2 		add	sp, sp, #16
+ 162              	.LCFI3:
+ 163              		.cfi_def_cfa_offset 8
+ 164              		@ sp needed
+ 165 00b0 1040BDE8 		pop	{r4, lr}
+ 166              	.LCFI4:
+ 167              		.cfi_restore 14
+ 168              		.cfi_restore 4
+ 169              		.cfi_def_cfa_offset 0
+ 170 00b4 1EFF2FE1 		bx	lr
+ 171              		.cfi_endproc
+ 172              	.LFE1:
+ 174              		.align	2
+ 175              		.global	set_reg_value_w
+ 176              		.syntax unified
+ 177              		.arm
+ 179              	set_reg_value_w:
+ 180              	.LVL12:
+ 181              	.LFB2:
+  40:../firmware/can.c **** 
+  41:../firmware/can.c **** uint8_t set_reg_value_w(uint8_t dest, uint8_t reg, uint16_t val)
+  42:../firmware/can.c **** {
+ 182              		.loc 1 42 1 is_stmt 1 view -0
+ 183              		.cfi_startproc
+ 184              		@ Function supports interworking.
+ 185              		@ args = 0, pretend = 0, frame = 16
+ 186              		@ frame_needed = 0, uses_anonymous_args = 0
+  43:../firmware/can.c ****   CANALL_MSG buf;
+ 187              		.loc 1 43 3 view .LVU48
+  44:../firmware/can.c ****   struct can_frame* tx;
+ 188              		.loc 1 44 3 view .LVU49
+  45:../firmware/can.c ****   uint8_t cnt = 0;
+ 189              		.loc 1 45 3 view .LVU50
+  46:../firmware/can.c **** 
+  47:../firmware/can.c ****   tx = (struct can_frame*) &buf.DatA;
+ 190              		.loc 1 47 3 view .LVU51
+  42:../firmware/can.c ****   CANALL_MSG buf;
+ 191              		.loc 1 42 1 is_stmt 0 view .LVU52
+ 192 00b8 1F402DE9 		push	{r0, r1, r2, r3, r4, lr}
+ 193              	.LCFI5:
+ 194              		.cfi_def_cfa_offset 24
+ 195              		.cfi_offset 4, -8
+ 196              		.cfi_offset 14, -4
+ 197              	.LVL13:
+  48:../firmware/can.c ****   buf.Frame = 0x00050000;   // 5 bytes
+ 198              		.loc 1 48 3 is_stmt 1 view .LVU53
+ 199              		.loc 1 48 13 is_stmt 0 view .LVU54
+ 200 00bc 0538A0E3 		mov	r3, #327680
+ 201 00c0 00308DE5 		str	r3, [sp]
+  49:../firmware/can.c ****   buf.MsgID = dest;
+ 202              		.loc 1 49 3 is_stmt 1 view .LVU55
+  50:../firmware/can.c ****   tx->write = 1;
+ 203              		.loc 1 50 13 is_stmt 0 view .LVU56
+ 204 00c4 B830DDE1 		ldrh	r3, [sp, #8]
+ 205 00c8 E03003E2 		and	r3, r3, #224
+  49:../firmware/can.c ****   buf.MsgID = dest;
+ 206              		.loc 1 49 13 view .LVU57
+ 207 00cc 04008DE5 		str	r0, [sp, #4]
+ 208              		.loc 1 50 3 is_stmt 1 view .LVU58
+  51:../firmware/can.c ****   tx->size = 2;
+ 209              		.loc 1 51 3 view .LVU59
+  52:../firmware/can.c ****   tx->reply = 0;
+ 210              		.loc 1 52 3 view .LVU60
+  53:../firmware/can.c ****   tx->sendack = 1;
+ 211              		.loc 1 53 3 view .LVU61
+  54:../firmware/can.c ****   tx->reg = reg;
+ 212              		.loc 1 54 3 view .LVU62
+ 213              		.loc 1 54 11 is_stmt 0 view .LVU63
+ 214 00d0 0A10CDE5 		strb	r1, [sp, #10]
+  55:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 215              		.loc 1 55 3 is_stmt 1 view .LVU64
+  50:../firmware/can.c ****   tx->size = 2;
+ 216              		.loc 1 50 13 is_stmt 0 view .LVU65
+ 217 00d4 193083E3 		orr	r3, r3, #25
+  56:../firmware/can.c ****   unaligned_write_16(tx->data, val);
+ 218              		.loc 1 56 3 view .LVU66
+ 219 00d8 0210A0E1 		mov	r1, r2
+ 220              	.LVL14:
+ 221              		.loc 1 56 3 view .LVU67
+ 222 00dc 0B008DE2 		add	r0, sp, #11
+  50:../firmware/can.c ****   tx->size = 2;
+ 223              		.loc 1 50 13 view .LVU68
+ 224 00e0 B830CDE1 		strh	r3, [sp, #8]	@ movhi
+ 225              		.loc 1 56 3 is_stmt 1 view .LVU69
+  45:../firmware/can.c **** 
+ 226              		.loc 1 45 11 is_stmt 0 view .LVU70
+ 227 00e4 0040A0E3 		mov	r4, #0
+ 228              		.loc 1 56 3 view .LVU71
+ 229 00e8 FEFFFFEB 		bl	unaligned_write_16
+ 230              	.LVL15:
+ 231              	.L18:
+  57:../firmware/can.c **** 
+  58:../firmware/can.c ****   while (1) {
+ 232              		.loc 1 58 3 is_stmt 1 view .LVU72
+  59:../firmware/can.c ****     if (CANAll_PushMessage(1, &buf)) {
+ 233              		.loc 1 59 5 view .LVU73
+ 234              		.loc 1 59 9 is_stmt 0 view .LVU74
+ 235 00ec 0D10A0E1 		mov	r1, sp
+ 236 00f0 0100A0E3 		mov	r0, #1
+ 237 00f4 FEFFFFEB 		bl	CANAll_PushMessage
+ 238              	.LVL16:
+ 239              		.loc 1 59 8 view .LVU75
+ 240 00f8 000050E3 		cmp	r0, #0
+ 241 00fc 0700001A 		bne	.L19
+  60:../firmware/can.c ****       while (!CANAll_PullMessage(1, &buf)) {
+  61:../firmware/can.c ****         cnt++;
+  62:../firmware/can.c ****         if (cnt==0x00) return 0;
+  63:../firmware/can.c ****         pause(CAN_TIMEOUT);
+  64:../firmware/can.c ****       }
+  65:../firmware/can.c ****       if (buf.MsgID==(LOCAL_ADDR | 0x100)) break;
+  66:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 242              		.loc 1 66 12 is_stmt 1 view .LVU76
+ 243 0100 7D0FA0E3 		mov	r0, #500
+ 244 0104 FEFFFFEB 		bl	pause
+ 245              	.LVL17:
+ 246 0108 F7FFFFEA 		b	.L18
+ 247              	.L22:
+  61:../firmware/can.c ****         if (cnt==0x00) return 0;
+ 248              		.loc 1 61 9 view .LVU77
+  61:../firmware/can.c ****         if (cnt==0x00) return 0;
+ 249              		.loc 1 61 12 is_stmt 0 view .LVU78
+ 250 010c 014084E2 		add	r4, r4, #1
+ 251              	.LVL18:
+  62:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 252              		.loc 1 62 9 is_stmt 1 view .LVU79
+  62:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 253              		.loc 1 62 12 is_stmt 0 view .LVU80
+ 254 0110 FF4014E2 		ands	r4, r4, #255
+ 255              	.LVL19:
+  62:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 256              		.loc 1 62 12 view .LVU81
+ 257 0114 0A00000A 		beq	.L21
+  63:../firmware/can.c ****       }
+ 258              		.loc 1 63 9 is_stmt 1 view .LVU82
+ 259 0118 7D0FA0E3 		mov	r0, #500
+ 260 011c FEFFFFEB 		bl	pause
+ 261              	.LVL20:
+ 262              	.L19:
+  60:../firmware/can.c ****         cnt++;
+ 263              		.loc 1 60 13 view .LVU83
+  60:../firmware/can.c ****         cnt++;
+ 264              		.loc 1 60 15 is_stmt 0 view .LVU84
+ 265 0120 0D10A0E1 		mov	r1, sp
+ 266 0124 0100A0E3 		mov	r0, #1
+ 267 0128 FEFFFFEB 		bl	CANAll_PullMessage
+ 268              	.LVL21:
+  60:../firmware/can.c ****         cnt++;
+ 269              		.loc 1 60 13 view .LVU85
+ 270 012c 000050E3 		cmp	r0, #0
+ 271 0130 F5FFFF0A 		beq	.L22
+  65:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 272              		.loc 1 65 7 is_stmt 1 view .LVU86
+  65:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 273              		.loc 1 65 10 is_stmt 0 view .LVU87
+ 274 0134 04309DE5 		ldr	r3, [sp, #4]
+ 275 0138 010C53E3 		cmp	r3, #256
+ 276 013c EAFFFF1A 		bne	.L18
+  67:../firmware/can.c ****   }
+  68:../firmware/can.c ****   return 1;
+ 277              		.loc 1 68 10 view .LVU88
+ 278 0140 0140A0E3 		mov	r4, #1
+ 279              	.LVL22:
+ 280              	.L21:
+  69:../firmware/can.c **** }
+ 281              		.loc 1 69 1 view .LVU89
+ 282 0144 0400A0E1 		mov	r0, r4
+ 283 0148 10D08DE2 		add	sp, sp, #16
+ 284              	.LCFI6:
+ 285              		.cfi_def_cfa_offset 8
+ 286              		@ sp needed
+ 287 014c 1040BDE8 		pop	{r4, lr}
+ 288              	.LCFI7:
+ 289              		.cfi_restore 14
+ 290              		.cfi_restore 4
+ 291              		.cfi_def_cfa_offset 0
+ 292 0150 1EFF2FE1 		bx	lr
+ 293              		.cfi_endproc
+ 294              	.LFE2:
+ 296              		.align	2
+ 297              		.global	set_reg_value_dw
+ 298              		.syntax unified
+ 299              		.arm
+ 301              	set_reg_value_dw:
+ 302              	.LVL23:
+ 303              	.LFB3:
+  70:../firmware/can.c **** 
+  71:../firmware/can.c **** uint8_t set_reg_value_dw(uint8_t dest, uint8_t reg, uint32_t val)
+  72:../firmware/can.c **** {
+ 304              		.loc 1 72 1 is_stmt 1 view -0
+ 305              		.cfi_startproc
+ 306              		@ Function supports interworking.
+ 307              		@ args = 0, pretend = 0, frame = 16
+ 308              		@ frame_needed = 0, uses_anonymous_args = 0
+  73:../firmware/can.c ****   CANALL_MSG buf;
+ 309              		.loc 1 73 3 view .LVU91
+  74:../firmware/can.c ****   struct can_frame* tx;
+ 310              		.loc 1 74 3 view .LVU92
+  75:../firmware/can.c ****   uint8_t cnt = 0;
+ 311              		.loc 1 75 3 view .LVU93
+  76:../firmware/can.c **** 
+  77:../firmware/can.c ****   tx = (struct can_frame*) &buf.DatA;
+ 312              		.loc 1 77 3 view .LVU94
+  72:../firmware/can.c ****   CANALL_MSG buf;
+ 313              		.loc 1 72 1 is_stmt 0 view .LVU95
+ 314 0154 1F402DE9 		push	{r0, r1, r2, r3, r4, lr}
+ 315              	.LCFI8:
+ 316              		.cfi_def_cfa_offset 24
+ 317              		.cfi_offset 4, -8
+ 318              		.cfi_offset 14, -4
+ 319              	.LVL24:
+  78:../firmware/can.c ****   buf.Frame = 0x00070000;   // 7 bytes
+ 320              		.loc 1 78 3 is_stmt 1 view .LVU96
+ 321              		.loc 1 78 13 is_stmt 0 view .LVU97
+ 322 0158 0738A0E3 		mov	r3, #458752
+ 323 015c 00308DE5 		str	r3, [sp]
+  79:../firmware/can.c ****   buf.MsgID = dest;
+ 324              		.loc 1 79 3 is_stmt 1 view .LVU98
+  80:../firmware/can.c ****   tx->write = 1;
+ 325              		.loc 1 80 13 is_stmt 0 view .LVU99
+ 326 0160 B830DDE1 		ldrh	r3, [sp, #8]
+ 327 0164 E03003E2 		and	r3, r3, #224
+  79:../firmware/can.c ****   buf.MsgID = dest;
+ 328              		.loc 1 79 13 view .LVU100
+ 329 0168 04008DE5 		str	r0, [sp, #4]
+ 330              		.loc 1 80 3 is_stmt 1 view .LVU101
+  81:../firmware/can.c ****   tx->size = 3;
+ 331              		.loc 1 81 3 view .LVU102
+  82:../firmware/can.c ****   tx->reply = 0;
+ 332              		.loc 1 82 3 view .LVU103
+  83:../firmware/can.c ****   tx->sendack = 1;
+ 333              		.loc 1 83 3 view .LVU104
+  84:../firmware/can.c ****   tx->reg = reg;
+ 334              		.loc 1 84 3 view .LVU105
+ 335              		.loc 1 84 11 is_stmt 0 view .LVU106
+ 336 016c 0A10CDE5 		strb	r1, [sp, #10]
+  85:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 337              		.loc 1 85 3 is_stmt 1 view .LVU107
+  80:../firmware/can.c ****   tx->size = 3;
+ 338              		.loc 1 80 13 is_stmt 0 view .LVU108
+ 339 0170 1D3083E3 		orr	r3, r3, #29
+  86:../firmware/can.c ****   unaligned_write_32(tx->data, val);
+ 340              		.loc 1 86 3 view .LVU109
+ 341 0174 0210A0E1 		mov	r1, r2
+ 342              	.LVL25:
+ 343              		.loc 1 86 3 view .LVU110
+ 344 0178 0B008DE2 		add	r0, sp, #11
+  80:../firmware/can.c ****   tx->size = 3;
+ 345              		.loc 1 80 13 view .LVU111
+ 346 017c B830CDE1 		strh	r3, [sp, #8]	@ movhi
+ 347              		.loc 1 86 3 is_stmt 1 view .LVU112
+  75:../firmware/can.c **** 
+ 348              		.loc 1 75 11 is_stmt 0 view .LVU113
+ 349 0180 0040A0E3 		mov	r4, #0
+ 350              		.loc 1 86 3 view .LVU114
+ 351 0184 FEFFFFEB 		bl	unaligned_write_32
+ 352              	.LVL26:
+ 353              	.L32:
+  87:../firmware/can.c **** 
+  88:../firmware/can.c ****   while (1) {
+ 354              		.loc 1 88 3 is_stmt 1 view .LVU115
+  89:../firmware/can.c ****     if (CANAll_PushMessage(1, &buf)) {
+ 355              		.loc 1 89 5 view .LVU116
+ 356              		.loc 1 89 9 is_stmt 0 view .LVU117
+ 357 0188 0D10A0E1 		mov	r1, sp
+ 358 018c 0100A0E3 		mov	r0, #1
+ 359 0190 FEFFFFEB 		bl	CANAll_PushMessage
+ 360              	.LVL27:
+ 361              		.loc 1 89 8 view .LVU118
+ 362 0194 000050E3 		cmp	r0, #0
+ 363 0198 0700001A 		bne	.L33
+  90:../firmware/can.c ****       while (!CANAll_PullMessage(1, &buf)) {
+  91:../firmware/can.c ****         cnt++;
+  92:../firmware/can.c ****         if (cnt==0x00) return 0;
+  93:../firmware/can.c ****         pause(CAN_TIMEOUT);
+  94:../firmware/can.c ****       }
+  95:../firmware/can.c ****       if (buf.MsgID==(LOCAL_ADDR | 0x100)) break;
+  96:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 364              		.loc 1 96 12 is_stmt 1 view .LVU119
+ 365 019c 7D0FA0E3 		mov	r0, #500
+ 366 01a0 FEFFFFEB 		bl	pause
+ 367              	.LVL28:
+ 368 01a4 F7FFFFEA 		b	.L32
+ 369              	.L36:
+  91:../firmware/can.c ****         if (cnt==0x00) return 0;
+ 370              		.loc 1 91 9 view .LVU120
+  91:../firmware/can.c ****         if (cnt==0x00) return 0;
+ 371              		.loc 1 91 12 is_stmt 0 view .LVU121
+ 372 01a8 014084E2 		add	r4, r4, #1
+ 373              	.LVL29:
+  92:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 374              		.loc 1 92 9 is_stmt 1 view .LVU122
+  92:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 375              		.loc 1 92 12 is_stmt 0 view .LVU123
+ 376 01ac FF4014E2 		ands	r4, r4, #255
+ 377              	.LVL30:
+  92:../firmware/can.c ****         pause(CAN_TIMEOUT);
+ 378              		.loc 1 92 12 view .LVU124
+ 379 01b0 0A00000A 		beq	.L35
+  93:../firmware/can.c ****       }
+ 380              		.loc 1 93 9 is_stmt 1 view .LVU125
+ 381 01b4 7D0FA0E3 		mov	r0, #500
+ 382 01b8 FEFFFFEB 		bl	pause
+ 383              	.LVL31:
+ 384              	.L33:
+  90:../firmware/can.c ****         cnt++;
+ 385              		.loc 1 90 13 view .LVU126
+  90:../firmware/can.c ****         cnt++;
+ 386              		.loc 1 90 15 is_stmt 0 view .LVU127
+ 387 01bc 0D10A0E1 		mov	r1, sp
+ 388 01c0 0100A0E3 		mov	r0, #1
+ 389 01c4 FEFFFFEB 		bl	CANAll_PullMessage
+ 390              	.LVL32:
+  90:../firmware/can.c ****         cnt++;
+ 391              		.loc 1 90 13 view .LVU128
+ 392 01c8 000050E3 		cmp	r0, #0
+ 393 01cc F5FFFF0A 		beq	.L36
+  95:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 394              		.loc 1 95 7 is_stmt 1 view .LVU129
+  95:../firmware/can.c ****     } else pause(CAN_TIMEOUT);
+ 395              		.loc 1 95 10 is_stmt 0 view .LVU130
+ 396 01d0 04309DE5 		ldr	r3, [sp, #4]
+ 397 01d4 010C53E3 		cmp	r3, #256
+ 398 01d8 EAFFFF1A 		bne	.L32
+  97:../firmware/can.c ****   }
+  98:../firmware/can.c ****   return 1;
+ 399              		.loc 1 98 10 view .LVU131
+ 400 01dc 0140A0E3 		mov	r4, #1
+ 401              	.LVL33:
+ 402              	.L35:
+  99:../firmware/can.c **** }
+ 403              		.loc 1 99 1 view .LVU132
+ 404 01e0 0400A0E1 		mov	r0, r4
+ 405 01e4 10D08DE2 		add	sp, sp, #16
+ 406              	.LCFI9:
+ 407              		.cfi_def_cfa_offset 8
+ 408              		@ sp needed
+ 409 01e8 1040BDE8 		pop	{r4, lr}
+ 410              	.LCFI10:
+ 411              		.cfi_restore 14
+ 412              		.cfi_restore 4
+ 413              		.cfi_def_cfa_offset 0
+ 414 01ec 1EFF2FE1 		bx	lr
+ 415              		.cfi_endproc
+ 416              	.LFE3:
+ 418              		.align	2
+ 419              		.global	get_reg_value_b
+ 420              		.syntax unified
+ 421              		.arm
+ 423              	get_reg_value_b:
+ 424              	.LVL34:
+ 425              	.LFB4:
+ 100:../firmware/can.c **** 
+ 101:../firmware/can.c **** uint8_t get_reg_value_b(uint8_t dest, uint8_t reg)
+ 102:../firmware/can.c **** {
+ 426              		.loc 1 102 1 is_stmt 1 view -0
+ 427              		.cfi_startproc
+ 428              		@ Function supports interworking.
+ 429              		@ args = 0, pretend = 0, frame = 16
+ 430              		@ frame_needed = 0, uses_anonymous_args = 0
+ 103:../firmware/can.c ****   CANALL_MSG buf;
+ 431              		.loc 1 103 3 view .LVU134
+ 104:../firmware/can.c ****   struct can_frame *tx;
+ 432              		.loc 1 104 3 view .LVU135
+ 105:../firmware/can.c ****   struct can_frame_b *rx;
+ 433              		.loc 1 105 3 view .LVU136
+ 106:../firmware/can.c ****   uint8_t cnt = 0;
+ 434              		.loc 1 106 3 view .LVU137
+ 107:../firmware/can.c **** 
+ 108:../firmware/can.c ****   tx = (struct can_frame*) &buf.DatA;
+ 435              		.loc 1 108 3 view .LVU138
+ 102:../firmware/can.c ****   CANALL_MSG buf;
+ 436              		.loc 1 102 1 is_stmt 0 view .LVU139
+ 437 01f0 1F402DE9 		push	{r0, r1, r2, r3, r4, lr}
+ 438              	.LCFI11:
+ 439              		.cfi_def_cfa_offset 24
+ 440              		.cfi_offset 4, -8
+ 441              		.cfi_offset 14, -4
+ 442              	.LVL35:
+ 109:../firmware/can.c ****   rx = (struct can_frame_b *)tx;
+ 443              		.loc 1 109 3 is_stmt 1 view .LVU140
+ 110:../firmware/can.c ****   buf.Frame = 0x00030000;   // 3 bytes
+ 444              		.loc 1 110 3 view .LVU141
+ 445              		.loc 1 110 13 is_stmt 0 view .LVU142
+ 446 01f4 0338A0E3 		mov	r3, #196608
+ 111:../firmware/can.c ****   buf.MsgID = dest;
+ 112:../firmware/can.c ****   tx->write = 0;
+ 113:../firmware/can.c ****   tx->size = 1;
+ 114:../firmware/can.c ****   tx->reply = 0;
+ 115:../firmware/can.c ****   tx->reg = reg;
+ 116:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 117:../firmware/can.c **** 
+ 118:../firmware/can.c ****   while (!CANAll_PushMessage(1, &buf)) {
+ 447              		.loc 1 118 9 view .LVU143
+ 448 01f8 0040A0E3 		mov	r4, #0
+ 110:../firmware/can.c ****   buf.Frame = 0x00030000;   // 3 bytes
+ 449              		.loc 1 110 13 view .LVU144
+ 450 01fc 00308DE5 		str	r3, [sp]
+ 111:../firmware/can.c ****   buf.MsgID = dest;
+ 451              		.loc 1 111 3 is_stmt 1 view .LVU145
+ 112:../firmware/can.c ****   tx->size = 1;
+ 452              		.loc 1 112 13 is_stmt 0 view .LVU146
+ 453 0200 B830DDE1 		ldrh	r3, [sp, #8]
+ 454 0204 F03003E2 		and	r3, r3, #240
+ 455 0208 043083E3 		orr	r3, r3, #4
+ 111:../firmware/can.c ****   buf.MsgID = dest;
+ 456              		.loc 1 111 13 view .LVU147
+ 457 020c 04008DE5 		str	r0, [sp, #4]
+ 112:../firmware/can.c ****   tx->size = 1;
+ 458              		.loc 1 112 3 is_stmt 1 view .LVU148
+ 113:../firmware/can.c ****   tx->reply = 0;
+ 459              		.loc 1 113 3 view .LVU149
+ 114:../firmware/can.c ****   tx->reg = reg;
+ 460              		.loc 1 114 3 view .LVU150
+ 115:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 461              		.loc 1 115 3 view .LVU151
+ 115:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 462              		.loc 1 115 11 is_stmt 0 view .LVU152
+ 463 0210 0A10CDE5 		strb	r1, [sp, #10]
+ 116:../firmware/can.c **** 
+ 464              		.loc 1 116 3 is_stmt 1 view .LVU153
+ 112:../firmware/can.c ****   tx->size = 1;
+ 465              		.loc 1 112 13 is_stmt 0 view .LVU154
+ 466 0214 B830CDE1 		strh	r3, [sp, #8]	@ movhi
+ 467              		.loc 1 118 3 is_stmt 1 view .LVU155
+ 468              	.LVL36:
+ 469              	.L46:
+ 470              		.loc 1 118 9 view .LVU156
+ 471              		.loc 1 118 11 is_stmt 0 view .LVU157
+ 472 0218 0D10A0E1 		mov	r1, sp
+ 473 021c 0100A0E3 		mov	r0, #1
+ 474 0220 FEFFFFEB 		bl	CANAll_PushMessage
+ 475              	.LVL37:
+ 476              		.loc 1 118 9 view .LVU158
+ 477 0224 000050E3 		cmp	r0, #0
+ 478 0228 0A00000A 		beq	.L49
+ 119:../firmware/can.c ****     cnt++;
+ 120:../firmware/can.c ****     if (cnt == 0x00) return 0xFF;
+ 121:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 122:../firmware/can.c ****   }
+ 123:../firmware/can.c ****   
+ 124:../firmware/can.c ****   cnt = 0;
+ 479              		.loc 1 124 7 view .LVU159
+ 480 022c 0040A0E3 		mov	r4, #0
+ 481              	.LVL38:
+ 482              	.L50:
+ 125:../firmware/can.c **** 
+ 126:../firmware/can.c ****   do {
+ 127:../firmware/can.c ****     while (!CANAll_PullMessage(1, &buf)) {
+ 483              		.loc 1 127 11 is_stmt 1 view .LVU160
+ 484              		.loc 1 127 13 is_stmt 0 view .LVU161
+ 485 0230 0D10A0E1 		mov	r1, sp
+ 486 0234 0100A0E3 		mov	r0, #1
+ 487 0238 FEFFFFEB 		bl	CANAll_PullMessage
+ 488              	.LVL39:
+ 489              		.loc 1 127 11 view .LVU162
+ 490 023c 000050E3 		cmp	r0, #0
+ 491 0240 0E00000A 		beq	.L52
+ 128:../firmware/can.c ****       cnt++;
+ 129:../firmware/can.c ****       if (cnt==0x00) return 0xFF;
+ 130:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 131:../firmware/can.c ****     }
+ 132:../firmware/can.c ****   } while (!rx->reply);
+ 492              		.loc 1 132 11 is_stmt 1 view .LVU163
+ 493              		.loc 1 132 12 is_stmt 0 view .LVU164
+ 494 0244 0830DDE5 		ldrb	r3, [sp, #8]	@ zero_extendqisi2
+ 495              		.loc 1 132 3 view .LVU165
+ 496 0248 020013E3 		tst	r3, #2
+ 497 024c F7FFFF0A 		beq	.L50
+ 133:../firmware/can.c ****   return rx->data[0];
+ 498              		.loc 1 133 3 is_stmt 1 view .LVU166
+ 499              		.loc 1 133 18 is_stmt 0 view .LVU167
+ 500 0250 0900DDE5 		ldrb	r0, [sp, #9]	@ zero_extendqisi2
+ 501 0254 030000EA 		b	.L48
+ 502              	.L49:
+ 119:../firmware/can.c ****     if (cnt == 0x00) return 0xFF;
+ 503              		.loc 1 119 5 is_stmt 1 view .LVU168
+ 504              	.LVL40:
+ 120:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 505              		.loc 1 120 5 view .LVU169
+ 120:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 506              		.loc 1 120 8 is_stmt 0 view .LVU170
+ 507 0258 014084E2 		add	r4, r4, #1
+ 508              	.LVL41:
+ 120:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 509              		.loc 1 120 8 view .LVU171
+ 510 025c 010C54E3 		cmp	r4, #256
+ 511 0260 0300001A 		bne	.L47
+ 512              	.L51:
+ 120:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 513              		.loc 1 120 29 view .LVU172
+ 514 0264 FF00A0E3 		mov	r0, #255
+ 515              	.L48:
+ 134:../firmware/can.c **** }
+ 516              		.loc 1 134 1 view .LVU173
+ 517 0268 10D08DE2 		add	sp, sp, #16
+ 518              	.LCFI12:
+ 519              		.cfi_remember_state
+ 520              		.cfi_def_cfa_offset 8
+ 521              		@ sp needed
+ 522 026c 1040BDE8 		pop	{r4, lr}
+ 523              	.LCFI13:
+ 524              		.cfi_restore 14
+ 525              		.cfi_restore 4
+ 526              		.cfi_def_cfa_offset 0
+ 527 0270 1EFF2FE1 		bx	lr
+ 528              	.L47:
+ 529              	.LCFI14:
+ 530              		.cfi_restore_state
+ 531              	.LVL42:
+ 121:../firmware/can.c ****   }
+ 532              		.loc 1 121 5 is_stmt 1 view .LVU174
+ 533 0274 7D0FA0E3 		mov	r0, #500
+ 534 0278 FEFFFFEB 		bl	pause
+ 535              	.LVL43:
+ 536 027c E5FFFFEA 		b	.L46
+ 537              	.LVL44:
+ 538              	.L52:
+ 128:../firmware/can.c ****       if (cnt==0x00) return 0xFF;
+ 539              		.loc 1 128 7 view .LVU175
+ 128:../firmware/can.c ****       if (cnt==0x00) return 0xFF;
+ 540              		.loc 1 128 10 is_stmt 0 view .LVU176
+ 541 0280 014084E2 		add	r4, r4, #1
+ 542              	.LVL45:
+ 129:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 543              		.loc 1 129 7 is_stmt 1 view .LVU177
+ 129:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 544              		.loc 1 129 10 is_stmt 0 view .LVU178
+ 545 0284 FF4014E2 		ands	r4, r4, #255
+ 546              	.LVL46:
+ 129:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 547              		.loc 1 129 10 view .LVU179
+ 548 0288 F5FFFF0A 		beq	.L51
+ 549              	.LVL47:
+ 130:../firmware/can.c ****     }
+ 550              		.loc 1 130 7 is_stmt 1 view .LVU180
+ 551 028c 7D0FA0E3 		mov	r0, #500
+ 552 0290 FEFFFFEB 		bl	pause
+ 553              	.LVL48:
+ 554 0294 E5FFFFEA 		b	.L50
+ 555              		.cfi_endproc
+ 556              	.LFE4:
+ 558              		.align	2
+ 559              		.global	get_reg_value_w
+ 560              		.syntax unified
+ 561              		.arm
+ 563              	get_reg_value_w:
+ 564              	.LVL49:
+ 565              	.LFB5:
+ 135:../firmware/can.c **** 
+ 136:../firmware/can.c **** uint16_t get_reg_value_w(uint8_t dest, uint8_t reg)
+ 137:../firmware/can.c **** {
+ 566              		.loc 1 137 1 view -0
+ 567              		.cfi_startproc
+ 568              		@ Function supports interworking.
+ 569              		@ args = 0, pretend = 0, frame = 16
+ 570              		@ frame_needed = 0, uses_anonymous_args = 0
+ 138:../firmware/can.c ****   CANALL_MSG buf;
+ 571              		.loc 1 138 3 view .LVU182
+ 139:../firmware/can.c ****   struct can_frame *tx;
+ 572              		.loc 1 139 3 view .LVU183
+ 140:../firmware/can.c ****   struct can_frame_b *rx;
+ 573              		.loc 1 140 3 view .LVU184
+ 141:../firmware/can.c ****   uint8_t cnt = 0;
+ 574              		.loc 1 141 3 view .LVU185
+ 142:../firmware/can.c **** 
+ 143:../firmware/can.c ****   tx = (struct can_frame*) &buf.DatA;
+ 575              		.loc 1 143 3 view .LVU186
+ 144:../firmware/can.c ****   rx = (struct can_frame_b*) tx;
+ 145:../firmware/can.c ****   buf.Frame = 0x00030000;   // 3 bytes
+ 576              		.loc 1 145 13 is_stmt 0 view .LVU187
+ 577 0298 0338A0E3 		mov	r3, #196608
+ 137:../firmware/can.c ****   CANALL_MSG buf;
+ 578              		.loc 1 137 1 view .LVU188
+ 579 029c 30402DE9 		push	{r4, r5, lr}
+ 580              	.LCFI15:
+ 581              		.cfi_def_cfa_offset 12
+ 582              		.cfi_offset 4, -12
+ 583              		.cfi_offset 5, -8
+ 584              		.cfi_offset 14, -4
+ 146:../firmware/can.c ****   buf.MsgID = dest;
+ 147:../firmware/can.c ****   tx->write = 0;
+ 148:../firmware/can.c ****   tx->size = 2;
+ 149:../firmware/can.c ****   tx->reply = 0;
+ 150:../firmware/can.c ****   tx->reg = reg;
+ 151:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 152:../firmware/can.c **** 
+ 153:../firmware/can.c **** 
+ 154:../firmware/can.c ****   while (!CANAll_PushMessage(1, &buf)) {
+ 585              		.loc 1 154 9 view .LVU189
+ 586 02a0 0050A0E3 		mov	r5, #0
+ 137:../firmware/can.c ****   CANALL_MSG buf;
+ 587              		.loc 1 137 1 view .LVU190
+ 588 02a4 14D04DE2 		sub	sp, sp, #20
+ 589              	.LCFI16:
+ 590              		.cfi_def_cfa_offset 32
+ 591              	.LVL50:
+ 144:../firmware/can.c ****   buf.Frame = 0x00030000;   // 3 bytes
+ 592              		.loc 1 144 3 is_stmt 1 view .LVU191
+ 145:../firmware/can.c ****   buf.MsgID = dest;
+ 593              		.loc 1 145 3 view .LVU192
+ 145:../firmware/can.c ****   buf.MsgID = dest;
+ 594              		.loc 1 145 13 is_stmt 0 view .LVU193
+ 595 02a8 00308DE5 		str	r3, [sp]
+ 146:../firmware/can.c ****   buf.MsgID = dest;
+ 596              		.loc 1 146 3 is_stmt 1 view .LVU194
+ 147:../firmware/can.c ****   tx->size = 2;
+ 597              		.loc 1 147 13 is_stmt 0 view .LVU195
+ 598 02ac B830DDE1 		ldrh	r3, [sp, #8]
+ 599 02b0 F03003E2 		and	r3, r3, #240
+ 600 02b4 083083E3 		orr	r3, r3, #8
+ 146:../firmware/can.c ****   tx->write = 0;
+ 601              		.loc 1 146 13 view .LVU196
+ 602 02b8 04008DE5 		str	r0, [sp, #4]
+ 147:../firmware/can.c ****   tx->size = 2;
+ 603              		.loc 1 147 3 is_stmt 1 view .LVU197
+ 148:../firmware/can.c ****   tx->reply = 0;
+ 604              		.loc 1 148 3 view .LVU198
+ 149:../firmware/can.c ****   tx->reg = reg;
+ 605              		.loc 1 149 3 view .LVU199
+ 150:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 606              		.loc 1 150 3 view .LVU200
+ 150:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 607              		.loc 1 150 11 is_stmt 0 view .LVU201
+ 608 02bc 0A10CDE5 		strb	r1, [sp, #10]
+ 151:../firmware/can.c **** 
+ 609              		.loc 1 151 3 is_stmt 1 view .LVU202
+ 147:../firmware/can.c ****   tx->size = 2;
+ 610              		.loc 1 147 13 is_stmt 0 view .LVU203
+ 611 02c0 B830CDE1 		strh	r3, [sp, #8]	@ movhi
+ 612              		.loc 1 154 3 is_stmt 1 view .LVU204
+ 613              	.LVL51:
+ 614              	.L62:
+ 615              		.loc 1 154 11 is_stmt 0 view .LVU205
+ 616 02c4 0D10A0E1 		mov	r1, sp
+ 617 02c8 0100A0E3 		mov	r0, #1
+ 618 02cc FEFFFFEB 		bl	CANAll_PushMessage
+ 619              	.LVL52:
+ 620              		.loc 1 154 9 view .LVU206
+ 621 02d0 000050E3 		cmp	r0, #0
+ 622 02d4 FF4005E2 		and	r4, r5, #255
+ 623              	.LVL53:
+ 624              		.loc 1 154 9 is_stmt 1 view .LVU207
+ 625 02d8 0A00000A 		beq	.L65
+ 626              	.LVL54:
+ 627              	.L66:
+ 155:../firmware/can.c ****     cnt++;
+ 156:../firmware/can.c ****     if (cnt == 0x00) return 0xFFFF;
+ 157:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 158:../firmware/can.c ****   }
+ 159:../firmware/can.c **** 
+ 160:../firmware/can.c ****   do {
+ 161:../firmware/can.c ****     while (!CANAll_PullMessage(1, &buf)) {
+ 628              		.loc 1 161 11 view .LVU208
+ 629              		.loc 1 161 13 is_stmt 0 view .LVU209
+ 630 02dc 0D10A0E1 		mov	r1, sp
+ 631 02e0 0100A0E3 		mov	r0, #1
+ 632 02e4 FEFFFFEB 		bl	CANAll_PullMessage
+ 633              	.LVL55:
+ 634              		.loc 1 161 11 view .LVU210
+ 635 02e8 000050E3 		cmp	r0, #0
+ 636 02ec 0F00000A 		beq	.L68
+ 162:../firmware/can.c ****       cnt++;
+ 163:../firmware/can.c ****       if (cnt==0x00) return 0xFFFF;
+ 164:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 165:../firmware/can.c ****     }
+ 166:../firmware/can.c ****   } while (!rx->reply);
+ 637              		.loc 1 166 11 is_stmt 1 view .LVU211
+ 638              		.loc 1 166 12 is_stmt 0 view .LVU212
+ 639 02f0 0830DDE5 		ldrb	r3, [sp, #8]	@ zero_extendqisi2
+ 640              		.loc 1 166 3 view .LVU213
+ 641 02f4 020013E3 		tst	r3, #2
+ 642 02f8 F7FFFF0A 		beq	.L66
+ 167:../firmware/can.c ****   return unaligned_read_16(rx->data);
+ 643              		.loc 1 167 3 is_stmt 1 view .LVU214
+ 644              		.loc 1 167 10 is_stmt 0 view .LVU215
+ 645 02fc 09008DE2 		add	r0, sp, #9
+ 646 0300 FEFFFFEB 		bl	unaligned_read_16
+ 647              	.LVL56:
+ 648 0304 030000EA 		b	.L64
+ 649              	.L65:
+ 155:../firmware/can.c ****     cnt++;
+ 650              		.loc 1 155 5 is_stmt 1 view .LVU216
+ 651              	.LVL57:
+ 156:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 652              		.loc 1 156 5 view .LVU217
+ 156:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 653              		.loc 1 156 8 is_stmt 0 view .LVU218
+ 654 0308 015085E2 		add	r5, r5, #1
+ 655              	.LVL58:
+ 156:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 656              		.loc 1 156 8 view .LVU219
+ 657 030c 010C55E3 		cmp	r5, #256
+ 658 0310 0300001A 		bne	.L63
+ 659              	.L67:
+ 156:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 660              		.loc 1 156 29 view .LVU220
+ 661 0314 2C009FE5 		ldr	r0, .L77
+ 662              	.L64:
+ 168:../firmware/can.c **** }
+ 663              		.loc 1 168 1 view .LVU221
+ 664 0318 14D08DE2 		add	sp, sp, #20
+ 665              	.LCFI17:
+ 666              		.cfi_remember_state
+ 667              		.cfi_def_cfa_offset 12
+ 668              		@ sp needed
+ 669 031c 3040BDE8 		pop	{r4, r5, lr}
+ 670              	.LCFI18:
+ 671              		.cfi_restore 14
+ 672              		.cfi_restore 5
+ 673              		.cfi_restore 4
+ 674              		.cfi_def_cfa_offset 0
+ 675 0320 1EFF2FE1 		bx	lr
+ 676              	.L63:
+ 677              	.LCFI19:
+ 678              		.cfi_restore_state
+ 679              	.LVL59:
+ 157:../firmware/can.c ****   }
+ 680              		.loc 1 157 5 is_stmt 1 view .LVU222
+ 681 0324 7D0FA0E3 		mov	r0, #500
+ 682 0328 FEFFFFEB 		bl	pause
+ 683              	.LVL60:
+ 684 032c E4FFFFEA 		b	.L62
+ 685              	.LVL61:
+ 686              	.L68:
+ 162:../firmware/can.c ****       if (cnt==0x00) return 0xFFFF;
+ 687              		.loc 1 162 7 view .LVU223
+ 162:../firmware/can.c ****       if (cnt==0x00) return 0xFFFF;
+ 688              		.loc 1 162 10 is_stmt 0 view .LVU224
+ 689 0330 014084E2 		add	r4, r4, #1
+ 690              	.LVL62:
+ 163:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 691              		.loc 1 163 7 is_stmt 1 view .LVU225
+ 163:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 692              		.loc 1 163 10 is_stmt 0 view .LVU226
+ 693 0334 FF4014E2 		ands	r4, r4, #255
+ 694              	.LVL63:
+ 163:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 695              		.loc 1 163 10 view .LVU227
+ 696 0338 F5FFFF0A 		beq	.L67
+ 164:../firmware/can.c ****     }
+ 697              		.loc 1 164 7 is_stmt 1 view .LVU228
+ 698 033c 7D0FA0E3 		mov	r0, #500
+ 699 0340 FEFFFFEB 		bl	pause
+ 700              	.LVL64:
+ 701 0344 E4FFFFEA 		b	.L66
+ 702              	.L78:
+ 703              		.align	2
+ 704              	.L77:
+ 705 0348 FFFF0000 		.word	65535
+ 706              		.cfi_endproc
+ 707              	.LFE5:
+ 709              		.align	2
+ 710              		.global	get_reg_value_dw
+ 711              		.syntax unified
+ 712              		.arm
+ 714              	get_reg_value_dw:
+ 715              	.LVL65:
+ 716              	.LFB6:
+ 169:../firmware/can.c **** 
+ 170:../firmware/can.c **** uint32_t get_reg_value_dw(uint8_t dest, uint8_t reg)
+ 171:../firmware/can.c **** {
+ 717              		.loc 1 171 1 view -0
+ 718              		.cfi_startproc
+ 719              		@ Function supports interworking.
+ 720              		@ args = 0, pretend = 0, frame = 16
+ 721              		@ frame_needed = 0, uses_anonymous_args = 0
+ 172:../firmware/can.c ****   CANALL_MSG buf;
+ 722              		.loc 1 172 3 view .LVU230
+ 173:../firmware/can.c ****   struct can_frame *tx;
+ 723              		.loc 1 173 3 view .LVU231
+ 174:../firmware/can.c ****   struct can_frame_b *rx;
+ 724              		.loc 1 174 3 view .LVU232
+ 175:../firmware/can.c ****   uint8_t cnt = 0;
+ 725              		.loc 1 175 3 view .LVU233
+ 176:../firmware/can.c **** 
+ 177:../firmware/can.c ****   tx = (struct can_frame*) &buf.DatA;
+ 726              		.loc 1 177 3 view .LVU234
+ 178:../firmware/can.c ****   rx = (struct can_frame_b*) tx;
+ 179:../firmware/can.c ****   buf.Frame = 0x00030000;   // 3 bytes
+ 727              		.loc 1 179 13 is_stmt 0 view .LVU235
+ 728 034c 0338A0E3 		mov	r3, #196608
+ 171:../firmware/can.c ****   CANALL_MSG buf;
+ 729              		.loc 1 171 1 view .LVU236
+ 730 0350 30402DE9 		push	{r4, r5, lr}
+ 731              	.LCFI20:
+ 732              		.cfi_def_cfa_offset 12
+ 733              		.cfi_offset 4, -12
+ 734              		.cfi_offset 5, -8
+ 735              		.cfi_offset 14, -4
+ 180:../firmware/can.c ****   buf.MsgID = dest;
+ 181:../firmware/can.c ****   tx->write = 0;
+ 182:../firmware/can.c ****   tx->size = 3;
+ 183:../firmware/can.c ****   tx->reply = 0;
+ 184:../firmware/can.c ****   tx->reg = reg;
+ 185:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 186:../firmware/can.c **** 
+ 187:../firmware/can.c ****   while (!CANAll_PushMessage(1, &buf)) {
+ 736              		.loc 1 187 9 view .LVU237
+ 737 0354 0050A0E3 		mov	r5, #0
+ 171:../firmware/can.c ****   CANALL_MSG buf;
+ 738              		.loc 1 171 1 view .LVU238
+ 739 0358 14D04DE2 		sub	sp, sp, #20
+ 740              	.LCFI21:
+ 741              		.cfi_def_cfa_offset 32
+ 742              	.LVL66:
+ 178:../firmware/can.c ****   buf.Frame = 0x00030000;   // 3 bytes
+ 743              		.loc 1 178 3 is_stmt 1 view .LVU239
+ 179:../firmware/can.c ****   buf.MsgID = dest;
+ 744              		.loc 1 179 3 view .LVU240
+ 179:../firmware/can.c ****   buf.MsgID = dest;
+ 745              		.loc 1 179 13 is_stmt 0 view .LVU241
+ 746 035c 00308DE5 		str	r3, [sp]
+ 180:../firmware/can.c ****   buf.MsgID = dest;
+ 747              		.loc 1 180 3 is_stmt 1 view .LVU242
+ 181:../firmware/can.c ****   tx->size = 3;
+ 748              		.loc 1 181 13 is_stmt 0 view .LVU243
+ 749 0360 B830DDE1 		ldrh	r3, [sp, #8]
+ 750 0364 F03003E2 		and	r3, r3, #240
+ 751 0368 0C3083E3 		orr	r3, r3, #12
+ 180:../firmware/can.c ****   tx->write = 0;
+ 752              		.loc 1 180 13 view .LVU244
+ 753 036c 04008DE5 		str	r0, [sp, #4]
+ 181:../firmware/can.c ****   tx->size = 3;
+ 754              		.loc 1 181 3 is_stmt 1 view .LVU245
+ 182:../firmware/can.c ****   tx->reply = 0;
+ 755              		.loc 1 182 3 view .LVU246
+ 183:../firmware/can.c ****   tx->reg = reg;
+ 756              		.loc 1 183 3 view .LVU247
+ 184:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 757              		.loc 1 184 3 view .LVU248
+ 184:../firmware/can.c ****   tx->snd = LOCAL_ADDR;
+ 758              		.loc 1 184 11 is_stmt 0 view .LVU249
+ 759 0370 0A10CDE5 		strb	r1, [sp, #10]
+ 185:../firmware/can.c **** 
+ 760              		.loc 1 185 3 is_stmt 1 view .LVU250
+ 181:../firmware/can.c ****   tx->size = 3;
+ 761              		.loc 1 181 13 is_stmt 0 view .LVU251
+ 762 0374 B830CDE1 		strh	r3, [sp, #8]	@ movhi
+ 763              		.loc 1 187 3 is_stmt 1 view .LVU252
+ 764              	.LVL67:
+ 765              	.L80:
+ 766              		.loc 1 187 11 is_stmt 0 view .LVU253
+ 767 0378 0D10A0E1 		mov	r1, sp
+ 768 037c 0100A0E3 		mov	r0, #1
+ 769 0380 FEFFFFEB 		bl	CANAll_PushMessage
+ 770              	.LVL68:
+ 771              		.loc 1 187 9 view .LVU254
+ 772 0384 000050E3 		cmp	r0, #0
+ 773 0388 FF4005E2 		and	r4, r5, #255
+ 774              	.LVL69:
+ 775              		.loc 1 187 9 is_stmt 1 view .LVU255
+ 776 038c 0A00000A 		beq	.L83
+ 777              	.LVL70:
+ 778              	.L84:
+ 188:../firmware/can.c ****     cnt++;
+ 189:../firmware/can.c ****     if (cnt == 0x00) return 0xFFFFFFFF;
+ 190:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 191:../firmware/can.c ****   }
+ 192:../firmware/can.c **** 
+ 193:../firmware/can.c ****   do {
+ 194:../firmware/can.c ****     while (!CANAll_PullMessage(1, &buf)) {
+ 779              		.loc 1 194 11 view .LVU256
+ 780              		.loc 1 194 13 is_stmt 0 view .LVU257
+ 781 0390 0D10A0E1 		mov	r1, sp
+ 782 0394 0100A0E3 		mov	r0, #1
+ 783 0398 FEFFFFEB 		bl	CANAll_PullMessage
+ 784              	.LVL71:
+ 785              		.loc 1 194 11 view .LVU258
+ 786 039c 000050E3 		cmp	r0, #0
+ 787 03a0 0F00000A 		beq	.L86
+ 195:../firmware/can.c ****       cnt++;
+ 196:../firmware/can.c ****       if (cnt==0x00) return 0xFFFFFFFF;
+ 197:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 198:../firmware/can.c ****     }
+ 199:../firmware/can.c ****   } while (!rx->reply);
+ 788              		.loc 1 199 11 is_stmt 1 view .LVU259
+ 789              		.loc 1 199 12 is_stmt 0 view .LVU260
+ 790 03a4 0830DDE5 		ldrb	r3, [sp, #8]	@ zero_extendqisi2
+ 791              		.loc 1 199 3 view .LVU261
+ 792 03a8 020013E3 		tst	r3, #2
+ 793 03ac F7FFFF0A 		beq	.L84
+ 200:../firmware/can.c ****   return unaligned_read_32(rx->data);
+ 794              		.loc 1 200 3 is_stmt 1 view .LVU262
+ 795              		.loc 1 200 10 is_stmt 0 view .LVU263
+ 796 03b0 09008DE2 		add	r0, sp, #9
+ 797 03b4 FEFFFFEB 		bl	unaligned_read_32
+ 798              	.LVL72:
+ 799 03b8 030000EA 		b	.L79
+ 800              	.L83:
+ 188:../firmware/can.c ****     cnt++;
+ 801              		.loc 1 188 5 is_stmt 1 view .LVU264
+ 802              	.LVL73:
+ 189:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 803              		.loc 1 189 5 view .LVU265
+ 189:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 804              		.loc 1 189 8 is_stmt 0 view .LVU266
+ 805 03bc 015085E2 		add	r5, r5, #1
+ 806              	.LVL74:
+ 189:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 807              		.loc 1 189 8 view .LVU267
+ 808 03c0 010C55E3 		cmp	r5, #256
+ 809 03c4 0300001A 		bne	.L81
+ 810              	.L85:
+ 189:../firmware/can.c ****     pause(CAN_TIMEOUT);
+ 811              		.loc 1 189 29 view .LVU268
+ 812 03c8 0000E0E3 		mvn	r0, #0
+ 813              	.L79:
+ 201:../firmware/can.c **** }
+ 814              		.loc 1 201 1 view .LVU269
+ 815 03cc 14D08DE2 		add	sp, sp, #20
+ 816              	.LCFI22:
+ 817              		.cfi_remember_state
+ 818              		.cfi_def_cfa_offset 12
+ 819              		@ sp needed
+ 820 03d0 3040BDE8 		pop	{r4, r5, lr}
+ 821              	.LCFI23:
+ 822              		.cfi_restore 14
+ 823              		.cfi_restore 5
+ 824              		.cfi_restore 4
+ 825              		.cfi_def_cfa_offset 0
+ 826 03d4 1EFF2FE1 		bx	lr
+ 827              	.L81:
+ 828              	.LCFI24:
+ 829              		.cfi_restore_state
+ 830              	.LVL75:
+ 190:../firmware/can.c ****   }
+ 831              		.loc 1 190 5 is_stmt 1 view .LVU270
+ 832 03d8 7D0FA0E3 		mov	r0, #500
+ 833 03dc FEFFFFEB 		bl	pause
+ 834              	.LVL76:
+ 835 03e0 E4FFFFEA 		b	.L80
+ 836              	.LVL77:
+ 837              	.L86:
+ 195:../firmware/can.c ****       if (cnt==0x00) return 0xFFFFFFFF;
+ 838              		.loc 1 195 7 view .LVU271
+ 195:../firmware/can.c ****       if (cnt==0x00) return 0xFFFFFFFF;
+ 839              		.loc 1 195 10 is_stmt 0 view .LVU272
+ 840 03e4 014084E2 		add	r4, r4, #1
+ 841              	.LVL78:
+ 196:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 842              		.loc 1 196 7 is_stmt 1 view .LVU273
+ 196:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 843              		.loc 1 196 10 is_stmt 0 view .LVU274
+ 844 03e8 FF4014E2 		ands	r4, r4, #255
+ 845              	.LVL79:
+ 196:../firmware/can.c ****       pause(CAN_TIMEOUT);
+ 846              		.loc 1 196 10 view .LVU275
+ 847 03ec F5FFFF0A 		beq	.L85
+ 197:../firmware/can.c ****     }
+ 848              		.loc 1 197 7 is_stmt 1 view .LVU276
+ 849 03f0 7D0FA0E3 		mov	r0, #500
+ 850 03f4 FEFFFFEB 		bl	pause
+ 851              	.LVL80:
+ 852 03f8 E4FFFFEA 		b	.L84
+ 853              		.cfi_endproc
+ 854              	.LFE6:
+ 856              	.Letext0:
+ 857              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 858              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 859              		.file 4 "../firmware/LPC_CANAll.h"
+ 860              		.file 5 "../firmware/can.h"
+ 861              		.file 6 "../firmware/utils.h"
+ 862              		.file 7 "../firmware/sysTime.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 can.c
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:22     .text:00000000 can_head_init
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:62     .text:00000024 set_reg_value_b
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:179    .text:000000b8 set_reg_value_w
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:301    .text:00000154 set_reg_value_dw
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:423    .text:000001f0 get_reg_value_b
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:563    .text:00000298 get_reg_value_w
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:705    .text:00000348 $d
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:709    .text:0000034c $a
+C:\Users\ishin\AppData\Local\Temp\ccM0P1w7.s:714    .text:0000034c get_reg_value_dw
+
+UNDEFINED SYMBOLS
+CANAll_Init
+CANAll_SetErrIRQ
+CANAll_PushMessage
+pause
+CANAll_PullMessage
+unaligned_write_16
+unaligned_write_32
+unaligned_read_16
+unaligned_read_32

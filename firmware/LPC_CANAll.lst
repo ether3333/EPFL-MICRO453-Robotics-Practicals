@@ -1,0 +1,1186 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"LPC_CANAll.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	CANAll_CANISR_Err
+  19              		.syntax unified
+  20              		.arm
+  22              	CANAll_CANISR_Err:
+  23              	.LFB4:
+  24              		.file 1 "../firmware/LPC_CANAll.c"
+   1:../firmware/LPC_CANAll.c **** /**************************************************************************
+   2:../firmware/LPC_CANAll.c **** MODULE:    LPC_CANAll
+   3:../firmware/LPC_CANAll.c **** CONTAINS:  Philips LPC2000 CAN interface driver.
+   4:../firmware/LPC_CANAll.c ****            This driver shows how the CAN interface of the Philips LPC2000
+   5:../firmware/LPC_CANAll.c ****            can be used to receive ALL messages on the CANbus.
+   6:../firmware/LPC_CANAll.c ****            All incoming messages are copied into a receive queue.
+   7:../firmware/LPC_CANAll.c ****            NOTE: This example does not implement any queue overrun handling
+   8:../firmware/LPC_CANAll.c **** 		       Compiled and Tested with Keil Tools www.keil.com
+   9:../firmware/LPC_CANAll.c **** COPYRIGHT: Embedded Systems Academy, Inc. 2004.
+  10:../firmware/LPC_CANAll.c **** LICENSE:   THIS VERSION CREATED FOR FREE DISTRIBUTION
+  11:../firmware/LPC_CANAll.c **** 		       FOR PHILIPS SEMICONDUCTORS www.philipsmcu.com
+  12:../firmware/LPC_CANAll.c ****            FOR KEIL SOFTWARE www.keil.com
+  13:../firmware/LPC_CANAll.c **** VERSION:   1.10, Pf 05-JAN-05, Updates in accordance with errata sheets
+  14:../firmware/LPC_CANAll.c **** ---------------------------------------------------------------------------
+  15:../firmware/LPC_CANAll.c **** HISTORY:   1.00, Pf 14-JUL-04, First published release
+  16:../firmware/LPC_CANAll.c **** 
+  17:../firmware/LPC_CANAll.c **** 14. May. 2005:
+  18:../firmware/LPC_CANAll.c **** - replaced integer types unsigned int with unsigned long where
+  19:../firmware/LPC_CANAll.c ****   appropriate to avoid "target dependent sizeof(int)"
+  20:../firmware/LPC_CANAll.c **** - added volatiles to avoid compiler warnings
+  21:../firmware/LPC_CANAll.c **** Martin Thomas, Kaiserslautern, Germany
+  22:../firmware/LPC_CANAll.c **** <eversmith@heizung-thomas.de>
+  23:../firmware/LPC_CANAll.c **** ***************************************************************************/
+  24:../firmware/LPC_CANAll.c **** 
+  25:../firmware/LPC_CANAll.c **** #include <LPC21XX.H> // LPC21XX Peripheral Registers
+  26:../firmware/LPC_CANAll.c **** #include "LPC_CANAll.h"
+  27:../firmware/LPC_CANAll.c **** 
+  28:../firmware/LPC_CANAll.c **** 
+  29:../firmware/LPC_CANAll.c **** /**************************************************************************
+  30:../firmware/LPC_CANAll.c **** GLOBAL VARIABLES
+  31:../firmware/LPC_CANAll.c **** ***************************************************************************/
+  32:../firmware/LPC_CANAll.c **** 
+  33:../firmware/LPC_CANAll.c **** // Receive Queue: one queue for each CAN port
+  34:../firmware/LPC_CANAll.c **** CANALL_MSG mRxCAN[MAX_CANPORTS][MAX_QUEUE];
+  35:../firmware/LPC_CANAll.c **** 
+  36:../firmware/LPC_CANAll.c **** // Receive Queue IN pointer
+  37:../firmware/LPC_CANAll.c **** short mRxIN[MAX_CANPORTS];
+  38:../firmware/LPC_CANAll.c **** 
+  39:../firmware/LPC_CANAll.c **** // Receive Queue OUT pointer
+  40:../firmware/LPC_CANAll.c **** short mRxOUT[MAX_CANPORTS];
+  41:../firmware/LPC_CANAll.c **** 
+  42:../firmware/LPC_CANAll.c **** /**************************************************************************
+  43:../firmware/LPC_CANAll.c **** PUBLIC FUNCTIONS
+  44:../firmware/LPC_CANAll.c **** ***************************************************************************/
+  45:../firmware/LPC_CANAll.c **** 
+  46:../firmware/LPC_CANAll.c **** /**************************************************************************
+  47:../firmware/LPC_CANAll.c **** Initialization of a CAN interface
+  48:../firmware/LPC_CANAll.c **** as described in LPC_CANAll.h
+  49:../firmware/LPC_CANAll.c **** ***************************************************************************/
+  50:../firmware/LPC_CANAll.c **** short CANAll_Init (
+  51:../firmware/LPC_CANAll.c ****   unsigned short can_port,    // CAN interface to use
+  52:../firmware/LPC_CANAll.c ****   unsigned short can_isrvect, // interrupt vector number to use for Rx ISR (0-15)
+  53:../firmware/LPC_CANAll.c ****   unsigned long can_btr        // CAN BTR value used to set CAN baud rate
+  54:../firmware/LPC_CANAll.c ****   )
+  55:../firmware/LPC_CANAll.c **** {
+  56:../firmware/LPC_CANAll.c **** volatile unsigned long *pSFR; // pointer into SFR space
+  57:../firmware/LPC_CANAll.c **** volatile unsigned long *pSFR2; // pointer into SFR space
+  58:../firmware/LPC_CANAll.c **** unsigned long offset; // offset added to pSFR
+  59:../firmware/LPC_CANAll.c **** 
+  60:../firmware/LPC_CANAll.c ****   // Double check can_isrvect value
+  61:../firmware/LPC_CANAll.c ****   if (can_isrvect > 15)
+  62:../firmware/LPC_CANAll.c ****   { // Illegal value for can_isrvect
+  63:../firmware/LPC_CANAll.c ****     return 0;
+  64:../firmware/LPC_CANAll.c ****   }
+  65:../firmware/LPC_CANAll.c **** 
+  66:../firmware/LPC_CANAll.c ****   // Double check can_port value
+  67:../firmware/LPC_CANAll.c ****   if ((can_port < 1) || (can_port > MAX_CANPORTS))
+  68:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+  69:../firmware/LPC_CANAll.c ****     return 0;
+  70:../firmware/LPC_CANAll.c ****   }
+  71:../firmware/LPC_CANAll.c **** 
+  72:../firmware/LPC_CANAll.c ****   // Reset IN and OUT pointer
+  73:../firmware/LPC_CANAll.c ****   mRxIN[can_port-1] = 0;
+  74:../firmware/LPC_CANAll.c ****   mRxOUT[can_port-1] = 0;
+  75:../firmware/LPC_CANAll.c **** 
+  76:../firmware/LPC_CANAll.c ****   // Enable pins for selected CAN interface
+  77:../firmware/LPC_CANAll.c ****   switch (can_port)
+  78:../firmware/LPC_CANAll.c ****   {
+  79:../firmware/LPC_CANAll.c ****   case 1:
+  80:../firmware/LPC_CANAll.c ****     PINSEL1 |= 0x00040000L; // Set bit 18
+  81:../firmware/LPC_CANAll.c ****     offset = 0x00000000L; // Use 1st set of CAN registers
+  82:../firmware/LPC_CANAll.c ****     break;
+  83:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 1)
+  84:../firmware/LPC_CANAll.c ****   case 2:
+  85:../firmware/LPC_CANAll.c ****     PINSEL1 |= 0x00014000L; // Set bits 14 and 16
+  86:../firmware/LPC_CANAll.c ****     offset = 0x00001000L; // Use 2nd set of CAN registers
+  87:../firmware/LPC_CANAll.c ****     break;
+  88:../firmware/LPC_CANAll.c **** #endif
+  89:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 2)
+  90:../firmware/LPC_CANAll.c ****   case 3:
+  91:../firmware/LPC_CANAll.c ****     PINSEL1 |= 0x00001800L; // Set bits 11 and 12
+  92:../firmware/LPC_CANAll.c ****     offset = 0x00002000L; // Use 3rd set of CAN registers
+  93:../firmware/LPC_CANAll.c ****     break;
+  94:../firmware/LPC_CANAll.c **** #endif
+  95:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 3)
+  96:../firmware/LPC_CANAll.c ****   case 4:
+  97:../firmware/LPC_CANAll.c ****     PINSEL0 |= 0x0F000000L; // Set bits 24 to 27
+  98:../firmware/LPC_CANAll.c ****     offset = 0x00003000L; // Use 4th set of CAN registers
+  99:../firmware/LPC_CANAll.c ****     break;
+ 100:../firmware/LPC_CANAll.c **** #endif
+ 101:../firmware/LPC_CANAll.c ****   default:
+ 102:../firmware/LPC_CANAll.c ****     return 0; // illegal value used
+ 103:../firmware/LPC_CANAll.c ****   }
+ 104:../firmware/LPC_CANAll.c **** 
+ 105:../firmware/LPC_CANAll.c ****   // Acceptance Filter Mode Register = filter off, receive all
+ 106:../firmware/LPC_CANAll.c ****   AFMR = 0x00000002L;
+ 107:../firmware/LPC_CANAll.c **** 
+ 108:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &C1MOD + offset; // Select Mode register
+ 109:../firmware/LPC_CANAll.c ****   *pSFR = 1; // Go into Reset mode
+ 110:../firmware/LPC_CANAll.c **** 
+ 111:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &C1IER + offset; // Select Interrupt Enable Register
+ 112:../firmware/LPC_CANAll.c ****   *pSFR = 0;// Disable All Interrupts
+ 113:../firmware/LPC_CANAll.c **** 
+ 114:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &C1GSR + offset; // Select Status Register
+ 115:../firmware/LPC_CANAll.c ****   *pSFR = 0; // Clear Status register
+ 116:../firmware/LPC_CANAll.c **** 
+ 117:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &C1BTR + offset; // Select BTR Register
+ 118:../firmware/LPC_CANAll.c ****   *pSFR = can_btr; // Set bit timing
+ 119:../firmware/LPC_CANAll.c **** 
+ 120:../firmware/LPC_CANAll.c ****   // Set and enable receive interrupt
+ 121:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &VICVectAddr0;
+ 122:../firmware/LPC_CANAll.c ****   pSFR += can_isrvect; // Set to desired interrupt vector
+ 123:../firmware/LPC_CANAll.c **** 
+ 124:../firmware/LPC_CANAll.c ****   pSFR2 = (volatile unsigned long *) &VICVectCntl0;
+ 125:../firmware/LPC_CANAll.c ****   pSFR2 += can_isrvect; // Set to desired interrupt control
+ 126:../firmware/LPC_CANAll.c **** 
+ 127:../firmware/LPC_CANAll.c ****   switch (can_port)
+ 128:../firmware/LPC_CANAll.c ****   {
+ 129:../firmware/LPC_CANAll.c ****   case 1:
+ 130:../firmware/LPC_CANAll.c ****     // Set interrupt vector
+ 131:../firmware/LPC_CANAll.c ****     *pSFR = (unsigned long) CANAll_CANISR_Rx1;
+ 132:../firmware/LPC_CANAll.c ****     // Use this Interrupt for CAN Rx1 Interrupt
+ 133:../firmware/LPC_CANAll.c ****     *pSFR2 = 0x20 | 26;
+ 134:../firmware/LPC_CANAll.c ****     // Enable CAN Rx1 Interrupt
+ 135:../firmware/LPC_CANAll.c ****     VICIntEnable = 0x04000000L;
+ 136:../firmware/LPC_CANAll.c ****     break;
+ 137:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 1)
+ 138:../firmware/LPC_CANAll.c ****   case 2:
+ 139:../firmware/LPC_CANAll.c ****     // Set interrupt vector
+ 140:../firmware/LPC_CANAll.c ****     *pSFR = (unsigned long) CANAll_CANISR_Rx2;
+ 141:../firmware/LPC_CANAll.c ****     // Use this Interrupt for CAN Rx2 Interrupt
+ 142:../firmware/LPC_CANAll.c ****     *pSFR2 = 0x20 | 27;
+ 143:../firmware/LPC_CANAll.c ****     // Enable CAN Rx2 Interrupt
+ 144:../firmware/LPC_CANAll.c ****     VICIntEnable = 0x08000000L;
+ 145:../firmware/LPC_CANAll.c ****     break;
+ 146:../firmware/LPC_CANAll.c **** #endif
+ 147:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 2)
+ 148:../firmware/LPC_CANAll.c ****   case 3:
+ 149:../firmware/LPC_CANAll.c ****     // Set interrupt vector
+ 150:../firmware/LPC_CANAll.c ****     *pSFR = (unsigned long) CANAll_CANISR_Rx3;
+ 151:../firmware/LPC_CANAll.c ****     // Use this Interrupt for CAN Rx3 Interrupt
+ 152:../firmware/LPC_CANAll.c ****     *pSFR2 = 0x20 | 28;
+ 153:../firmware/LPC_CANAll.c ****     // Enable CAN Rx3 Interrupt
+ 154:../firmware/LPC_CANAll.c ****     VICIntEnable = 0x10000000L;
+ 155:../firmware/LPC_CANAll.c ****     break;
+ 156:../firmware/LPC_CANAll.c **** #endif
+ 157:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 3)
+ 158:../firmware/LPC_CANAll.c ****   case 4:
+ 159:../firmware/LPC_CANAll.c ****     // Set interrupt vector
+ 160:../firmware/LPC_CANAll.c ****     *pSFR = (unsigned long) CANAll_CANISR_Rx4;
+ 161:../firmware/LPC_CANAll.c ****     // Use this Interrupt for CAN Rx4 Interrupt
+ 162:../firmware/LPC_CANAll.c ****     *pSFR2 = 0x20 | 29;
+ 163:../firmware/LPC_CANAll.c ****     // Enable CAN Rx4 Interrupt
+ 164:../firmware/LPC_CANAll.c ****     VICIntEnable = 0x20000000L;
+ 165:../firmware/LPC_CANAll.c ****     break;
+ 166:../firmware/LPC_CANAll.c **** #endif
+ 167:../firmware/LPC_CANAll.c ****   default:
+ 168:../firmware/LPC_CANAll.c ****     return 0; // illegal value used
+ 169:../firmware/LPC_CANAll.c ****   }
+ 170:../firmware/LPC_CANAll.c **** 
+ 171:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &C1IER + offset; // Select Interrupt register
+ 172:../firmware/LPC_CANAll.c ****   *pSFR = 1; // Enable Receive Interrupt
+ 173:../firmware/LPC_CANAll.c **** 
+ 174:../firmware/LPC_CANAll.c ****   // Enter Normal Operating Mode
+ 175:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &C1MOD + offset; // Select Mode register
+ 176:../firmware/LPC_CANAll.c ****   *pSFR = 0; // Operating Mode
+ 177:../firmware/LPC_CANAll.c **** 
+ 178:../firmware/LPC_CANAll.c ****   return 1;
+ 179:../firmware/LPC_CANAll.c **** }
+ 180:../firmware/LPC_CANAll.c **** 
+ 181:../firmware/LPC_CANAll.c **** 
+ 182:../firmware/LPC_CANAll.c **** /**************************************************************************
+ 183:../firmware/LPC_CANAll.c **** Installing the CAN Err ISR
+ 184:../firmware/LPC_CANAll.c **** as described in LPC_CANAll.h
+ 185:../firmware/LPC_CANAll.c **** ***************************************************************************/
+ 186:../firmware/LPC_CANAll.c **** short CANAll_SetErrIRQ (
+ 187:../firmware/LPC_CANAll.c ****   unsigned short can_isrvect // interrupt vector number to use for Err ISR (0-15)
+ 188:../firmware/LPC_CANAll.c ****   )
+ 189:../firmware/LPC_CANAll.c **** {
+ 190:../firmware/LPC_CANAll.c **** volatile unsigned long *pSFR; // pointer into SFR space
+ 191:../firmware/LPC_CANAll.c **** 
+ 192:../firmware/LPC_CANAll.c ****   // Double check can_isrvect value
+ 193:../firmware/LPC_CANAll.c ****   if (can_isrvect > 15)
+ 194:../firmware/LPC_CANAll.c ****   { // Illegal value for can_isrvect
+ 195:../firmware/LPC_CANAll.c ****     return 0;
+ 196:../firmware/LPC_CANAll.c ****   }
+ 197:../firmware/LPC_CANAll.c **** 
+ 198:../firmware/LPC_CANAll.c ****   // Set and enable err interrupt
+ 199:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &VICVectAddr0;
+ 200:../firmware/LPC_CANAll.c ****   pSFR += can_isrvect; // Set to desired interrupt vector
+ 201:../firmware/LPC_CANAll.c ****   // Set interrupt vector
+ 202:../firmware/LPC_CANAll.c ****   *pSFR = (unsigned long) CANAll_CANISR_Err;
+ 203:../firmware/LPC_CANAll.c **** 
+ 204:../firmware/LPC_CANAll.c ****   pSFR = (volatile unsigned long *) &VICVectCntl0;
+ 205:../firmware/LPC_CANAll.c ****   pSFR += can_isrvect; // Set to desired interrupt control
+ 206:../firmware/LPC_CANAll.c ****   *pSFR = 0x20 | 19;
+ 207:../firmware/LPC_CANAll.c **** 
+ 208:../firmware/LPC_CANAll.c ****   // Enable Interrupt source
+ 209:../firmware/LPC_CANAll.c ****   VICIntEnable = 0x00080000L;
+ 210:../firmware/LPC_CANAll.c **** 
+ 211:../firmware/LPC_CANAll.c ****   return 1;
+ 212:../firmware/LPC_CANAll.c **** }
+ 213:../firmware/LPC_CANAll.c **** 
+ 214:../firmware/LPC_CANAll.c **** 
+ 215:../firmware/LPC_CANAll.c **** /**************************************************************************
+ 216:../firmware/LPC_CANAll.c **** Transmitting a CAN message on a selected CAN interface
+ 217:../firmware/LPC_CANAll.c **** as described in LPC_CANAll.h
+ 218:../firmware/LPC_CANAll.c **** ***************************************************************************/
+ 219:../firmware/LPC_CANAll.c **** short CANAll_PushMessage (
+ 220:../firmware/LPC_CANAll.c ****   unsigned short can_port,
+ 221:../firmware/LPC_CANAll.c ****   CANALL_MSG *pTransmitBuf
+ 222:../firmware/LPC_CANAll.c ****   )
+ 223:../firmware/LPC_CANAll.c **** {
+ 224:../firmware/LPC_CANAll.c **** volatile unsigned long *pAddr;
+ 225:../firmware/LPC_CANAll.c **** unsigned long *pCandata;
+ 226:../firmware/LPC_CANAll.c **** unsigned long offset;
+ 227:../firmware/LPC_CANAll.c **** 
+ 228:../firmware/LPC_CANAll.c ****   // Double check can_port value
+ 229:../firmware/LPC_CANAll.c ****   if ((can_port < 1) || (can_port > MAX_CANPORTS))
+ 230:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 231:../firmware/LPC_CANAll.c ****     return 0;
+ 232:../firmware/LPC_CANAll.c ****   }
+ 233:../firmware/LPC_CANAll.c **** 
+ 234:../firmware/LPC_CANAll.c ****   switch (can_port)
+ 235:../firmware/LPC_CANAll.c ****   {
+ 236:../firmware/LPC_CANAll.c ****   case 1:
+ 237:../firmware/LPC_CANAll.c ****     offset = 0x00000000L; // Use 1st set of CAN registers
+ 238:../firmware/LPC_CANAll.c ****     break;
+ 239:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 1)
+ 240:../firmware/LPC_CANAll.c ****   case 2:
+ 241:../firmware/LPC_CANAll.c ****     offset = 0x00001000L; // Use 2nd set of CAN registers
+ 242:../firmware/LPC_CANAll.c ****     break;
+ 243:../firmware/LPC_CANAll.c **** #endif
+ 244:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 2)
+ 245:../firmware/LPC_CANAll.c ****   case 3:
+ 246:../firmware/LPC_CANAll.c ****     offset = 0x00002000L; // Use 3rd set of CAN registers
+ 247:../firmware/LPC_CANAll.c ****     break;
+ 248:../firmware/LPC_CANAll.c **** #endif
+ 249:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 3)
+ 250:../firmware/LPC_CANAll.c ****   case 4:
+ 251:../firmware/LPC_CANAll.c ****     offset = 0x00003000L; // Use 4th set of CAN registers
+ 252:../firmware/LPC_CANAll.c ****     break;
+ 253:../firmware/LPC_CANAll.c **** #endif
+ 254:../firmware/LPC_CANAll.c ****   default:
+ 255:../firmware/LPC_CANAll.c ****     return 0; // illegal value used
+ 256:../firmware/LPC_CANAll.c ****   }
+ 257:../firmware/LPC_CANAll.c **** 
+ 258:../firmware/LPC_CANAll.c ****   pAddr = (volatile unsigned long *) &C1SR + offset; // CANSR
+ 259:../firmware/LPC_CANAll.c ****   if (!(*pAddr & 0x00000004L))
+ 260:../firmware/LPC_CANAll.c ****   { // Transmit Channel is not available
+ 261:../firmware/LPC_CANAll.c ****     return 0; // No channel available
+ 262:../firmware/LPC_CANAll.c ****   }
+ 263:../firmware/LPC_CANAll.c **** 
+ 264:../firmware/LPC_CANAll.c ****   // Write DLC, RTR and FF
+ 265:../firmware/LPC_CANAll.c ****   pAddr = (volatile unsigned long *) &C1TFI1 + offset;
+ 266:../firmware/LPC_CANAll.c ****   *pAddr = pTransmitBuf->Frame & 0xC00F0000L;
+ 267:../firmware/LPC_CANAll.c **** 
+ 268:../firmware/LPC_CANAll.c ****   // Write CAN ID
+ 269:../firmware/LPC_CANAll.c ****   pAddr++;
+ 270:../firmware/LPC_CANAll.c ****   *pAddr = pTransmitBuf->MsgID;
+ 271:../firmware/LPC_CANAll.c **** 
+ 272:../firmware/LPC_CANAll.c ****   // Write first 4 data bytes
+ 273:../firmware/LPC_CANAll.c ****   pCandata = (unsigned long *) &(pTransmitBuf->DatA);
+ 274:../firmware/LPC_CANAll.c ****   pAddr++;
+ 275:../firmware/LPC_CANAll.c ****   *pAddr = *pCandata;
+ 276:../firmware/LPC_CANAll.c **** 
+ 277:../firmware/LPC_CANAll.c ****   // Write second 4 data bytes
+ 278:../firmware/LPC_CANAll.c ****   pCandata++;
+ 279:../firmware/LPC_CANAll.c ****   pAddr++;
+ 280:../firmware/LPC_CANAll.c ****   *pAddr = *pCandata;
+ 281:../firmware/LPC_CANAll.c **** 
+ 282:../firmware/LPC_CANAll.c ****   // Write transmission request
+ 283:../firmware/LPC_CANAll.c ****   pAddr = (volatile unsigned long *) &C1CMR + offset;
+ 284:../firmware/LPC_CANAll.c ****   *pAddr = 0x21;   // no self transmission, 0x30 for Self Transmission Request Buf 1
+ 285:../firmware/LPC_CANAll.c **** 
+ 286:../firmware/LPC_CANAll.c ****   return 1;
+ 287:../firmware/LPC_CANAll.c **** }
+ 288:../firmware/LPC_CANAll.c **** 
+ 289:../firmware/LPC_CANAll.c **** 
+ 290:../firmware/LPC_CANAll.c **** /**************************************************************************
+ 291:../firmware/LPC_CANAll.c **** Receiving a CAN message
+ 292:../firmware/LPC_CANAll.c **** as described in LPC_CANAll.h
+ 293:../firmware/LPC_CANAll.c **** ***************************************************************************/
+ 294:../firmware/LPC_CANAll.c **** short CANAll_PullMessage (
+ 295:../firmware/LPC_CANAll.c ****   unsigned short can_port,
+ 296:../firmware/LPC_CANAll.c ****   CANALL_MSG *pReceiveBuf
+ 297:../firmware/LPC_CANAll.c ****   )
+ 298:../firmware/LPC_CANAll.c **** {
+ 299:../firmware/LPC_CANAll.c **** unsigned long *pSrc; // Source pointer
+ 300:../firmware/LPC_CANAll.c **** unsigned long *pDst; // Destination pointer
+ 301:../firmware/LPC_CANAll.c **** 
+ 302:../firmware/LPC_CANAll.c ****   // Double check can_port value
+ 303:../firmware/LPC_CANAll.c ****   if ((can_port < 1) || (can_port > MAX_CANPORTS))
+ 304:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 305:../firmware/LPC_CANAll.c ****     return 0;
+ 306:../firmware/LPC_CANAll.c ****   }
+ 307:../firmware/LPC_CANAll.c ****   can_port--; // Adjust to 0 - MAX_CANPORTS-1
+ 308:../firmware/LPC_CANAll.c **** 
+ 309:../firmware/LPC_CANAll.c ****   // Check if something is in RxQueue
+ 310:../firmware/LPC_CANAll.c ****   if ((mRxIN[can_port]) == (mRxOUT[can_port]))
+ 311:../firmware/LPC_CANAll.c ****   { // Queue is empty
+ 312:../firmware/LPC_CANAll.c ****     return 0;
+ 313:../firmware/LPC_CANAll.c ****   }
+ 314:../firmware/LPC_CANAll.c ****   // Pointers are different, so something is in queue
+ 315:../firmware/LPC_CANAll.c **** 
+ 316:../firmware/LPC_CANAll.c ****   // Initialize pointers
+ 317:../firmware/LPC_CANAll.c ****   pSrc = (unsigned long *) &(mRxCAN[can_port][mRxOUT[can_port]]);
+ 318:../firmware/LPC_CANAll.c ****   pDst = (unsigned long *) &(pReceiveBuf->Frame);
+ 319:../firmware/LPC_CANAll.c ****   *pDst = *pSrc; // Copy Frame
+ 320:../firmware/LPC_CANAll.c **** 
+ 321:../firmware/LPC_CANAll.c ****   pSrc++;
+ 322:../firmware/LPC_CANAll.c ****   pDst++;
+ 323:../firmware/LPC_CANAll.c ****   *pDst = *pSrc; // Copy MsgID
+ 324:../firmware/LPC_CANAll.c **** 
+ 325:../firmware/LPC_CANAll.c ****   pSrc++;
+ 326:../firmware/LPC_CANAll.c ****   pDst++;
+ 327:../firmware/LPC_CANAll.c ****   *pDst = *pSrc; // Copy DatA
+ 328:../firmware/LPC_CANAll.c **** 
+ 329:../firmware/LPC_CANAll.c ****   pSrc++;
+ 330:../firmware/LPC_CANAll.c ****   pDst++;
+ 331:../firmware/LPC_CANAll.c ****   *pDst = *pSrc; // Copy DatB
+ 332:../firmware/LPC_CANAll.c **** 
+ 333:../firmware/LPC_CANAll.c ****   // Adjust OUT pointer
+ 334:../firmware/LPC_CANAll.c ****   mRxOUT[can_port]++;
+ 335:../firmware/LPC_CANAll.c ****   if (mRxOUT[can_port] >= MAX_QUEUE)
+ 336:../firmware/LPC_CANAll.c ****   {
+ 337:../firmware/LPC_CANAll.c ****     mRxOUT[can_port] = 0;
+ 338:../firmware/LPC_CANAll.c ****   }
+ 339:../firmware/LPC_CANAll.c **** 
+ 340:../firmware/LPC_CANAll.c ****   return 1;
+ 341:../firmware/LPC_CANAll.c **** }
+ 342:../firmware/LPC_CANAll.c **** 
+ 343:../firmware/LPC_CANAll.c **** 
+ 344:../firmware/LPC_CANAll.c **** /**************************************************************************
+ 345:../firmware/LPC_CANAll.c **** PRIVATE FUNCTIONS
+ 346:../firmware/LPC_CANAll.c **** ***************************************************************************/
+ 347:../firmware/LPC_CANAll.c **** 
+ 348:../firmware/LPC_CANAll.c **** /**************************************************************************
+ 349:../firmware/LPC_CANAll.c **** DOES:    Interrupt Service Routine for CAN Errors
+ 350:../firmware/LPC_CANAll.c **** GLOBALS: none
+ 351:../firmware/LPC_CANAll.c **** RETURNS: nothing
+ 352:../firmware/LPC_CANAll.c **** ***************************************************************************/
+ 353:../firmware/LPC_CANAll.c **** void CANAll_CANISR_Err (
+ 354:../firmware/LPC_CANAll.c ****   void
+ 355:../firmware/LPC_CANAll.c ****   )
+ 356:../firmware/LPC_CANAll.c **** {
+  25              		.loc 1 356 1 view -0
+  26              		.cfi_startproc
+  27              		@ Interrupt Service Routine.
+  28              		@ Volatile: function does not return.
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+ 357:../firmware/LPC_CANAll.c **** 
+ 358:../firmware/LPC_CANAll.c ****   IO1PIN = (1 << 18);
+  32              		.loc 1 358 3 view .LVU1
+ 356:../firmware/LPC_CANAll.c **** 
+  33              		.loc 1 356 1 is_stmt 0 view .LVU2
+  34 0000 0C002DE9 		push	{r2, r3}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 8
+  37              		.cfi_offset 2, -8
+  38              		.cfi_offset 3, -4
+  39              		.loc 1 358 10 view .LVU3
+  40 0004 0127A0E3 		mov	r2, #262144
+  41 0008 04309FE5 		ldr	r3, .L4
+  42 000c 102083E5 		str	r2, [r3, #16]
+  43              	.L2:
+ 359:../firmware/LPC_CANAll.c ****   // DEBUG VERSION: do not return from Errors
+ 360:../firmware/LPC_CANAll.c ****   // Replace this with application specific error handling
+ 361:../firmware/LPC_CANAll.c ****   while (1)
+  44              		.loc 1 361 3 is_stmt 1 discriminator 1 view .LVU4
+ 362:../firmware/LPC_CANAll.c ****   {
+ 363:../firmware/LPC_CANAll.c ****   }
+  45              		.loc 1 363 3 discriminator 1 view .LVU5
+ 361:../firmware/LPC_CANAll.c ****   {
+  46              		.loc 1 361 9 discriminator 1 view .LVU6
+  47 0010 FEFFFFEA 		b	.L2
+  48              	.L5:
+  49              		.align	2
+  50              	.L4:
+  51 0014 008002E0 		.word	-536707072
+  52              		.cfi_endproc
+  53              	.LFE4:
+  55              		.align	2
+  56              		.global	CANAll_CANISR_Rx1
+  57              		.syntax unified
+  58              		.arm
+  60              	CANAll_CANISR_Rx1:
+  61              	.LFB5:
+ 364:../firmware/LPC_CANAll.c ****   VICVectAddr = 0xFFFFFFFFL; // acknowledge Interrupt
+ 365:../firmware/LPC_CANAll.c **** }
+ 366:../firmware/LPC_CANAll.c **** 
+ 367:../firmware/LPC_CANAll.c **** 
+ 368:../firmware/LPC_CANAll.c **** /**************************************************************************
+ 369:../firmware/LPC_CANAll.c **** DOES:    Interrupt Service Routine for CAN receive on CAN interface 1
+ 370:../firmware/LPC_CANAll.c **** GLOBALS: Copies the received message into the gRxCAN[0][] array
+ 371:../firmware/LPC_CANAll.c **** RETURNS: nothing
+ 372:../firmware/LPC_CANAll.c **** ***************************************************************************/
+ 373:../firmware/LPC_CANAll.c **** void CANAll_CANISR_Rx1 (
+ 374:../firmware/LPC_CANAll.c ****   void
+ 375:../firmware/LPC_CANAll.c ****   )
+ 376:../firmware/LPC_CANAll.c **** {
+  62              		.loc 1 376 1 view -0
+  63              		.cfi_startproc
+  64              		@ Interrupt Service Routine.
+  65              		@ args = 0, pretend = 0, frame = 0
+  66              		@ frame_needed = 0, uses_anonymous_args = 0
+ 377:../firmware/LPC_CANAll.c **** unsigned long *pDest;
+  67              		.loc 1 377 1 view .LVU8
+ 378:../firmware/LPC_CANAll.c **** //static char bit = 0;
+ 379:../firmware/LPC_CANAll.c **** 
+ 380:../firmware/LPC_CANAll.c **** /*
+ 381:../firmware/LPC_CANAll.c ****   bit = !bit;
+ 382:../firmware/LPC_CANAll.c ****   if (bit) {
+ 383:../firmware/LPC_CANAll.c ****     IO0SET = (1 << 12);   // LED on
+ 384:../firmware/LPC_CANAll.c ****   } else {
+ 385:../firmware/LPC_CANAll.c ****     IO0CLR = (1 << 12);   // LED off
+ 386:../firmware/LPC_CANAll.c ****   }
+ 387:../firmware/LPC_CANAll.c **** */
+ 388:../firmware/LPC_CANAll.c **** 
+ 389:../firmware/LPC_CANAll.c ****   // initialize destination pointer
+ 390:../firmware/LPC_CANAll.c ****   pDest = (unsigned long *) &(mRxCAN[0][mRxIN[0]]);
+  68              		.loc 1 390 3 view .LVU9
+ 376:../firmware/LPC_CANAll.c **** unsigned long *pDest;
+  69              		.loc 1 376 1 is_stmt 0 view .LVU10
+  70 0018 04E04EE2 		sub	lr, lr, #4
+  71 001c 0F502DE9 		push	{r0, r1, r2, r3, ip, lr}
+  72              	.LCFI1:
+  73              		.cfi_def_cfa_offset 24
+  74              		.cfi_offset 0, -24
+  75              		.cfi_offset 1, -20
+  76              		.cfi_offset 2, -16
+  77              		.cfi_offset 3, -12
+  78              		.cfi_offset 12, -8
+  79              		.cfi_offset 14, -4
+  80              		.loc 1 390 46 view .LVU11
+  81 0020 5C009FE5 		ldr	r0, .L11
+  82 0024 0010A0E1 		mov	r1, r0
+ 391:../firmware/LPC_CANAll.c ****   *pDest = C1RFS;  // Frame
+  83              		.loc 1 391 12 view .LVU12
+  84 0028 58209FE5 		ldr	r2, .L11+4
+ 390:../firmware/LPC_CANAll.c ****   *pDest = C1RFS;  // Frame
+  85              		.loc 1 390 46 view .LVU13
+  86 002c F430D1E0 		ldrsh	r3, [r1], #4
+  87              		.loc 1 391 12 view .LVU14
+  88 0030 20E092E5 		ldr	lr, [r2, #32]
+ 390:../firmware/LPC_CANAll.c ****   *pDest = C1RFS;  // Frame
+  89              		.loc 1 390 9 view .LVU15
+  90 0034 03C281E0 		add	ip, r1, r3, lsl #4
+  91              	.LVL0:
+  92              		.loc 1 391 3 is_stmt 1 view .LVU16
+  93              		.loc 1 391 10 is_stmt 0 view .LVU17
+  94 0038 03E281E7 		str	lr, [r1, r3, lsl #4]
+ 392:../firmware/LPC_CANAll.c **** 
+ 393:../firmware/LPC_CANAll.c ****   pDest++;
+  95              		.loc 1 393 3 is_stmt 1 view .LVU18
+  96              	.LVL1:
+ 394:../firmware/LPC_CANAll.c ****   *pDest = C1RID; // ID
+  97              		.loc 1 394 3 view .LVU19
+ 395:../firmware/LPC_CANAll.c **** 
+ 396:../firmware/LPC_CANAll.c ****   pDest++;
+ 397:../firmware/LPC_CANAll.c ****   *pDest = C1RDA; // Data A
+ 398:../firmware/LPC_CANAll.c **** 
+ 399:../firmware/LPC_CANAll.c ****   pDest++;
+ 400:../firmware/LPC_CANAll.c ****   *pDest = C1RDB; // Data B
+ 401:../firmware/LPC_CANAll.c **** 
+ 402:../firmware/LPC_CANAll.c ****   // Adjust IN pointer
+ 403:../firmware/LPC_CANAll.c ****   mRxIN[0]++;
+  98              		.loc 1 403 11 is_stmt 0 view .LVU20
+  99 003c 013083E2 		add	r3, r3, #1
+ 100 0040 0338A0E1 		lsl	r3, r3, #16
+ 101 0044 4338A0E1 		asr	r3, r3, #16
+ 404:../firmware/LPC_CANAll.c ****   if (mRxIN[0] >= MAX_QUEUE)
+ 102              		.loc 1 404 6 view .LVU21
+ 103 0048 180053E3 		cmp	r3, #24
+ 405:../firmware/LPC_CANAll.c ****   {
+ 406:../firmware/LPC_CANAll.c ****     mRxIN[0] = 0;
+ 104              		.loc 1 406 14 view .LVU22
+ 105 004c 0030A0C3 		movgt	r3, #0
+ 394:../firmware/LPC_CANAll.c **** 
+ 106              		.loc 1 394 12 view .LVU23
+ 107 0050 241092E5 		ldr	r1, [r2, #36]
+ 394:../firmware/LPC_CANAll.c **** 
+ 108              		.loc 1 394 10 view .LVU24
+ 109 0054 04108CE5 		str	r1, [ip, #4]
+ 396:../firmware/LPC_CANAll.c ****   *pDest = C1RDA; // Data A
+ 110              		.loc 1 396 3 is_stmt 1 view .LVU25
+ 111              	.LVL2:
+ 397:../firmware/LPC_CANAll.c **** 
+ 112              		.loc 1 397 3 view .LVU26
+ 397:../firmware/LPC_CANAll.c **** 
+ 113              		.loc 1 397 12 is_stmt 0 view .LVU27
+ 114 0058 281092E5 		ldr	r1, [r2, #40]
+ 397:../firmware/LPC_CANAll.c **** 
+ 115              		.loc 1 397 10 view .LVU28
+ 116 005c 08108CE5 		str	r1, [ip, #8]
+ 399:../firmware/LPC_CANAll.c ****   *pDest = C1RDB; // Data B
+ 117              		.loc 1 399 3 is_stmt 1 view .LVU29
+ 118              	.LVL3:
+ 400:../firmware/LPC_CANAll.c **** 
+ 119              		.loc 1 400 3 view .LVU30
+ 400:../firmware/LPC_CANAll.c **** 
+ 120              		.loc 1 400 12 is_stmt 0 view .LVU31
+ 121 0060 2C1092E5 		ldr	r1, [r2, #44]
+ 122              		.loc 1 406 14 view .LVU32
+ 123 0064 B030C0E1 		strh	r3, [r0]	@ movhi
+ 407:../firmware/LPC_CANAll.c ****   }
+ 408:../firmware/LPC_CANAll.c **** 
+ 409:../firmware/LPC_CANAll.c ****   C1CMR = 0x04; // release receive buffer
+ 124              		.loc 1 409 9 view .LVU33
+ 125 0068 0430A0E3 		mov	r3, #4
+ 400:../firmware/LPC_CANAll.c **** 
+ 126              		.loc 1 400 10 view .LVU34
+ 127 006c 0C108CE5 		str	r1, [ip, #12]
+ 403:../firmware/LPC_CANAll.c ****   if (mRxIN[0] >= MAX_QUEUE)
+ 128              		.loc 1 403 3 is_stmt 1 view .LVU35
+ 404:../firmware/LPC_CANAll.c ****   {
+ 129              		.loc 1 404 3 view .LVU36
+ 406:../firmware/LPC_CANAll.c ****   }
+ 130              		.loc 1 406 5 view .LVU37
+ 131              		.loc 1 409 3 view .LVU38
+ 132              		.loc 1 409 9 is_stmt 0 view .LVU39
+ 133 0070 043082E5 		str	r3, [r2, #4]
+ 410:../firmware/LPC_CANAll.c ****   VICVectAddr = 0xFFFFFFFFL; // acknowledge Interrupt
+ 134              		.loc 1 410 3 is_stmt 1 view .LVU40
+ 135              		.loc 1 410 15 is_stmt 0 view .LVU41
+ 136 0074 0F3CE0E3 		mvn	r3, #3840
+ 137 0078 0020E0E3 		mvn	r2, #0
+ 138 007c CF2003E5 		str	r2, [r3, #-207]
+ 411:../firmware/LPC_CANAll.c **** }
+ 139              		.loc 1 411 1 view .LVU42
+ 140 0080 0F90FDE8 		ldmfd	sp!, {r0, r1, r2, r3, ip, pc}^
+ 141              	.L12:
+ 142              		.align	2
+ 143              	.L11:
+ 144 0084 00000000 		.word	.LANCHOR0
+ 145 0088 004004E0 		.word	-536592384
+ 146              		.cfi_endproc
+ 147              	.LFE5:
+ 149              		.align	2
+ 150              		.global	CANAll_Init
+ 151              		.syntax unified
+ 152              		.arm
+ 154              	CANAll_Init:
+ 155              	.LVL4:
+ 156              	.LFB0:
+  55:../firmware/LPC_CANAll.c **** volatile unsigned long *pSFR; // pointer into SFR space
+ 157              		.loc 1 55 1 is_stmt 1 view -0
+ 158              		.cfi_startproc
+ 159              		@ Function supports interworking.
+ 160              		@ args = 0, pretend = 0, frame = 0
+ 161              		@ frame_needed = 0, uses_anonymous_args = 0
+ 162              		@ link register save eliminated.
+  56:../firmware/LPC_CANAll.c **** volatile unsigned long *pSFR2; // pointer into SFR space
+ 163              		.loc 1 56 1 view .LVU44
+  57:../firmware/LPC_CANAll.c **** unsigned long offset; // offset added to pSFR
+ 164              		.loc 1 57 1 view .LVU45
+  58:../firmware/LPC_CANAll.c **** 
+ 165              		.loc 1 58 1 view .LVU46
+  61:../firmware/LPC_CANAll.c ****   { // Illegal value for can_isrvect
+ 166              		.loc 1 61 3 view .LVU47
+  67:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 167              		.loc 1 67 3 view .LVU48
+  67:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 168              		.loc 1 67 6 is_stmt 0 view .LVU49
+ 169 008c 0F0051E3 		cmp	r1, #15
+ 170 0090 01005093 		cmpls	r0, #1
+ 171 0094 0130A013 		movne	r3, #1
+ 172 0098 0030A003 		moveq	r3, #0
+ 173 009c 1B00001A 		bne	.L15
+  73:../firmware/LPC_CANAll.c ****   mRxOUT[can_port-1] = 0;
+ 174              		.loc 1 73 3 is_stmt 1 view .LVU50
+  73:../firmware/LPC_CANAll.c ****   mRxOUT[can_port-1] = 0;
+ 175              		.loc 1 73 21 is_stmt 0 view .LVU51
+ 176 00a0 70009FE5 		ldr	r0, .L16
+ 177              	.LVL5:
+  80:../firmware/LPC_CANAll.c ****     offset = 0x00000000L; // Use 1st set of CAN registers
+ 178              		.loc 1 80 13 view .LVU52
+ 179 00a4 70C09FE5 		ldr	ip, .L16+4
+  73:../firmware/LPC_CANAll.c ****   mRxOUT[can_port-1] = 0;
+ 180              		.loc 1 73 21 view .LVU53
+ 181 00a8 B030C0E1 		strh	r3, [r0]	@ movhi
+  74:../firmware/LPC_CANAll.c **** 
+ 182              		.loc 1 74 3 is_stmt 1 view .LVU54
+  74:../firmware/LPC_CANAll.c **** 
+ 183              		.loc 1 74 22 is_stmt 0 view .LVU55
+ 184 00ac 650F80E2 		add	r0, r0, #404
+ 185 00b0 B030C0E1 		strh	r3, [r0]	@ movhi
+  77:../firmware/LPC_CANAll.c ****   {
+ 186              		.loc 1 77 3 is_stmt 1 view .LVU56
+  80:../firmware/LPC_CANAll.c ****     offset = 0x00000000L; // Use 1st set of CAN registers
+ 187              		.loc 1 80 5 view .LVU57
+  80:../firmware/LPC_CANAll.c ****     offset = 0x00000000L; // Use 1st set of CAN registers
+ 188              		.loc 1 80 13 is_stmt 0 view .LVU58
+ 189 00b4 04009CE5 		ldr	r0, [ip, #4]
+ 190 00b8 010780E3 		orr	r0, r0, #262144
+ 191 00bc 04008CE5 		str	r0, [ip, #4]
+  81:../firmware/LPC_CANAll.c ****     break;
+ 192              		.loc 1 81 5 is_stmt 1 view .LVU59
+ 193              	.LVL6:
+  82:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 1)
+ 194              		.loc 1 82 5 view .LVU60
+ 106:../firmware/LPC_CANAll.c **** 
+ 195              		.loc 1 106 3 view .LVU61
+ 106:../firmware/LPC_CANAll.c **** 
+ 196              		.loc 1 106 8 is_stmt 0 view .LVU62
+ 197 00c0 02C0A0E3 		mov	ip, #2
+ 198 00c4 54009FE5 		ldr	r0, .L16+8
+ 199 00c8 00C080E5 		str	ip, [r0]
+ 108:../firmware/LPC_CANAll.c ****   *pSFR = 1; // Go into Reset mode
+ 200              		.loc 1 108 3 is_stmt 1 view .LVU63
+ 201              	.LVL7:
+ 109:../firmware/LPC_CANAll.c **** 
+ 202              		.loc 1 109 3 view .LVU64
+ 109:../firmware/LPC_CANAll.c **** 
+ 203              		.loc 1 109 9 is_stmt 0 view .LVU65
+ 204 00cc 0100A0E3 		mov	r0, #1
+ 205 00d0 4CC09FE5 		ldr	ip, .L16+12
+ 206 00d4 00008CE5 		str	r0, [ip]
+ 111:../firmware/LPC_CANAll.c ****   *pSFR = 0;// Disable All Interrupts
+ 207              		.loc 1 111 3 is_stmt 1 view .LVU66
+ 208              	.LVL8:
+ 112:../firmware/LPC_CANAll.c **** 
+ 209              		.loc 1 112 3 view .LVU67
+ 112:../firmware/LPC_CANAll.c **** 
+ 210              		.loc 1 112 9 is_stmt 0 view .LVU68
+ 211 00d8 10308CE5 		str	r3, [ip, #16]
+ 114:../firmware/LPC_CANAll.c ****   *pSFR = 0; // Clear Status register
+ 212              		.loc 1 114 3 is_stmt 1 view .LVU69
+ 213              	.LVL9:
+ 115:../firmware/LPC_CANAll.c **** 
+ 214              		.loc 1 115 3 view .LVU70
+ 115:../firmware/LPC_CANAll.c **** 
+ 215              		.loc 1 115 9 is_stmt 0 view .LVU71
+ 216 00dc 08308CE5 		str	r3, [ip, #8]
+ 117:../firmware/LPC_CANAll.c ****   *pSFR = can_btr; // Set bit timing
+ 217              		.loc 1 117 3 is_stmt 1 view .LVU72
+ 218              	.LVL10:
+ 118:../firmware/LPC_CANAll.c **** 
+ 219              		.loc 1 118 3 view .LVU73
+ 118:../firmware/LPC_CANAll.c **** 
+ 220              		.loc 1 118 9 is_stmt 0 view .LVU74
+ 221 00e0 14208CE5 		str	r2, [ip, #20]
+ 121:../firmware/LPC_CANAll.c ****   pSFR += can_isrvect; // Set to desired interrupt vector
+ 222              		.loc 1 121 3 is_stmt 1 view .LVU75
+ 223              	.LVL11:
+ 122:../firmware/LPC_CANAll.c **** 
+ 224              		.loc 1 122 3 view .LVU76
+ 131:../firmware/LPC_CANAll.c ****     // Use this Interrupt for CAN Rx1 Interrupt
+ 225              		.loc 1 131 13 is_stmt 0 view .LVU77
+ 226 00e4 3C209FE5 		ldr	r2, .L16+16
+ 227              	.LVL12:
+ 122:../firmware/LPC_CANAll.c **** 
+ 228              		.loc 1 122 8 view .LVU78
+ 229 00e8 0111A0E1 		lsl	r1, r1, #2
+ 230              	.LVL13:
+ 124:../firmware/LPC_CANAll.c ****   pSFR2 += can_isrvect; // Set to desired interrupt control
+ 231              		.loc 1 124 3 is_stmt 1 view .LVU79
+ 125:../firmware/LPC_CANAll.c **** 
+ 232              		.loc 1 125 3 view .LVU80
+ 127:../firmware/LPC_CANAll.c ****   {
+ 233              		.loc 1 127 3 view .LVU81
+ 131:../firmware/LPC_CANAll.c ****     // Use this Interrupt for CAN Rx1 Interrupt
+ 234              		.loc 1 131 5 view .LVU82
+ 131:../firmware/LPC_CANAll.c ****     // Use this Interrupt for CAN Rx1 Interrupt
+ 235              		.loc 1 131 11 is_stmt 0 view .LVU83
+ 236 00ec 002F01E5 		str	r2, [r1, #-3840]
+ 237              	.LVL14:
+ 133:../firmware/LPC_CANAll.c ****     // Enable CAN Rx1 Interrupt
+ 238              		.loc 1 133 5 is_stmt 1 view .LVU84
+ 133:../firmware/LPC_CANAll.c ****     // Enable CAN Rx1 Interrupt
+ 239              		.loc 1 133 12 is_stmt 0 view .LVU85
+ 240 00f0 3A20A0E3 		mov	r2, #58
+ 241 00f4 002E01E5 		str	r2, [r1, #-3584]
+ 135:../firmware/LPC_CANAll.c ****     break;
+ 242              		.loc 1 135 5 is_stmt 1 view .LVU86
+ 135:../firmware/LPC_CANAll.c ****     break;
+ 243              		.loc 1 135 18 is_stmt 0 view .LVU87
+ 244 00f8 0F2CE0E3 		mvn	r2, #3840
+ 245 00fc 0113A0E3 		mov	r1, #67108864
+ 246              	.LVL15:
+ 135:../firmware/LPC_CANAll.c ****     break;
+ 247              		.loc 1 135 18 view .LVU88
+ 248 0100 EF1002E5 		str	r1, [r2, #-239]
+ 136:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 1)
+ 249              		.loc 1 136 5 is_stmt 1 view .LVU89
+ 171:../firmware/LPC_CANAll.c ****   *pSFR = 1; // Enable Receive Interrupt
+ 250              		.loc 1 171 3 view .LVU90
+ 251              	.LVL16:
+ 172:../firmware/LPC_CANAll.c **** 
+ 252              		.loc 1 172 3 view .LVU91
+ 172:../firmware/LPC_CANAll.c **** 
+ 253              		.loc 1 172 9 is_stmt 0 view .LVU92
+ 254 0104 10008CE5 		str	r0, [ip, #16]
+ 175:../firmware/LPC_CANAll.c ****   *pSFR = 0; // Operating Mode
+ 255              		.loc 1 175 3 is_stmt 1 view .LVU93
+ 256              	.LVL17:
+ 176:../firmware/LPC_CANAll.c **** 
+ 257              		.loc 1 176 3 view .LVU94
+ 176:../firmware/LPC_CANAll.c **** 
+ 258              		.loc 1 176 9 is_stmt 0 view .LVU95
+ 259 0108 00308CE5 		str	r3, [ip]
+ 178:../firmware/LPC_CANAll.c **** }
+ 260              		.loc 1 178 3 is_stmt 1 view .LVU96
+ 178:../firmware/LPC_CANAll.c **** }
+ 261              		.loc 1 178 10 is_stmt 0 view .LVU97
+ 262 010c 1EFF2FE1 		bx	lr
+ 263              	.LVL18:
+ 264              	.L15:
+  69:../firmware/LPC_CANAll.c ****   }
+ 265              		.loc 1 69 12 view .LVU98
+ 266 0110 0000A0E3 		mov	r0, #0
+ 267              	.LVL19:
+ 179:../firmware/LPC_CANAll.c **** 
+ 268              		.loc 1 179 1 view .LVU99
+ 269 0114 1EFF2FE1 		bx	lr
+ 270              	.L17:
+ 271              		.align	2
+ 272              	.L16:
+ 273 0118 00000000 		.word	.LANCHOR0
+ 274 011c 00C002E0 		.word	-536690688
+ 275 0120 00C003E0 		.word	-536625152
+ 276 0124 004004E0 		.word	-536592384
+ 277 0128 00000000 		.word	CANAll_CANISR_Rx1
+ 278              		.cfi_endproc
+ 279              	.LFE0:
+ 281              		.align	2
+ 282              		.global	CANAll_SetErrIRQ
+ 283              		.syntax unified
+ 284              		.arm
+ 286              	CANAll_SetErrIRQ:
+ 287              	.LVL20:
+ 288              	.LFB1:
+ 189:../firmware/LPC_CANAll.c **** volatile unsigned long *pSFR; // pointer into SFR space
+ 289              		.loc 1 189 1 is_stmt 1 view -0
+ 290              		.cfi_startproc
+ 291              		@ Function supports interworking.
+ 292              		@ args = 0, pretend = 0, frame = 0
+ 293              		@ frame_needed = 0, uses_anonymous_args = 0
+ 294              		@ link register save eliminated.
+ 190:../firmware/LPC_CANAll.c **** 
+ 295              		.loc 1 190 1 view .LVU101
+ 193:../firmware/LPC_CANAll.c ****   { // Illegal value for can_isrvect
+ 296              		.loc 1 193 3 view .LVU102
+ 193:../firmware/LPC_CANAll.c ****   { // Illegal value for can_isrvect
+ 297              		.loc 1 193 6 is_stmt 0 view .LVU103
+ 298 012c 0F0050E3 		cmp	r0, #15
+ 299 0130 0900008A 		bhi	.L20
+ 199:../firmware/LPC_CANAll.c ****   pSFR += can_isrvect; // Set to desired interrupt vector
+ 300              		.loc 1 199 3 is_stmt 1 view .LVU104
+ 301              	.LVL21:
+ 200:../firmware/LPC_CANAll.c ****   // Set interrupt vector
+ 302              		.loc 1 200 3 view .LVU105
+ 202:../firmware/LPC_CANAll.c **** 
+ 303              		.loc 1 202 11 is_stmt 0 view .LVU106
+ 304 0134 28309FE5 		ldr	r3, .L21
+ 200:../firmware/LPC_CANAll.c ****   // Set interrupt vector
+ 305              		.loc 1 200 8 view .LVU107
+ 306 0138 0001A0E1 		lsl	r0, r0, #2
+ 307              	.LVL22:
+ 202:../firmware/LPC_CANAll.c **** 
+ 308              		.loc 1 202 3 is_stmt 1 view .LVU108
+ 202:../firmware/LPC_CANAll.c **** 
+ 309              		.loc 1 202 9 is_stmt 0 view .LVU109
+ 310 013c 003F00E5 		str	r3, [r0, #-3840]
+ 204:../firmware/LPC_CANAll.c ****   pSFR += can_isrvect; // Set to desired interrupt control
+ 311              		.loc 1 204 3 is_stmt 1 view .LVU110
+ 312              	.LVL23:
+ 205:../firmware/LPC_CANAll.c ****   *pSFR = 0x20 | 19;
+ 313              		.loc 1 205 3 view .LVU111
+ 206:../firmware/LPC_CANAll.c **** 
+ 314              		.loc 1 206 3 view .LVU112
+ 206:../firmware/LPC_CANAll.c **** 
+ 315              		.loc 1 206 9 is_stmt 0 view .LVU113
+ 316 0140 3330A0E3 		mov	r3, #51
+ 209:../firmware/LPC_CANAll.c **** 
+ 317              		.loc 1 209 16 view .LVU114
+ 318 0144 0227A0E3 		mov	r2, #524288
+ 206:../firmware/LPC_CANAll.c **** 
+ 319              		.loc 1 206 9 view .LVU115
+ 320 0148 003E00E5 		str	r3, [r0, #-3584]
+ 209:../firmware/LPC_CANAll.c **** 
+ 321              		.loc 1 209 3 is_stmt 1 view .LVU116
+ 209:../firmware/LPC_CANAll.c **** 
+ 322              		.loc 1 209 16 is_stmt 0 view .LVU117
+ 323 014c 0F3CE0E3 		mvn	r3, #3840
+ 211:../firmware/LPC_CANAll.c **** }
+ 324              		.loc 1 211 10 view .LVU118
+ 325 0150 0100A0E3 		mov	r0, #1
+ 326              	.LVL24:
+ 209:../firmware/LPC_CANAll.c **** 
+ 327              		.loc 1 209 16 view .LVU119
+ 328 0154 EF2003E5 		str	r2, [r3, #-239]
+ 211:../firmware/LPC_CANAll.c **** }
+ 329              		.loc 1 211 3 is_stmt 1 view .LVU120
+ 211:../firmware/LPC_CANAll.c **** }
+ 330              		.loc 1 211 10 is_stmt 0 view .LVU121
+ 331 0158 1EFF2FE1 		bx	lr
+ 332              	.LVL25:
+ 333              	.L20:
+ 195:../firmware/LPC_CANAll.c ****   }
+ 334              		.loc 1 195 12 view .LVU122
+ 335 015c 0000A0E3 		mov	r0, #0
+ 336              	.LVL26:
+ 212:../firmware/LPC_CANAll.c **** 
+ 337              		.loc 1 212 1 view .LVU123
+ 338 0160 1EFF2FE1 		bx	lr
+ 339              	.L22:
+ 340              		.align	2
+ 341              	.L21:
+ 342 0164 00000000 		.word	CANAll_CANISR_Err
+ 343              		.cfi_endproc
+ 344              	.LFE1:
+ 346              		.align	2
+ 347              		.global	CANAll_PushMessage
+ 348              		.syntax unified
+ 349              		.arm
+ 351              	CANAll_PushMessage:
+ 352              	.LVL27:
+ 353              	.LFB2:
+ 223:../firmware/LPC_CANAll.c **** volatile unsigned long *pAddr;
+ 354              		.loc 1 223 1 is_stmt 1 view -0
+ 355              		.cfi_startproc
+ 356              		@ Function supports interworking.
+ 357              		@ args = 0, pretend = 0, frame = 0
+ 358              		@ frame_needed = 0, uses_anonymous_args = 0
+ 359              		@ link register save eliminated.
+ 224:../firmware/LPC_CANAll.c **** unsigned long *pCandata;
+ 360              		.loc 1 224 1 view .LVU125
+ 225:../firmware/LPC_CANAll.c **** unsigned long offset;
+ 361              		.loc 1 225 1 view .LVU126
+ 226:../firmware/LPC_CANAll.c **** 
+ 362              		.loc 1 226 1 view .LVU127
+ 229:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 363              		.loc 1 229 3 view .LVU128
+ 229:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 364              		.loc 1 229 6 is_stmt 0 view .LVU129
+ 365 0168 010050E3 		cmp	r0, #1
+ 223:../firmware/LPC_CANAll.c **** volatile unsigned long *pAddr;
+ 366              		.loc 1 223 1 view .LVU130
+ 367 016c 00C0A0E1 		mov	ip, r0
+ 229:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 368              		.loc 1 229 6 view .LVU131
+ 369 0170 1300001A 		bne	.L25
+ 234:../firmware/LPC_CANAll.c ****   {
+ 370              		.loc 1 234 3 is_stmt 1 view .LVU132
+ 237:../firmware/LPC_CANAll.c ****     break;
+ 371              		.loc 1 237 5 view .LVU133
+ 372              	.LVL28:
+ 238:../firmware/LPC_CANAll.c **** #if (MAX_CANPORTS > 1)
+ 373              		.loc 1 238 5 view .LVU134
+ 258:../firmware/LPC_CANAll.c ****   if (!(*pAddr & 0x00000004L))
+ 374              		.loc 1 258 3 view .LVU135
+ 259:../firmware/LPC_CANAll.c ****   { // Transmit Channel is not available
+ 375              		.loc 1 259 3 view .LVU136
+ 259:../firmware/LPC_CANAll.c ****   { // Transmit Channel is not available
+ 376              		.loc 1 259 9 is_stmt 0 view .LVU137
+ 377 0174 50209FE5 		ldr	r2, .L27
+ 378 0178 1C3092E5 		ldr	r3, [r2, #28]
+ 259:../firmware/LPC_CANAll.c ****   { // Transmit Channel is not available
+ 379              		.loc 1 259 6 view .LVU138
+ 380 017c 040013E2 		ands	r0, r3, #4
+ 381              	.LVL29:
+ 259:../firmware/LPC_CANAll.c ****   { // Transmit Channel is not available
+ 382              		.loc 1 259 6 view .LVU139
+ 383 0180 1EFF2F01 		bxeq	lr
+ 265:../firmware/LPC_CANAll.c ****   *pAddr = pTransmitBuf->Frame & 0xC00F0000L;
+ 384              		.loc 1 265 3 is_stmt 1 view .LVU140
+ 385              	.LVL30:
+ 266:../firmware/LPC_CANAll.c **** 
+ 386              		.loc 1 266 3 view .LVU141
+ 266:../firmware/LPC_CANAll.c **** 
+ 387              		.loc 1 266 32 is_stmt 0 view .LVU142
+ 388 0184 003091E5 		ldr	r3, [r1]
+ 389 0188 FF35C3E3 		bic	r3, r3, #1069547520
+ 390 018c 0336C3E3 		bic	r3, r3, #3145728
+ 391 0190 2338A0E1 		lsr	r3, r3, #16
+ 392 0194 0338A0E1 		lsl	r3, r3, #16
+ 266:../firmware/LPC_CANAll.c **** 
+ 393              		.loc 1 266 10 view .LVU143
+ 394 0198 303082E5 		str	r3, [r2, #48]
+ 269:../firmware/LPC_CANAll.c ****   *pAddr = pTransmitBuf->MsgID;
+ 395              		.loc 1 269 3 is_stmt 1 view .LVU144
+ 396              	.LVL31:
+ 270:../firmware/LPC_CANAll.c **** 
+ 397              		.loc 1 270 3 view .LVU145
+ 270:../firmware/LPC_CANAll.c **** 
+ 398              		.loc 1 270 24 is_stmt 0 view .LVU146
+ 399 019c 043091E5 		ldr	r3, [r1, #4]
+ 270:../firmware/LPC_CANAll.c **** 
+ 400              		.loc 1 270 10 view .LVU147
+ 401 01a0 343082E5 		str	r3, [r2, #52]
+ 273:../firmware/LPC_CANAll.c ****   pAddr++;
+ 402              		.loc 1 273 3 is_stmt 1 view .LVU148
+ 403              	.LVL32:
+ 274:../firmware/LPC_CANAll.c ****   *pAddr = *pCandata;
+ 404              		.loc 1 274 3 view .LVU149
+ 275:../firmware/LPC_CANAll.c **** 
+ 405              		.loc 1 275 3 view .LVU150
+ 275:../firmware/LPC_CANAll.c **** 
+ 406              		.loc 1 275 12 is_stmt 0 view .LVU151
+ 407 01a4 083091E5 		ldr	r3, [r1, #8]
+ 275:../firmware/LPC_CANAll.c **** 
+ 408              		.loc 1 275 10 view .LVU152
+ 409 01a8 383082E5 		str	r3, [r2, #56]
+ 278:../firmware/LPC_CANAll.c ****   pAddr++;
+ 410              		.loc 1 278 3 is_stmt 1 view .LVU153
+ 411              	.LVL33:
+ 279:../firmware/LPC_CANAll.c ****   *pAddr = *pCandata;
+ 412              		.loc 1 279 3 view .LVU154
+ 280:../firmware/LPC_CANAll.c **** 
+ 413              		.loc 1 280 3 view .LVU155
+ 280:../firmware/LPC_CANAll.c **** 
+ 414              		.loc 1 280 12 is_stmt 0 view .LVU156
+ 415 01ac 0C3091E5 		ldr	r3, [r1, #12]
+ 280:../firmware/LPC_CANAll.c **** 
+ 416              		.loc 1 280 10 view .LVU157
+ 417 01b0 3C3082E5 		str	r3, [r2, #60]
+ 283:../firmware/LPC_CANAll.c ****   *pAddr = 0x21;   // no self transmission, 0x30 for Self Transmission Request Buf 1
+ 418              		.loc 1 283 3 is_stmt 1 view .LVU158
+ 419              	.LVL34:
+ 284:../firmware/LPC_CANAll.c **** 
+ 420              		.loc 1 284 3 view .LVU159
+ 284:../firmware/LPC_CANAll.c **** 
+ 421              		.loc 1 284 10 is_stmt 0 view .LVU160
+ 422 01b4 2130A0E3 		mov	r3, #33
+ 286:../firmware/LPC_CANAll.c **** }
+ 423              		.loc 1 286 10 view .LVU161
+ 424 01b8 0C00A0E1 		mov	r0, ip
+ 284:../firmware/LPC_CANAll.c **** 
+ 425              		.loc 1 284 10 view .LVU162
+ 426 01bc 043082E5 		str	r3, [r2, #4]
+ 286:../firmware/LPC_CANAll.c **** }
+ 427              		.loc 1 286 3 is_stmt 1 view .LVU163
+ 286:../firmware/LPC_CANAll.c **** }
+ 428              		.loc 1 286 10 is_stmt 0 view .LVU164
+ 429 01c0 1EFF2FE1 		bx	lr
+ 430              	.LVL35:
+ 431              	.L25:
+ 231:../firmware/LPC_CANAll.c ****   }
+ 432              		.loc 1 231 12 view .LVU165
+ 433 01c4 0000A0E3 		mov	r0, #0
+ 434              	.LVL36:
+ 287:../firmware/LPC_CANAll.c **** 
+ 435              		.loc 1 287 1 view .LVU166
+ 436 01c8 1EFF2FE1 		bx	lr
+ 437              	.L28:
+ 438              		.align	2
+ 439              	.L27:
+ 440 01cc 004004E0 		.word	-536592384
+ 441              		.cfi_endproc
+ 442              	.LFE2:
+ 444              		.align	2
+ 445              		.global	CANAll_PullMessage
+ 446              		.syntax unified
+ 447              		.arm
+ 449              	CANAll_PullMessage:
+ 450              	.LVL37:
+ 451              	.LFB3:
+ 298:../firmware/LPC_CANAll.c **** unsigned long *pSrc; // Source pointer
+ 452              		.loc 1 298 1 is_stmt 1 view -0
+ 453              		.cfi_startproc
+ 454              		@ Function supports interworking.
+ 455              		@ args = 0, pretend = 0, frame = 0
+ 456              		@ frame_needed = 0, uses_anonymous_args = 0
+ 299:../firmware/LPC_CANAll.c **** unsigned long *pDst; // Destination pointer
+ 457              		.loc 1 299 1 view .LVU168
+ 300:../firmware/LPC_CANAll.c **** 
+ 458              		.loc 1 300 1 view .LVU169
+ 303:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 459              		.loc 1 303 3 view .LVU170
+ 303:../firmware/LPC_CANAll.c ****   { // Illegal value for can_port
+ 460              		.loc 1 303 6 is_stmt 0 view .LVU171
+ 461 01d0 010050E3 		cmp	r0, #1
+ 462 01d4 1900001A 		bne	.L32
+ 307:../firmware/LPC_CANAll.c **** 
+ 463              		.loc 1 307 3 is_stmt 1 view .LVU172
+ 464              	.LVL38:
+ 310:../firmware/LPC_CANAll.c ****   { // Queue is empty
+ 465              		.loc 1 310 3 view .LVU173
+ 310:../firmware/LPC_CANAll.c ****   { // Queue is empty
+ 466              		.loc 1 310 35 is_stmt 0 view .LVU174
+ 467 01d8 68209FE5 		ldr	r2, .L39
+ 468 01dc 65CF82E2 		add	ip, r2, #404
+ 298:../firmware/LPC_CANAll.c **** unsigned long *pSrc; // Source pointer
+ 469              		.loc 1 298 1 view .LVU175
+ 470 01e0 04E02DE5 		str	lr, [sp, #-4]!
+ 471              	.LCFI2:
+ 472              		.cfi_def_cfa_offset 4
+ 473              		.cfi_offset 14, -4
+ 310:../firmware/LPC_CANAll.c ****   { // Queue is empty
+ 474              		.loc 1 310 35 view .LVU176
+ 475 01e4 F030DCE1 		ldrsh	r3, [ip]
+ 310:../firmware/LPC_CANAll.c ****   { // Queue is empty
+ 476              		.loc 1 310 6 view .LVU177
+ 477 01e8 F0E0D2E1 		ldrsh	lr, [r2]
+ 478 01ec 03005EE1 		cmp	lr, r3
+ 305:../firmware/LPC_CANAll.c ****   }
+ 479              		.loc 1 305 12 view .LVU178
+ 480 01f0 0000A003 		moveq	r0, #0
+ 310:../firmware/LPC_CANAll.c ****   { // Queue is empty
+ 481              		.loc 1 310 6 view .LVU179
+ 482 01f4 0F00000A 		beq	.L30
+ 317:../firmware/LPC_CANAll.c ****   pDst = (unsigned long *) &(pReceiveBuf->Frame);
+ 483              		.loc 1 317 3 is_stmt 1 view .LVU180
+ 317:../firmware/LPC_CANAll.c ****   pDst = (unsigned long *) &(pReceiveBuf->Frame);
+ 484              		.loc 1 317 8 is_stmt 0 view .LVU181
+ 485 01f8 042082E2 		add	r2, r2, #4
+ 486 01fc 03E282E0 		add	lr, r2, r3, lsl #4
+ 487              	.LVL39:
+ 318:../firmware/LPC_CANAll.c ****   *pDst = *pSrc; // Copy Frame
+ 488              		.loc 1 318 3 is_stmt 1 view .LVU182
+ 319:../firmware/LPC_CANAll.c **** 
+ 489              		.loc 1 319 3 view .LVU183
+ 319:../firmware/LPC_CANAll.c **** 
+ 490              		.loc 1 319 11 is_stmt 0 view .LVU184
+ 491 0200 032292E7 		ldr	r2, [r2, r3, lsl #4]
+ 334:../firmware/LPC_CANAll.c ****   if (mRxOUT[can_port] >= MAX_QUEUE)
+ 492              		.loc 1 334 19 view .LVU185
+ 493 0204 013083E2 		add	r3, r3, #1
+ 494 0208 0338A0E1 		lsl	r3, r3, #16
+ 495 020c 4338A0E1 		asr	r3, r3, #16
+ 335:../firmware/LPC_CANAll.c ****   {
+ 496              		.loc 1 335 6 view .LVU186
+ 497 0210 180053E3 		cmp	r3, #24
+ 337:../firmware/LPC_CANAll.c ****   }
+ 498              		.loc 1 337 22 view .LVU187
+ 499 0214 0030A0C3 		movgt	r3, #0
+ 319:../firmware/LPC_CANAll.c **** 
+ 500              		.loc 1 319 9 view .LVU188
+ 501 0218 002081E5 		str	r2, [r1]
+ 321:../firmware/LPC_CANAll.c ****   pDst++;
+ 502              		.loc 1 321 3 is_stmt 1 view .LVU189
+ 503              	.LVL40:
+ 322:../firmware/LPC_CANAll.c ****   *pDst = *pSrc; // Copy MsgID
+ 504              		.loc 1 322 3 view .LVU190
+ 323:../firmware/LPC_CANAll.c **** 
+ 505              		.loc 1 323 3 view .LVU191
+ 323:../firmware/LPC_CANAll.c **** 
+ 506              		.loc 1 323 11 is_stmt 0 view .LVU192
+ 507 021c 04209EE5 		ldr	r2, [lr, #4]
+ 323:../firmware/LPC_CANAll.c **** 
+ 508              		.loc 1 323 9 view .LVU193
+ 509 0220 042081E5 		str	r2, [r1, #4]
+ 325:../firmware/LPC_CANAll.c ****   pDst++;
+ 510              		.loc 1 325 3 is_stmt 1 view .LVU194
+ 511              	.LVL41:
+ 326:../firmware/LPC_CANAll.c ****   *pDst = *pSrc; // Copy DatA
+ 512              		.loc 1 326 3 view .LVU195
+ 327:../firmware/LPC_CANAll.c **** 
+ 513              		.loc 1 327 3 view .LVU196
+ 327:../firmware/LPC_CANAll.c **** 
+ 514              		.loc 1 327 11 is_stmt 0 view .LVU197
+ 515 0224 08209EE5 		ldr	r2, [lr, #8]
+ 327:../firmware/LPC_CANAll.c **** 
+ 516              		.loc 1 327 9 view .LVU198
+ 517 0228 082081E5 		str	r2, [r1, #8]
+ 329:../firmware/LPC_CANAll.c ****   pDst++;
+ 518              		.loc 1 329 3 is_stmt 1 view .LVU199
+ 519              	.LVL42:
+ 330:../firmware/LPC_CANAll.c ****   *pDst = *pSrc; // Copy DatB
+ 520              		.loc 1 330 3 view .LVU200
+ 331:../firmware/LPC_CANAll.c **** 
+ 521              		.loc 1 331 3 view .LVU201
+ 331:../firmware/LPC_CANAll.c **** 
+ 522              		.loc 1 331 11 is_stmt 0 view .LVU202
+ 523 022c 0C209EE5 		ldr	r2, [lr, #12]
+ 337:../firmware/LPC_CANAll.c ****   }
+ 524              		.loc 1 337 22 view .LVU203
+ 525 0230 B030CCE1 		strh	r3, [ip]	@ movhi
+ 331:../firmware/LPC_CANAll.c **** 
+ 526              		.loc 1 331 9 view .LVU204
+ 527 0234 0C2081E5 		str	r2, [r1, #12]
+ 334:../firmware/LPC_CANAll.c ****   if (mRxOUT[can_port] >= MAX_QUEUE)
+ 528              		.loc 1 334 3 is_stmt 1 view .LVU205
+ 335:../firmware/LPC_CANAll.c ****   {
+ 529              		.loc 1 335 3 view .LVU206
+ 337:../firmware/LPC_CANAll.c ****   }
+ 530              		.loc 1 337 5 view .LVU207
+ 531              	.LVL43:
+ 532              	.L30:
+ 341:../firmware/LPC_CANAll.c **** 
+ 533              		.loc 1 341 1 is_stmt 0 view .LVU208
+ 534 0238 04E09DE4 		ldr	lr, [sp], #4
+ 535              	.LCFI3:
+ 536              		.cfi_restore 14
+ 537              		.cfi_def_cfa_offset 0
+ 538 023c 1EFF2FE1 		bx	lr
+ 539              	.LVL44:
+ 540              	.L32:
+ 305:../firmware/LPC_CANAll.c ****   }
+ 541              		.loc 1 305 12 view .LVU209
+ 542 0240 0000A0E3 		mov	r0, #0
+ 543              	.LVL45:
+ 341:../firmware/LPC_CANAll.c **** 
+ 544              		.loc 1 341 1 view .LVU210
+ 545 0244 1EFF2FE1 		bx	lr
+ 546              	.L40:
+ 547              		.align	2
+ 548              	.L39:
+ 549 0248 00000000 		.word	.LANCHOR0
+ 550              		.cfi_endproc
+ 551              	.LFE3:
+ 553              		.global	mRxOUT
+ 554              		.global	mRxIN
+ 555              		.global	mRxCAN
+ 556              		.bss
+ 557              		.align	2
+ 558              		.set	.LANCHOR0,. + 0
+ 561              	mRxIN:
+ 562 0000 0000     		.space	2
+ 563 0002 0000     		.space	2
+ 566              	mRxCAN:
+ 567 0004 00000000 		.space	400
+ 567      00000000 
+ 567      00000000 
+ 567      00000000 
+ 567      00000000 
+ 570              	mRxOUT:
+ 571 0194 0000     		.space	2
+ 572              		.text
+ 573              	.Letext0:
+ 574              		.file 2 "../firmware/lpcGPIO.h"
+ 575              		.file 3 "../firmware/lpcPIN.h"
+ 576              		.file 4 "../firmware/lpcVIC.h"
+ 577              		.file 5 "../firmware/LPC_CANAll.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 LPC_CANAll.c
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:22     .text:00000000 CANAll_CANISR_Err
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:51     .text:00000014 $d
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:55     .text:00000018 $a
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:60     .text:00000018 CANAll_CANISR_Rx1
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:144    .text:00000084 $d
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:149    .text:0000008c $a
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:154    .text:0000008c CANAll_Init
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:273    .text:00000118 $d
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:281    .text:0000012c $a
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:286    .text:0000012c CANAll_SetErrIRQ
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:342    .text:00000164 $d
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:346    .text:00000168 $a
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:351    .text:00000168 CANAll_PushMessage
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:440    .text:000001cc $d
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:444    .text:000001d0 $a
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:449    .text:000001d0 CANAll_PullMessage
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:549    .text:00000248 $d
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:570    .bss:00000194 mRxOUT
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:561    .bss:00000000 mRxIN
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:566    .bss:00000004 mRxCAN
+C:\Users\ishin\AppData\Local\Temp\ccIYRB5H.s:557    .bss:00000000 $d
+
+NO UNDEFINED SYMBOLS

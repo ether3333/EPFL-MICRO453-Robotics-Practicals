@@ -1,0 +1,273 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"adc.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	adc_init
+  19              		.syntax unified
+  20              		.arm
+  22              	adc_init:
+  23              	.LFB0:
+  24              		.file 1 "../firmware/adc.c"
+   1:../firmware/adc.c **** #include "adc.h"
+   2:../firmware/adc.c **** #include "LPC21xx.h"
+   3:../firmware/adc.c **** #include "lpcADC.h"
+   4:../firmware/adc.c **** #include "uart.h"
+   5:../firmware/adc.c **** #include "timerISR.h"
+   6:../firmware/adc.c **** #include "sysTime.h"
+   7:../firmware/adc.c **** 
+   8:../firmware/adc.c **** void adc_init()
+   9:../firmware/adc.c **** {
+  25              		.loc 1 9 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  10:../firmware/adc.c ****   PINSEL1 &= ~(0xFF << 22);    // Set AN0...AN3 as analog inputs
+  31              		.loc 1 10 3 view .LVU1
+  32              		.loc 1 10 11 is_stmt 0 view .LVU2
+  33 0000 24309FE5 		ldr	r3, .L2
+  34 0004 042093E5 		ldr	r2, [r3, #4]
+  35 0008 FF25C2E3 		bic	r2, r2, #1069547520
+  36 000c 042083E5 		str	r2, [r3, #4]
+  11:../firmware/adc.c ****   PINSEL1 |= (0x55 << 22);
+  37              		.loc 1 11 3 is_stmt 1 view .LVU3
+  38              		.loc 1 11 11 is_stmt 0 view .LVU4
+  39 0010 042093E5 		ldr	r2, [r3, #4]
+  40 0014 552582E3 		orr	r2, r2, #356515840
+  41 0018 042083E5 		str	r2, [r3, #4]
+  12:../firmware/adc.c ****   // clock = (30 / (6+1)) = 4.29 MHz, A/D enabled, pin Ain0
+  13:../firmware/adc.c ****   ADCR = (6 << 8) | (1 << 21) | (1 << 0);
+  42              		.loc 1 13 3 is_stmt 1 view .LVU5
+  43              		.loc 1 13 8 is_stmt 0 view .LVU6
+  44 001c 0C209FE5 		ldr	r2, .L2+4
+  45 0020 023983E2 		add	r3, r3, #32768
+  46 0024 002083E5 		str	r2, [r3]
+  14:../firmware/adc.c **** }
+  47              		.loc 1 14 1 view .LVU7
+  48 0028 1EFF2FE1 		bx	lr
+  49              	.L3:
+  50              		.align	2
+  51              	.L2:
+  52 002c 00C002E0 		.word	-536690688
+  53 0030 01062000 		.word	2098689
+  54              		.cfi_endproc
+  55              	.LFE0:
+  57              		.align	2
+  58              		.global	adc_set_channel
+  59              		.syntax unified
+  60              		.arm
+  62              	adc_set_channel:
+  63              	.LVL0:
+  64              	.LFB1:
+  15:../firmware/adc.c **** 
+  16:../firmware/adc.c **** void adc_set_channel(uint8_t ch)
+  17:../firmware/adc.c **** {
+  65              		.loc 1 17 1 is_stmt 1 view -0
+  66              		.cfi_startproc
+  67              		@ Function supports interworking.
+  68              		@ args = 0, pretend = 0, frame = 0
+  69              		@ frame_needed = 0, uses_anonymous_args = 0
+  70              		@ link register save eliminated.
+  18:../firmware/adc.c ****   if (ch>3) {
+  71              		.loc 1 18 3 view .LVU9
+  19:../firmware/adc.c ****     ch = 0;
+  72              		.loc 1 19 8 is_stmt 0 view .LVU10
+  73 0034 040050E3 		cmp	r0, #4
+  74 0038 0000A023 		movcs	r0, #0
+  75              	.LVL1:
+  20:../firmware/adc.c ****   }
+  21:../firmware/adc.c ****   ADCR = (ADCR & 0xFFFFFF00) | (1 << ch);
+  76              		.loc 1 21 3 is_stmt 1 view .LVU11
+  77              		.loc 1 21 30 is_stmt 0 view .LVU12
+  78 003c 0110A0E3 		mov	r1, #1
+  79              		.loc 1 21 11 view .LVU13
+  80 0040 10209FE5 		ldr	r2, .L6
+  81 0044 003092E5 		ldr	r3, [r2]
+  82              		.loc 1 21 16 view .LVU14
+  83 0048 FF30C3E3 		bic	r3, r3, #255
+  84              		.loc 1 21 30 view .LVU15
+  85 004c 110083E1 		orr	r0, r3, r1, lsl r0
+  86              	.LVL2:
+  87              		.loc 1 21 8 view .LVU16
+  88 0050 000082E5 		str	r0, [r2]
+  22:../firmware/adc.c **** }
+  89              		.loc 1 22 1 view .LVU17
+  90 0054 1EFF2FE1 		bx	lr
+  91              	.L7:
+  92              		.align	2
+  93              	.L6:
+  94 0058 004003E0 		.word	-536657920
+  95              		.cfi_endproc
+  96              	.LFE1:
+  98              		.align	2
+  99              		.global	adc_read
+ 100              		.syntax unified
+ 101              		.arm
+ 103              	adc_read:
+ 104              	.LFB2:
+  23:../firmware/adc.c **** 
+  24:../firmware/adc.c **** uint16_t adc_read()
+  25:../firmware/adc.c **** {
+ 105              		.loc 1 25 1 is_stmt 1 view -0
+ 106              		.cfi_startproc
+ 107              		@ Function supports interworking.
+ 108              		@ args = 0, pretend = 0, frame = 0
+ 109              		@ frame_needed = 0, uses_anonymous_args = 0
+ 110              		@ link register save eliminated.
+  26:../firmware/adc.c ****   ADCR |= (1 << 24);               // start now
+ 111              		.loc 1 26 3 view .LVU19
+ 112              		.loc 1 26 8 is_stmt 0 view .LVU20
+ 113 005c 30309FE5 		ldr	r3, .L11
+ 114 0060 002093E5 		ldr	r2, [r3]
+ 115 0064 012482E3 		orr	r2, r2, #16777216
+ 116 0068 002083E5 		str	r2, [r3]
+  27:../firmware/adc.c ****   while (!(ADDR & 0x80000000));    // wait for conversion
+ 117              		.loc 1 27 3 is_stmt 1 view .LVU21
+ 118              	.L9:
+ 119              		.loc 1 27 31 discriminator 1 view .LVU22
+ 120              		.loc 1 27 9 discriminator 1 view .LVU23
+ 121              		.loc 1 27 12 is_stmt 0 discriminator 1 view .LVU24
+ 122 006c 042093E5 		ldr	r2, [r3, #4]
+ 123              		.loc 1 27 9 discriminator 1 view .LVU25
+ 124 0070 000052E3 		cmp	r2, #0
+ 125 0074 FCFFFFAA 		bge	.L9
+  28:../firmware/adc.c ****   ADCR &= ~(1 << 24);              // stop conversion (important!)
+ 126              		.loc 1 28 3 is_stmt 1 view .LVU26
+ 127              		.loc 1 28 8 is_stmt 0 view .LVU27
+ 128 0078 002093E5 		ldr	r2, [r3]
+ 129 007c 0124C2E3 		bic	r2, r2, #16777216
+ 130 0080 002083E5 		str	r2, [r3]
+  29:../firmware/adc.c ****   return (ADDR & 0x0000FFFF) >> 6;
+ 131              		.loc 1 29 3 is_stmt 1 view .LVU28
+ 132              		.loc 1 29 11 is_stmt 0 view .LVU29
+ 133 0084 040093E5 		ldr	r0, [r3, #4]
+ 134              		.loc 1 29 30 view .LVU30
+ 135 0088 0008A0E1 		lsl	r0, r0, #16
+  30:../firmware/adc.c **** }
+ 136              		.loc 1 30 1 view .LVU31
+ 137 008c 200BA0E1 		lsr	r0, r0, #22
+ 138 0090 1EFF2FE1 		bx	lr
+ 139              	.L12:
+ 140              		.align	2
+ 141              	.L11:
+ 142 0094 004003E0 		.word	-536657920
+ 143              		.cfi_endproc
+ 144              	.LFE2:
+ 146              		.align	2
+ 147              		.global	adc_read_ch
+ 148              		.syntax unified
+ 149              		.arm
+ 151              	adc_read_ch:
+ 152              	.LVL3:
+ 153              	.LFB3:
+  31:../firmware/adc.c **** 
+  32:../firmware/adc.c **** uint16_t adc_read_ch(uint8_t ch)
+  33:../firmware/adc.c **** {
+ 154              		.loc 1 33 1 is_stmt 1 view -0
+ 155              		.cfi_startproc
+ 156              		@ Function supports interworking.
+ 157              		@ args = 0, pretend = 0, frame = 0
+ 158              		@ frame_needed = 0, uses_anonymous_args = 0
+  34:../firmware/adc.c ****   unsigned irqs = disable_timer1_irq();  // save T1 interrupt status & ensure disabled
+ 159              		.loc 1 34 3 view .LVU33
+  33:../firmware/adc.c ****   unsigned irqs = disable_timer1_irq();  // save T1 interrupt status & ensure disabled
+ 160              		.loc 1 33 1 is_stmt 0 view .LVU34
+ 161 0098 70402DE9 		push	{r4, r5, r6, lr}
+ 162              	.LCFI0:
+ 163              		.cfi_def_cfa_offset 16
+ 164              		.cfi_offset 4, -16
+ 165              		.cfi_offset 5, -12
+ 166              		.cfi_offset 6, -8
+ 167              		.cfi_offset 14, -4
+  33:../firmware/adc.c ****   unsigned irqs = disable_timer1_irq();  // save T1 interrupt status & ensure disabled
+ 168              		.loc 1 33 1 view .LVU35
+ 169 009c 0040A0E1 		mov	r4, r0
+ 170              		.loc 1 34 19 view .LVU36
+ 171 00a0 FEFFFFEB 		bl	disable_timer1_irq
+ 172              	.LVL4:
+ 173              		.loc 1 34 19 view .LVU37
+ 174 00a4 0050A0E1 		mov	r5, r0
+ 175              	.LVL5:
+  35:../firmware/adc.c ****   uint16_t res;
+ 176              		.loc 1 35 3 is_stmt 1 view .LVU38
+  36:../firmware/adc.c **** 
+  37:../firmware/adc.c ****   adc_set_channel(ch);
+ 177              		.loc 1 37 3 view .LVU39
+ 178 00a8 0400A0E1 		mov	r0, r4
+ 179              	.LVL6:
+ 180              		.loc 1 37 3 is_stmt 0 view .LVU40
+ 181 00ac FEFFFFEB 		bl	adc_set_channel
+ 182              	.LVL7:
+  38:../firmware/adc.c ****   pause(100);
+ 183              		.loc 1 38 3 is_stmt 1 view .LVU41
+ 184 00b0 6400A0E3 		mov	r0, #100
+ 185 00b4 FEFFFFEB 		bl	pause
+ 186              	.LVL8:
+  39:../firmware/adc.c ****   res = adc_read();
+ 187              		.loc 1 39 3 view .LVU42
+ 188              		.loc 1 39 9 is_stmt 0 view .LVU43
+ 189 00b8 FEFFFFEB 		bl	adc_read
+ 190              	.LVL9:
+ 191 00bc 0040A0E1 		mov	r4, r0
+ 192              	.LVL10:
+  40:../firmware/adc.c ****   restore_timer1_irq(irqs);
+ 193              		.loc 1 40 3 is_stmt 1 view .LVU44
+ 194 00c0 0500A0E1 		mov	r0, r5
+ 195 00c4 FEFFFFEB 		bl	restore_timer1_irq
+ 196              	.LVL11:
+  41:../firmware/adc.c ****   return res;
+ 197              		.loc 1 41 3 view .LVU45
+  42:../firmware/adc.c **** }
+ 198              		.loc 1 42 1 is_stmt 0 view .LVU46
+ 199 00c8 0400A0E1 		mov	r0, r4
+ 200 00cc 7040BDE8 		pop	{r4, r5, r6, lr}
+ 201              	.LCFI1:
+ 202              		.cfi_restore 14
+ 203              		.cfi_restore 6
+ 204              		.cfi_restore 5
+ 205              		.cfi_restore 4
+ 206              		.cfi_def_cfa_offset 0
+ 207              	.LVL12:
+ 208              		.loc 1 42 1 view .LVU47
+ 209 00d0 1EFF2FE1 		bx	lr
+ 210              		.cfi_endproc
+ 211              	.LFE3:
+ 213              	.Letext0:
+ 214              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 215              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 216              		.file 4 "../firmware/lpcPIN.h"
+ 217              		.file 5 "../firmware/lpcADC.h"
+ 218              		.file 6 "../firmware/timerISR.h"
+ 219              		.file 7 "../firmware/sysTime.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 adc.c
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:22     .text:00000000 adc_init
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:52     .text:0000002c $d
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:57     .text:00000034 $a
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:62     .text:00000034 adc_set_channel
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:94     .text:00000058 $d
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:98     .text:0000005c $a
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:103    .text:0000005c adc_read
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:142    .text:00000094 $d
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:146    .text:00000098 $a
+C:\Users\ishin\AppData\Local\Temp\ccNkFeMm.s:151    .text:00000098 adc_read_ch
+
+UNDEFINED SYMBOLS
+disable_timer1_irq
+pause
+restore_timer1_irq
