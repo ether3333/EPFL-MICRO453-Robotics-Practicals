@@ -9,8 +9,8 @@ const float FREQ = 1.0;   // Hz
 
 const uint8_t MOTOR_ADDR = 21;
 
-static volatile int8_t freq_enc = 0;
-static volatile int8_t ampl_enc = 0;
+static volatile uint8_t freq_enc = 0;
+static volatile uint8_t ampl_enc = 0;
 
 static int8_t register_handler(uint8_t operation, uint8_t address, RadioData* radio_data)
 {
