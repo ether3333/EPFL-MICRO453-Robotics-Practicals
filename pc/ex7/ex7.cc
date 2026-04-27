@@ -138,7 +138,11 @@ int main()
     }
   }
   ext_key();
-  regs.set_reg_b(REG8_MODE, 0);
+  for (int i(0); i < 10; i++) {
+    if (regs.set_reg_b(REG8_MODE, 0)) {
+      break;
+    }
+  }
   
 }
 

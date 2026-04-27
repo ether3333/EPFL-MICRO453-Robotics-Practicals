@@ -72,11 +72,10 @@ void swim_mode()
   // Give it some time for this to happen
   pause(HALF_SEC);
   // Turn off the PD controller
-  for(int j=0; j<10; j++){
-    for (int i = 0; i < MOTOR_COUNT; i++){
-        bus_set(MOTOR_ADDR[i], MREG_MODE, MODE_IDLE);
-      }
-  }
+  for (int i = 0; i < MOTOR_COUNT; i++){
+      bus_set(MOTOR_ADDR[i], MREG_MODE, MODE_IDLE);
+    }
+
 }
 
 void main_mode_loop()
