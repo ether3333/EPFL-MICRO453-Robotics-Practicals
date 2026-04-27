@@ -1,0 +1,1190 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"robot.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	bus_get
+  19              		.syntax unified
+  20              		.arm
+  22              	bus_get:
+  23              	.LVL0:
+  24              	.LFB0:
+  25              		.file 1 "../firmware/robot.c"
+   1:../firmware/robot.c **** #include <math.h>
+   2:../firmware/robot.c **** #include "config.h"
+   3:../firmware/robot.c **** #include "robot.h"
+   4:../firmware/robot.c **** #include "registers.h"
+   5:../firmware/robot.c **** #include "sysTime.h"
+   6:../firmware/robot.c **** #include "module.h"
+   7:../firmware/robot.c **** #include "hardware.h"
+   8:../firmware/robot.c **** 
+   9:../firmware/robot.c **** #ifdef HAS_CAN
+  10:../firmware/robot.c **** #include "can.h"
+  11:../firmware/robot.c **** #else
+  12:../firmware/robot.c **** #include "i2c.h"
+  13:../firmware/robot.c **** #endif
+  14:../firmware/robot.c **** 
+  15:../firmware/robot.c **** #define LIST_END 0xFF
+  16:../firmware/robot.c **** 
+  17:../firmware/robot.c **** // Device control registers (generic)
+  18:../firmware/robot.c **** static const uint8_t gen_regs[][2] = {
+  19:../firmware/robot.c ****   { MREG_MODE,             MODE_IDLE },
+  20:../firmware/robot.c ****   { MREG_CONTROL_TYPE,     CONTROL_POS },
+  21:../firmware/robot.c ****   { MREG_HW_OPTIONS,       HWO_ENC_025 | HWO_INVERT_TORQUE },
+  22:../firmware/robot.c ****   { MREG_SW_OPTIONS,       SWO_SEPARATE_D_TERM | SWO_ANTIRESET_WINDUP },
+  23:../firmware/robot.c ****   { MREG_SETPOINT_SOURCE,  SETPOINT_SRC_I2C },
+  24:../firmware/robot.c ****   { MREG_SETPOINT,         0 },
+  25:../firmware/robot.c ****   { MREG_POSITION,         0 },
+  26:../firmware/robot.c ****   { MREG_SAMPLE_TIME_H,   16 },
+  27:../firmware/robot.c ****   { MREG_SAMPLE_TIME_L,  124 },
+  28:../firmware/robot.c ****   { MREG_ERROR_FLAGS,      0 },
+  29:../firmware/robot.c ****   { MREG_KD_DIV_POS,       4 },
+  30:../firmware/robot.c ****   { MREG_FILTER_POS,       1 },
+  31:../firmware/robot.c ****   { MREG_KP_SPEED,        50 },
+  32:../firmware/robot.c ****   { MREG_KP_DIV_SPEED,     1 },
+  33:../firmware/robot.c ****   { MREG_KI_SPEED,         5 },
+  34:../firmware/robot.c ****   { MREG_KI_DIV_SPEED,    10 },
+  35:../firmware/robot.c ****   { MREG_KP_TORQUE,       40 },
+  36:../firmware/robot.c ****   { MREG_KP_DIV_TORQUE,    5 },
+  37:../firmware/robot.c ****   { MREG_KI_TORQUE,       80 },
+  38:../firmware/robot.c ****   { MREG_KI_DIV_TORQUE,    8 },
+  39:../firmware/robot.c ****   { MREG_DIVIDER_POS,      BODY_POS_DIVIDER },
+  40:../firmware/robot.c ****   { MREG_DIVIDER_TORQUE,   2 },
+  41:../firmware/robot.c ****   { MREG_KD_POS,          30 },
+  42:../firmware/robot.c ****   { MREG_DIVIDER_SPEED,    3 },
+  43:../firmware/robot.c ****   { MREG_KP_POS,         100 },
+  44:../firmware/robot.c ****   { MREG_KP_DIV_POS,       3 },
+  45:../firmware/robot.c ****   { LIST_END,              0 }
+  46:../firmware/robot.c **** };
+  47:../firmware/robot.c **** 
+  48:../firmware/robot.c **** #ifdef HAS_LEGS
+  49:../firmware/robot.c **** // Device control registers (leg element specific)
+  50:../firmware/robot.c **** static const uint8_t leg_regs[][2] = {
+  51:../firmware/robot.c ****   { MREG_SW_OPTIONS,       SWO_ANTIRESET_WINDUP },
+  52:../firmware/robot.c ****   { MREG_KD_POS,          40 },
+  53:../firmware/robot.c ****   { MREG_DIVIDER_SPEED,    1 },
+  54:../firmware/robot.c ****   { MREG_KP_POS,          80 },
+  55:../firmware/robot.c ****   { MREG_KP_DIV_POS,       2 },
+  56:../firmware/robot.c ****   { MREG_RESET_VALUE,     90 },
+  57:../firmware/robot.c ****   { MREG_DIVIDER_POS,      LEGS_POS_DIVIDER },
+  58:../firmware/robot.c ****   { LIST_END,              0 }
+  59:../firmware/robot.c **** };
+  60:../firmware/robot.c **** #endif
+  61:../firmware/robot.c **** 
+  62:../firmware/robot.c **** uint8_t bus_get(uint8_t module, uint8_t addr)
+  63:../firmware/robot.c **** {
+  26              		.loc 1 63 1 view -0
+  27              		.cfi_startproc
+  28              		@ Function supports interworking.
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  64:../firmware/robot.c **** #ifdef HAS_CAN
+  65:../firmware/robot.c ****   return get_reg_value_b(module, addr);
+  31              		.loc 1 65 3 view .LVU1
+  63:../firmware/robot.c **** #ifdef HAS_CAN
+  32              		.loc 1 63 1 is_stmt 0 view .LVU2
+  33 0000 10402DE9 		push	{r4, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 4, -8
+  37              		.cfi_offset 14, -4
+  38              		.loc 1 65 10 view .LVU3
+  39 0004 FEFFFFEB 		bl	get_reg_value_b
+  40              	.LVL1:
+  66:../firmware/robot.c **** #else
+  67:../firmware/robot.c ****   return i2c_get(module, addr);
+  68:../firmware/robot.c **** #endif
+  69:../firmware/robot.c **** }
+  41              		.loc 1 69 1 view .LVU4
+  42 0008 1040BDE8 		pop	{r4, lr}
+  43              	.LCFI1:
+  44              		.cfi_restore 14
+  45              		.cfi_restore 4
+  46              		.cfi_def_cfa_offset 0
+  47 000c 1EFF2FE1 		bx	lr
+  48              		.cfi_endproc
+  49              	.LFE0:
+  51              		.align	2
+  52              		.global	bus_set
+  53              		.syntax unified
+  54              		.arm
+  56              	bus_set:
+  57              	.LVL2:
+  58              	.LFB1:
+  70:../firmware/robot.c **** 
+  71:../firmware/robot.c **** void bus_set(uint8_t module, uint8_t addr, uint8_t value)
+  72:../firmware/robot.c **** {
+  59              		.loc 1 72 1 is_stmt 1 view -0
+  60              		.cfi_startproc
+  61              		@ Function supports interworking.
+  62              		@ args = 0, pretend = 0, frame = 0
+  63              		@ frame_needed = 0, uses_anonymous_args = 0
+  73:../firmware/robot.c **** #ifdef HAS_CAN
+  74:../firmware/robot.c ****   set_reg_value_b(module, addr, value);
+  64              		.loc 1 74 3 view .LVU6
+  72:../firmware/robot.c **** #ifdef HAS_CAN
+  65              		.loc 1 72 1 is_stmt 0 view .LVU7
+  66 0010 10402DE9 		push	{r4, lr}
+  67              	.LCFI2:
+  68              		.cfi_def_cfa_offset 8
+  69              		.cfi_offset 4, -8
+  70              		.cfi_offset 14, -4
+  71              		.loc 1 74 3 view .LVU8
+  72 0014 FEFFFFEB 		bl	set_reg_value_b
+  73              	.LVL3:
+  75:../firmware/robot.c **** #else
+  76:../firmware/robot.c ****   i2c_set(module, addr, value);
+  77:../firmware/robot.c **** #endif
+  78:../firmware/robot.c **** }
+  74              		.loc 1 78 1 view .LVU9
+  75 0018 1040BDE8 		pop	{r4, lr}
+  76              	.LCFI3:
+  77              		.cfi_restore 14
+  78              		.cfi_restore 4
+  79              		.cfi_def_cfa_offset 0
+  80 001c 1EFF2FE1 		bx	lr
+  81              		.cfi_endproc
+  82              	.LFE1:
+  84              		.align	2
+  85              		.global	safe_bus_set
+  86              		.syntax unified
+  87              		.arm
+  89              	safe_bus_set:
+  90              	.LVL4:
+  91              	.LFB2:
+  79:../firmware/robot.c **** 
+  80:../firmware/robot.c **** void safe_bus_set(uint8_t module, uint8_t addr, uint8_t value)
+  81:../firmware/robot.c **** {
+  92              		.loc 1 81 1 is_stmt 1 view -0
+  93              		.cfi_startproc
+  94              		@ Function supports interworking.
+  95              		@ args = 0, pretend = 0, frame = 0
+  96              		@ frame_needed = 0, uses_anonymous_args = 0
+  82:../firmware/robot.c ****   uint8_t i;
+  97              		.loc 1 82 3 view .LVU11
+  83:../firmware/robot.c **** 
+  84:../firmware/robot.c ****   for (i=0; i<5; i++) {
+  98              		.loc 1 84 3 view .LVU12
+  99              		.loc 1 84 13 view .LVU13
+  81:../firmware/robot.c ****   uint8_t i;
+ 100              		.loc 1 81 1 is_stmt 0 view .LVU14
+ 101 0020 F0412DE9 		push	{r4, r5, r6, r7, r8, lr}
+ 102              	.LCFI4:
+ 103              		.cfi_def_cfa_offset 24
+ 104              		.cfi_offset 4, -24
+ 105              		.cfi_offset 5, -20
+ 106              		.cfi_offset 6, -16
+ 107              		.cfi_offset 7, -12
+ 108              		.cfi_offset 8, -8
+ 109              		.cfi_offset 14, -4
+  81:../firmware/robot.c ****   uint8_t i;
+ 110              		.loc 1 81 1 view .LVU15
+ 111 0024 0050A0E1 		mov	r5, r0
+ 112 0028 0160A0E1 		mov	r6, r1
+ 113 002c 0270A0E1 		mov	r7, r2
+ 114 0030 0540A0E3 		mov	r4, #5
+ 115              	.LVL5:
+ 116              	.L7:
+  85:../firmware/robot.c ****     bus_set(module, addr, value);
+ 117              		.loc 1 85 5 is_stmt 1 view .LVU16
+ 118              	.LBB26:
+ 119              	.LBI26:
+  71:../firmware/robot.c **** {
+ 120              		.loc 1 71 6 view .LVU17
+ 121              	.LBB27:
+  74:../firmware/robot.c **** #else
+ 122              		.loc 1 74 3 view .LVU18
+ 123 0034 0720A0E1 		mov	r2, r7
+ 124 0038 0610A0E1 		mov	r1, r6
+ 125 003c 0500A0E1 		mov	r0, r5
+ 126 0040 FEFFFFEB 		bl	set_reg_value_b
+ 127              	.LVL6:
+  74:../firmware/robot.c **** #else
+ 128              		.loc 1 74 3 is_stmt 0 view .LVU19
+ 129              	.LBE27:
+ 130              	.LBE26:
+  86:../firmware/robot.c ****     if (bus_get(module, addr)==value) break;
+ 131              		.loc 1 86 5 is_stmt 1 view .LVU20
+ 132              	.LBB28:
+ 133              	.LBI28:
+  62:../firmware/robot.c **** {
+ 134              		.loc 1 62 9 view .LVU21
+ 135              	.LBB29:
+  65:../firmware/robot.c **** #else
+ 136              		.loc 1 65 3 view .LVU22
+  65:../firmware/robot.c **** #else
+ 137              		.loc 1 65 10 is_stmt 0 view .LVU23
+ 138 0044 0610A0E1 		mov	r1, r6
+ 139 0048 0500A0E1 		mov	r0, r5
+ 140 004c FEFFFFEB 		bl	get_reg_value_b
+ 141              	.LVL7:
+  65:../firmware/robot.c **** #else
+ 142              		.loc 1 65 10 view .LVU24
+ 143              	.LBE29:
+ 144              	.LBE28:
+ 145              		.loc 1 86 8 view .LVU25
+ 146 0050 000057E1 		cmp	r7, r0
+ 147 0054 0200000A 		beq	.L5
+  84:../firmware/robot.c ****     bus_set(module, addr, value);
+ 148              		.loc 1 84 18 is_stmt 1 discriminator 2 view .LVU26
+ 149              	.LVL8:
+  84:../firmware/robot.c ****     bus_set(module, addr, value);
+ 150              		.loc 1 84 13 discriminator 2 view .LVU27
+  84:../firmware/robot.c ****     bus_set(module, addr, value);
+ 151              		.loc 1 84 3 is_stmt 0 discriminator 2 view .LVU28
+ 152 0058 014044E2 		sub	r4, r4, #1
+ 153              	.LVL9:
+  84:../firmware/robot.c ****     bus_set(module, addr, value);
+ 154              		.loc 1 84 3 discriminator 2 view .LVU29
+ 155 005c FF4014E2 		ands	r4, r4, #255
+ 156 0060 F3FFFF1A 		bne	.L7
+ 157              	.L5:
+  87:../firmware/robot.c ****   }
+  88:../firmware/robot.c **** }
+ 158              		.loc 1 88 1 view .LVU30
+ 159 0064 F041BDE8 		pop	{r4, r5, r6, r7, r8, lr}
+ 160              	.LCFI5:
+ 161              		.cfi_restore 14
+ 162              		.cfi_restore 8
+ 163              		.cfi_restore 7
+ 164              		.cfi_restore 6
+ 165              		.cfi_restore 5
+ 166              		.cfi_restore 4
+ 167              		.cfi_def_cfa_offset 0
+ 168 0068 1EFF2FE1 		bx	lr
+ 169              		.cfi_endproc
+ 170              	.LFE2:
+ 172              		.align	2
+ 173              		.syntax unified
+ 174              		.arm
+ 176              	send_config:
+ 177              	.LVL10:
+ 178              	.LFB4:
+  89:../firmware/robot.c **** 
+  90:../firmware/robot.c **** #ifdef HAS_CAN
+  91:../firmware/robot.c **** void safe_bus_setw(uint8_t module, uint8_t addr, uint16_t value)
+  92:../firmware/robot.c **** {
+  93:../firmware/robot.c ****   uint8_t i;
+  94:../firmware/robot.c **** 
+  95:../firmware/robot.c ****   for (i=0; i<5; i++) {
+  96:../firmware/robot.c ****     set_reg_value_w(module, addr, value);
+  97:../firmware/robot.c ****     if (get_reg_value_w(module, addr)==value) break;
+  98:../firmware/robot.c ****   }
+  99:../firmware/robot.c **** }
+ 100:../firmware/robot.c **** #endif
+ 101:../firmware/robot.c **** 
+ 102:../firmware/robot.c **** // Send standard configuration registers to a single module
+ 103:../firmware/robot.c **** static void send_config(uint8_t addr)
+ 104:../firmware/robot.c **** {
+ 179              		.loc 1 104 1 is_stmt 1 view -0
+ 180              		.cfi_startproc
+ 181              		@ Function supports interworking.
+ 182              		@ args = 0, pretend = 0, frame = 0
+ 183              		@ frame_needed = 0, uses_anonymous_args = 0
+ 105:../firmware/robot.c ****   uint8_t idx = 0;
+ 184              		.loc 1 105 3 view .LVU32
+ 106:../firmware/robot.c **** 
+ 107:../firmware/robot.c ****   while (gen_regs[idx][0] != 0xff) {
+ 185              		.loc 1 107 3 view .LVU33
+ 104:../firmware/robot.c ****   uint8_t idx = 0;
+ 186              		.loc 1 104 1 is_stmt 0 view .LVU34
+ 187 006c 70402DE9 		push	{r4, r5, r6, lr}
+ 188              	.LCFI6:
+ 189              		.cfi_def_cfa_offset 16
+ 190              		.cfi_offset 4, -16
+ 191              		.cfi_offset 5, -12
+ 192              		.cfi_offset 6, -8
+ 193              		.cfi_offset 14, -4
+ 104:../firmware/robot.c ****   uint8_t idx = 0;
+ 194              		.loc 1 104 1 view .LVU35
+ 195 0070 0050A0E1 		mov	r5, r0
+ 196              		.loc 1 107 9 view .LVU36
+ 197 0074 0040A0E3 		mov	r4, #0
+ 198              		.loc 1 107 23 view .LVU37
+ 199 0078 2C609FE5 		ldr	r6, .L14
+ 200              	.LVL11:
+ 201              	.L11:
+ 202              		.loc 1 107 9 is_stmt 1 view .LVU38
+ 203              		.loc 1 107 23 is_stmt 0 view .LVU39
+ 204 007c FF3004E2 		and	r3, r4, #255
+ 205 0080 8310D6E7 		ldrb	r1, [r6, r3, lsl #1]	@ zero_extendqisi2
+ 206              		.loc 1 107 9 view .LVU40
+ 207 0084 FF0051E3 		cmp	r1, #255
+ 208 0088 014084E2 		add	r4, r4, #1
+ 209              	.LVL12:
+ 210              		.loc 1 107 9 view .LVU41
+ 211 008c 0100001A 		bne	.L12
+ 108:../firmware/robot.c ****     safe_bus_set(addr, gen_regs[idx][0], gen_regs[idx][1]);
+ 109:../firmware/robot.c ****     idx++;
+ 110:../firmware/robot.c ****   }
+ 111:../firmware/robot.c **** }
+ 212              		.loc 1 111 1 view .LVU42
+ 213 0090 7040BDE8 		pop	{r4, r5, r6, lr}
+ 214              	.LCFI7:
+ 215              		.cfi_remember_state
+ 216              		.cfi_restore 14
+ 217              		.cfi_restore 6
+ 218              		.cfi_restore 5
+ 219              		.cfi_restore 4
+ 220              		.cfi_def_cfa_offset 0
+ 221 0094 1EFF2FE1 		bx	lr
+ 222              	.L12:
+ 223              	.LCFI8:
+ 224              		.cfi_restore_state
+ 108:../firmware/robot.c ****     safe_bus_set(addr, gen_regs[idx][0], gen_regs[idx][1]);
+ 225              		.loc 1 108 5 is_stmt 1 view .LVU43
+ 226 0098 833086E0 		add	r3, r6, r3, lsl #1
+ 227 009c 0500A0E1 		mov	r0, r5
+ 228 00a0 0120D3E5 		ldrb	r2, [r3, #1]	@ zero_extendqisi2
+ 229 00a4 FEFFFFEB 		bl	safe_bus_set
+ 230              	.LVL13:
+ 109:../firmware/robot.c ****   }
+ 231              		.loc 1 109 5 view .LVU44
+ 109:../firmware/robot.c ****   }
+ 232              		.loc 1 109 5 is_stmt 0 view .LVU45
+ 233 00a8 F3FFFFEA 		b	.L11
+ 234              	.L15:
+ 235              		.align	2
+ 236              	.L14:
+ 237 00ac 00000000 		.word	.LANCHOR0
+ 238              		.cfi_endproc
+ 239              	.LFE4:
+ 241              		.align	2
+ 242              		.syntax unified
+ 243              		.arm
+ 245              	set_torque_bias:
+ 246              	.LVL14:
+ 247              	.LFB7:
+ 112:../firmware/robot.c **** 
+ 113:../firmware/robot.c **** #ifdef HAS_LEGS
+ 114:../firmware/robot.c **** static void send_config_leg(uint8_t addr)
+ 115:../firmware/robot.c **** {
+ 116:../firmware/robot.c ****   uint8_t idx = 0;
+ 117:../firmware/robot.c **** 
+ 118:../firmware/robot.c ****   while (leg_regs[idx][0] != 0xff) {
+ 119:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 120:../firmware/robot.c ****     idx++;
+ 121:../firmware/robot.c ****   }
+ 122:../firmware/robot.c **** }
+ 123:../firmware/robot.c **** #endif
+ 124:../firmware/robot.c **** 
+ 125:../firmware/robot.c **** void start_pid(uint8_t addr)
+ 126:../firmware/robot.c **** {
+ 127:../firmware/robot.c ****   safe_bus_set(addr, MREG_MODE, MODE_IDLE);
+ 128:../firmware/robot.c ****   safe_bus_set(addr, MREG_CONTROL_TYPE, CONTROL_POS);
+ 129:../firmware/robot.c ****   safe_bus_set(addr, MREG_POSITION, 0);
+ 130:../firmware/robot.c ****   safe_bus_set(addr, MREG_SETPOINT, 0);
+ 131:../firmware/robot.c ****   safe_bus_set(addr, MREG_MODE, MODE_NORMAL);
+ 132:../firmware/robot.c **** }
+ 133:../firmware/robot.c **** 
+ 134:../firmware/robot.c **** // Zeroes the torque bias (to be used with motor turned off!)
+ 135:../firmware/robot.c **** static void set_torque_bias(uint8_t addr)
+ 136:../firmware/robot.c **** {
+ 248              		.loc 1 136 1 is_stmt 1 view -0
+ 249              		.cfi_startproc
+ 250              		@ Function supports interworking.
+ 251              		@ args = 0, pretend = 0, frame = 0
+ 252              		@ frame_needed = 0, uses_anonymous_args = 0
+ 137:../firmware/robot.c ****   uint8_t th, tl;
+ 253              		.loc 1 137 3 view .LVU47
+ 138:../firmware/robot.c **** 
+ 139:../firmware/robot.c ****   safe_bus_set(addr, MREG_MODE, 0);
+ 254              		.loc 1 139 3 view .LVU48
+ 136:../firmware/robot.c ****   uint8_t th, tl;
+ 255              		.loc 1 136 1 is_stmt 0 view .LVU49
+ 256 00b0 70402DE9 		push	{r4, r5, r6, lr}
+ 257              	.LCFI9:
+ 258              		.cfi_def_cfa_offset 16
+ 259              		.cfi_offset 4, -16
+ 260              		.cfi_offset 5, -12
+ 261              		.cfi_offset 6, -8
+ 262              		.cfi_offset 14, -4
+ 136:../firmware/robot.c ****   uint8_t th, tl;
+ 263              		.loc 1 136 1 view .LVU50
+ 264 00b4 0040A0E1 		mov	r4, r0
+ 265              		.loc 1 139 3 view .LVU51
+ 266 00b8 0020A0E3 		mov	r2, #0
+ 267 00bc 2810A0E3 		mov	r1, #40
+ 268 00c0 FEFFFFEB 		bl	safe_bus_set
+ 269              	.LVL15:
+ 140:../firmware/robot.c ****   th = bus_get(addr, MREG_TORQUE_H);
+ 270              		.loc 1 140 3 is_stmt 1 view .LVU52
+ 271              	.LBB30:
+ 272              	.LBI30:
+  62:../firmware/robot.c **** {
+ 273              		.loc 1 62 9 view .LVU53
+ 274              	.LBB31:
+  65:../firmware/robot.c **** #else
+ 275              		.loc 1 65 3 view .LVU54
+  65:../firmware/robot.c **** #else
+ 276              		.loc 1 65 10 is_stmt 0 view .LVU55
+ 277 00c4 3C10A0E3 		mov	r1, #60
+ 278 00c8 0400A0E1 		mov	r0, r4
+ 279 00cc FEFFFFEB 		bl	get_reg_value_b
+ 280              	.LVL16:
+ 281              	.LBE31:
+ 282              	.LBE30:
+ 283              	.LBB33:
+ 284              	.LBB34:
+ 285 00d0 3D10A0E3 		mov	r1, #61
+ 286              	.LBE34:
+ 287              	.LBE33:
+ 288              	.LBB36:
+ 289              	.LBB32:
+ 290 00d4 0060A0E1 		mov	r6, r0
+ 291              	.LVL17:
+  65:../firmware/robot.c **** #else
+ 292              		.loc 1 65 10 view .LVU56
+ 293              	.LBE32:
+ 294              	.LBE36:
+ 141:../firmware/robot.c ****   tl = bus_get(addr, MREG_TORQUE_L);
+ 295              		.loc 1 141 3 is_stmt 1 view .LVU57
+ 296              	.LBB37:
+ 297              	.LBI33:
+  62:../firmware/robot.c **** {
+ 298              		.loc 1 62 9 view .LVU58
+ 299              	.LBB35:
+  65:../firmware/robot.c **** #else
+ 300              		.loc 1 65 3 view .LVU59
+  65:../firmware/robot.c **** #else
+ 301              		.loc 1 65 10 is_stmt 0 view .LVU60
+ 302 00d8 0400A0E1 		mov	r0, r4
+ 303 00dc FEFFFFEB 		bl	get_reg_value_b
+ 304              	.LVL18:
+ 305 00e0 0050A0E1 		mov	r5, r0
+ 306              	.LVL19:
+  65:../firmware/robot.c **** #else
+ 307              		.loc 1 65 10 view .LVU61
+ 308              	.LBE35:
+ 309              	.LBE37:
+ 142:../firmware/robot.c ****   bus_set(addr, MREG_TORQUE_BIAS_H, th);
+ 310              		.loc 1 142 3 is_stmt 1 view .LVU62
+ 311              	.LBB38:
+ 312              	.LBI38:
+  71:../firmware/robot.c **** {
+ 313              		.loc 1 71 6 view .LVU63
+ 314              	.LBB39:
+  74:../firmware/robot.c **** #else
+ 315              		.loc 1 74 3 view .LVU64
+ 316 00e4 0620A0E1 		mov	r2, r6
+ 317 00e8 3E10A0E3 		mov	r1, #62
+ 318 00ec 0400A0E1 		mov	r0, r4
+ 319 00f0 FEFFFFEB 		bl	set_reg_value_b
+ 320              	.LVL20:
+  74:../firmware/robot.c **** #else
+ 321              		.loc 1 74 3 is_stmt 0 view .LVU65
+ 322              	.LBE39:
+ 323              	.LBE38:
+ 143:../firmware/robot.c ****   bus_set(addr, MREG_TORQUE_BIAS_L, tl);
+ 324              		.loc 1 143 3 is_stmt 1 view .LVU66
+ 325              	.LBB40:
+ 326              	.LBI40:
+  71:../firmware/robot.c **** {
+ 327              		.loc 1 71 6 view .LVU67
+ 328              	.LBB41:
+  74:../firmware/robot.c **** #else
+ 329              		.loc 1 74 3 view .LVU68
+ 330 00f4 0520A0E1 		mov	r2, r5
+ 331 00f8 3F10A0E3 		mov	r1, #63
+ 332 00fc 0400A0E1 		mov	r0, r4
+ 333 0100 FEFFFFEB 		bl	set_reg_value_b
+ 334              	.LVL21:
+  74:../firmware/robot.c **** #else
+ 335              		.loc 1 74 3 is_stmt 0 view .LVU69
+ 336              	.LBE41:
+ 337              	.LBE40:
+ 144:../firmware/robot.c ****   bus_set(addr, MREG_ERROR_FLAGS, 0);
+ 338              		.loc 1 144 3 is_stmt 1 view .LVU70
+ 339              	.LBB42:
+ 340              	.LBI42:
+  71:../firmware/robot.c **** {
+ 341              		.loc 1 71 6 view .LVU71
+ 342              	.LBB43:
+  74:../firmware/robot.c **** #else
+ 343              		.loc 1 74 3 view .LVU72
+ 344 0104 0400A0E1 		mov	r0, r4
+ 345 0108 0020A0E3 		mov	r2, #0
+ 346 010c 2D10A0E3 		mov	r1, #45
+ 347 0110 FEFFFFEB 		bl	set_reg_value_b
+ 348              	.LVL22:
+  74:../firmware/robot.c **** #else
+ 349              		.loc 1 74 3 is_stmt 0 view .LVU73
+ 350              	.LBE43:
+ 351              	.LBE42:
+ 145:../firmware/robot.c **** }
+ 352              		.loc 1 145 1 view .LVU74
+ 353 0114 7040BDE8 		pop	{r4, r5, r6, lr}
+ 354              	.LCFI10:
+ 355              		.cfi_restore 14
+ 356              		.cfi_restore 6
+ 357              		.cfi_restore 5
+ 358              		.cfi_restore 4
+ 359              		.cfi_def_cfa_offset 0
+ 360              	.LVL23:
+ 361              		.loc 1 145 1 view .LVU75
+ 362 0118 1EFF2FE1 		bx	lr
+ 363              		.cfi_endproc
+ 364              	.LFE7:
+ 366              		.align	2
+ 367              		.global	safe_bus_setw
+ 368              		.syntax unified
+ 369              		.arm
+ 371              	safe_bus_setw:
+ 372              	.LVL24:
+ 373              	.LFB3:
+  92:../firmware/robot.c ****   uint8_t i;
+ 374              		.loc 1 92 1 is_stmt 1 view -0
+ 375              		.cfi_startproc
+ 376              		@ Function supports interworking.
+ 377              		@ args = 0, pretend = 0, frame = 0
+ 378              		@ frame_needed = 0, uses_anonymous_args = 0
+  93:../firmware/robot.c **** 
+ 379              		.loc 1 93 3 view .LVU77
+  95:../firmware/robot.c ****     set_reg_value_w(module, addr, value);
+ 380              		.loc 1 95 3 view .LVU78
+  95:../firmware/robot.c ****     set_reg_value_w(module, addr, value);
+ 381              		.loc 1 95 13 view .LVU79
+  92:../firmware/robot.c ****   uint8_t i;
+ 382              		.loc 1 92 1 is_stmt 0 view .LVU80
+ 383 011c F0412DE9 		push	{r4, r5, r6, r7, r8, lr}
+ 384              	.LCFI11:
+ 385              		.cfi_def_cfa_offset 24
+ 386              		.cfi_offset 4, -24
+ 387              		.cfi_offset 5, -20
+ 388              		.cfi_offset 6, -16
+ 389              		.cfi_offset 7, -12
+ 390              		.cfi_offset 8, -8
+ 391              		.cfi_offset 14, -4
+  92:../firmware/robot.c ****   uint8_t i;
+ 392              		.loc 1 92 1 view .LVU81
+ 393 0120 0050A0E1 		mov	r5, r0
+ 394 0124 0160A0E1 		mov	r6, r1
+ 395 0128 0270A0E1 		mov	r7, r2
+ 396 012c 0540A0E3 		mov	r4, #5
+ 397              	.LVL25:
+ 398              	.L20:
+  96:../firmware/robot.c ****     if (get_reg_value_w(module, addr)==value) break;
+ 399              		.loc 1 96 5 is_stmt 1 view .LVU82
+ 400 0130 0720A0E1 		mov	r2, r7
+ 401 0134 0610A0E1 		mov	r1, r6
+ 402 0138 0500A0E1 		mov	r0, r5
+ 403 013c FEFFFFEB 		bl	set_reg_value_w
+ 404              	.LVL26:
+  97:../firmware/robot.c ****   }
+ 405              		.loc 1 97 5 view .LVU83
+  97:../firmware/robot.c ****   }
+ 406              		.loc 1 97 9 is_stmt 0 view .LVU84
+ 407 0140 0610A0E1 		mov	r1, r6
+ 408 0144 0500A0E1 		mov	r0, r5
+ 409 0148 FEFFFFEB 		bl	get_reg_value_w
+ 410              	.LVL27:
+  97:../firmware/robot.c ****   }
+ 411              		.loc 1 97 8 view .LVU85
+ 412 014c 070050E1 		cmp	r0, r7
+ 413 0150 0200000A 		beq	.L18
+  95:../firmware/robot.c ****     set_reg_value_w(module, addr, value);
+ 414              		.loc 1 95 18 is_stmt 1 discriminator 2 view .LVU86
+ 415              	.LVL28:
+  95:../firmware/robot.c ****     set_reg_value_w(module, addr, value);
+ 416              		.loc 1 95 13 discriminator 2 view .LVU87
+  95:../firmware/robot.c ****     set_reg_value_w(module, addr, value);
+ 417              		.loc 1 95 3 is_stmt 0 discriminator 2 view .LVU88
+ 418 0154 014044E2 		sub	r4, r4, #1
+ 419              	.LVL29:
+  95:../firmware/robot.c ****     set_reg_value_w(module, addr, value);
+ 420              		.loc 1 95 3 discriminator 2 view .LVU89
+ 421 0158 FF4014E2 		ands	r4, r4, #255
+ 422 015c F3FFFF1A 		bne	.L20
+ 423              	.L18:
+  99:../firmware/robot.c **** #endif
+ 424              		.loc 1 99 1 view .LVU90
+ 425 0160 F041BDE8 		pop	{r4, r5, r6, r7, r8, lr}
+ 426              	.LCFI12:
+ 427              		.cfi_restore 14
+ 428              		.cfi_restore 8
+ 429              		.cfi_restore 7
+ 430              		.cfi_restore 6
+ 431              		.cfi_restore 5
+ 432              		.cfi_restore 4
+ 433              		.cfi_def_cfa_offset 0
+ 434 0164 1EFF2FE1 		bx	lr
+ 435              		.cfi_endproc
+ 436              	.LFE3:
+ 438              		.align	2
+ 439              		.global	start_pid
+ 440              		.syntax unified
+ 441              		.arm
+ 443              	start_pid:
+ 444              	.LVL30:
+ 445              	.LFB6:
+ 126:../firmware/robot.c ****   safe_bus_set(addr, MREG_MODE, MODE_IDLE);
+ 446              		.loc 1 126 1 is_stmt 1 view -0
+ 447              		.cfi_startproc
+ 448              		@ Function supports interworking.
+ 449              		@ args = 0, pretend = 0, frame = 0
+ 450              		@ frame_needed = 0, uses_anonymous_args = 0
+ 127:../firmware/robot.c ****   safe_bus_set(addr, MREG_CONTROL_TYPE, CONTROL_POS);
+ 451              		.loc 1 127 3 view .LVU92
+ 126:../firmware/robot.c ****   safe_bus_set(addr, MREG_MODE, MODE_IDLE);
+ 452              		.loc 1 126 1 is_stmt 0 view .LVU93
+ 453 0168 10402DE9 		push	{r4, lr}
+ 454              	.LCFI13:
+ 455              		.cfi_def_cfa_offset 8
+ 456              		.cfi_offset 4, -8
+ 457              		.cfi_offset 14, -4
+ 126:../firmware/robot.c ****   safe_bus_set(addr, MREG_MODE, MODE_IDLE);
+ 458              		.loc 1 126 1 view .LVU94
+ 459 016c 0040A0E1 		mov	r4, r0
+ 127:../firmware/robot.c ****   safe_bus_set(addr, MREG_CONTROL_TYPE, CONTROL_POS);
+ 460              		.loc 1 127 3 view .LVU95
+ 461 0170 0020A0E3 		mov	r2, #0
+ 462 0174 2810A0E3 		mov	r1, #40
+ 463 0178 FEFFFFEB 		bl	safe_bus_set
+ 464              	.LVL31:
+ 128:../firmware/robot.c ****   safe_bus_set(addr, MREG_POSITION, 0);
+ 465              		.loc 1 128 3 is_stmt 1 view .LVU96
+ 466 017c 0400A0E1 		mov	r0, r4
+ 467 0180 0120A0E3 		mov	r2, #1
+ 468 0184 2C10A0E3 		mov	r1, #44
+ 469 0188 FEFFFFEB 		bl	safe_bus_set
+ 470              	.LVL32:
+ 129:../firmware/robot.c ****   safe_bus_set(addr, MREG_SETPOINT, 0);
+ 471              		.loc 1 129 3 view .LVU97
+ 472 018c 0400A0E1 		mov	r0, r4
+ 473 0190 0020A0E3 		mov	r2, #0
+ 474 0194 3010A0E3 		mov	r1, #48
+ 475 0198 FEFFFFEB 		bl	safe_bus_set
+ 476              	.LVL33:
+ 130:../firmware/robot.c ****   safe_bus_set(addr, MREG_MODE, MODE_NORMAL);
+ 477              		.loc 1 130 3 view .LVU98
+ 478 019c 0400A0E1 		mov	r0, r4
+ 479 01a0 0020A0E3 		mov	r2, #0
+ 480 01a4 2F10A0E3 		mov	r1, #47
+ 481 01a8 FEFFFFEB 		bl	safe_bus_set
+ 482              	.LVL34:
+ 131:../firmware/robot.c **** }
+ 483              		.loc 1 131 3 view .LVU99
+ 484 01ac 0400A0E1 		mov	r0, r4
+ 485 01b0 0120A0E3 		mov	r2, #1
+ 486 01b4 2810A0E3 		mov	r1, #40
+ 132:../firmware/robot.c **** 
+ 487              		.loc 1 132 1 is_stmt 0 view .LVU100
+ 488 01b8 1040BDE8 		pop	{r4, lr}
+ 489              	.LCFI14:
+ 490              		.cfi_restore 14
+ 491              		.cfi_restore 4
+ 492              		.cfi_def_cfa_offset 0
+ 131:../firmware/robot.c **** }
+ 493              		.loc 1 131 3 view .LVU101
+ 494 01bc FEFFFFEA 		b	safe_bus_set
+ 495              	.LVL35:
+ 496              		.cfi_endproc
+ 497              	.LFE6:
+ 499              		.align	2
+ 500              		.global	reset_pos
+ 501              		.syntax unified
+ 502              		.arm
+ 504              	reset_pos:
+ 505              	.LVL36:
+ 506              	.LFB8:
+ 146:../firmware/robot.c **** 
+ 147:../firmware/robot.c **** #ifdef HAS_LEGS
+ 148:../firmware/robot.c **** void reset_pos(uint8_t el)
+ 149:../firmware/robot.c **** {
+ 507              		.loc 1 149 1 is_stmt 1 view -0
+ 508              		.cfi_startproc
+ 509              		@ Function supports interworking.
+ 510              		@ args = 0, pretend = 0, frame = 0
+ 511              		@ frame_needed = 0, uses_anonymous_args = 0
+ 150:../firmware/robot.c ****   bus_set(el, MREG_MODE, MODE_SETPOINT_RESET);
+ 512              		.loc 1 150 3 view .LVU103
+ 149:../firmware/robot.c ****   bus_set(el, MREG_MODE, MODE_SETPOINT_RESET);
+ 513              		.loc 1 149 1 is_stmt 0 view .LVU104
+ 514 01c0 10402DE9 		push	{r4, lr}
+ 515              	.LCFI15:
+ 516              		.cfi_def_cfa_offset 8
+ 517              		.cfi_offset 4, -8
+ 518              		.cfi_offset 14, -4
+ 519              	.LBB44:
+ 520              	.LBB45:
+  74:../firmware/robot.c **** #else
+ 521              		.loc 1 74 3 view .LVU105
+ 522 01c4 0620A0E3 		mov	r2, #6
+ 523 01c8 2810A0E3 		mov	r1, #40
+ 524              	.LBE45:
+ 525              	.LBE44:
+ 149:../firmware/robot.c ****   bus_set(el, MREG_MODE, MODE_SETPOINT_RESET);
+ 526              		.loc 1 149 1 view .LVU106
+ 527 01cc 0040A0E1 		mov	r4, r0
+ 528              	.LVL37:
+ 529              	.LBB47:
+ 530              	.LBI44:
+  71:../firmware/robot.c **** {
+ 531              		.loc 1 71 6 is_stmt 1 view .LVU107
+ 532              	.LBB46:
+  74:../firmware/robot.c **** #else
+ 533              		.loc 1 74 3 view .LVU108
+ 534 01d0 FEFFFFEB 		bl	set_reg_value_b
+ 535              	.LVL38:
+ 536              	.L26:
+  74:../firmware/robot.c **** #else
+ 537              		.loc 1 74 3 is_stmt 0 view .LVU109
+ 538              	.LBE46:
+ 539              	.LBE47:
+ 151:../firmware/robot.c ****   while (bus_get(el, MREG_MODE)==MODE_SETPOINT_RESET);
+ 540              		.loc 1 151 54 is_stmt 1 discriminator 1 view .LVU110
+ 541              		.loc 1 151 9 discriminator 1 view .LVU111
+ 542              	.LBB48:
+ 543              	.LBI48:
+  62:../firmware/robot.c **** {
+ 544              		.loc 1 62 9 discriminator 1 view .LVU112
+ 545              	.LBB49:
+  65:../firmware/robot.c **** #else
+ 546              		.loc 1 65 3 discriminator 1 view .LVU113
+  65:../firmware/robot.c **** #else
+ 547              		.loc 1 65 10 is_stmt 0 discriminator 1 view .LVU114
+ 548 01d4 2810A0E3 		mov	r1, #40
+ 549 01d8 0400A0E1 		mov	r0, r4
+ 550 01dc FEFFFFEB 		bl	get_reg_value_b
+ 551              	.LVL39:
+  65:../firmware/robot.c **** #else
+ 552              		.loc 1 65 10 discriminator 1 view .LVU115
+ 553              	.LBE49:
+ 554              	.LBE48:
+ 555              		.loc 1 151 9 discriminator 1 view .LVU116
+ 556 01e0 060050E3 		cmp	r0, #6
+ 557 01e4 FAFFFF0A 		beq	.L26
+ 152:../firmware/robot.c **** }
+ 558              		.loc 1 152 1 view .LVU117
+ 559 01e8 1040BDE8 		pop	{r4, lr}
+ 560              	.LCFI16:
+ 561              		.cfi_restore 14
+ 562              		.cfi_restore 4
+ 563              		.cfi_def_cfa_offset 0
+ 564 01ec 1EFF2FE1 		bx	lr
+ 565              		.cfi_endproc
+ 566              	.LFE8:
+ 568              		.align	2
+ 569              		.global	set_leg_setpoint
+ 570              		.syntax unified
+ 571              		.arm
+ 573              	set_leg_setpoint:
+ 574              	.LVL40:
+ 575              	.LFB9:
+ 153:../firmware/robot.c **** 
+ 154:../firmware/robot.c **** void set_leg_setpoint(uint8_t addr, int8_t pos)
+ 155:../firmware/robot.c **** {
+ 576              		.loc 1 155 1 is_stmt 1 view -0
+ 577              		.cfi_startproc
+ 578              		@ Function supports interworking.
+ 579              		@ args = 0, pretend = 0, frame = 0
+ 580              		@ frame_needed = 0, uses_anonymous_args = 0
+ 156:../firmware/robot.c ****   if ((addr & 1)) pos = -pos;
+ 581              		.loc 1 156 3 view .LVU119
+ 582              		.loc 1 156 6 is_stmt 0 view .LVU120
+ 583 01f0 010010E3 		tst	r0, #1
+ 584              		.loc 1 156 19 is_stmt 1 view .LVU121
+ 155:../firmware/robot.c ****   if ((addr & 1)) pos = -pos;
+ 585              		.loc 1 155 1 is_stmt 0 view .LVU122
+ 586 01f4 10402DE9 		push	{r4, lr}
+ 587              	.LCFI17:
+ 588              		.cfi_def_cfa_offset 8
+ 589              		.cfi_offset 4, -8
+ 590              		.cfi_offset 14, -4
+ 591              		.loc 1 156 23 view .LVU123
+ 592 01f8 00106112 		rsbne	r1, r1, #0
+ 593              	.LVL41:
+ 594              		.loc 1 156 23 view .LVU124
+ 595 01fc 011CA011 		lslne	r1, r1, #24
+ 596 0200 411CA011 		asrne	r1, r1, #24
+ 597              	.LVL42:
+ 157:../firmware/robot.c ****   bus_set(addr, MREG_SETPOINT, pos);
+ 598              		.loc 1 157 3 is_stmt 1 view .LVU125
+ 599              	.LBB50:
+ 600              	.LBI50:
+  71:../firmware/robot.c **** {
+ 601              		.loc 1 71 6 view .LVU126
+ 602              	.LBB51:
+  74:../firmware/robot.c **** #else
+ 603              		.loc 1 74 3 view .LVU127
+ 604 0204 FF2001E2 		and	r2, r1, #255
+ 605 0208 2F10A0E3 		mov	r1, #47
+ 606              	.LVL43:
+  74:../firmware/robot.c **** #else
+ 607              		.loc 1 74 3 is_stmt 0 view .LVU128
+ 608 020c FEFFFFEB 		bl	set_reg_value_b
+ 609              	.LVL44:
+  74:../firmware/robot.c **** #else
+ 610              		.loc 1 74 3 view .LVU129
+ 611              	.LBE51:
+ 612              	.LBE50:
+ 158:../firmware/robot.c **** }
+ 613              		.loc 1 158 1 view .LVU130
+ 614 0210 1040BDE8 		pop	{r4, lr}
+ 615              	.LCFI18:
+ 616              		.cfi_restore 14
+ 617              		.cfi_restore 4
+ 618              		.cfi_def_cfa_offset 0
+ 619 0214 1EFF2FE1 		bx	lr
+ 620              		.cfi_endproc
+ 621              	.LFE9:
+ 623              		.align	2
+ 624              		.global	init_body_module
+ 625              		.syntax unified
+ 626              		.arm
+ 628              	init_body_module:
+ 629              	.LVL45:
+ 630              	.LFB10:
+ 159:../firmware/robot.c **** #endif
+ 160:../firmware/robot.c **** 
+ 161:../firmware/robot.c **** void init_body_module(uint8_t addr)
+ 162:../firmware/robot.c **** {
+ 631              		.loc 1 162 1 is_stmt 1 view -0
+ 632              		.cfi_startproc
+ 633              		@ Function supports interworking.
+ 634              		@ args = 0, pretend = 0, frame = 0
+ 635              		@ frame_needed = 0, uses_anonymous_args = 0
+ 163:../firmware/robot.c ****   uint8_t j;
+ 636              		.loc 1 163 3 view .LVU132
+ 164:../firmware/robot.c **** 
+ 165:../firmware/robot.c ****   // Clears all the registers to make sure we don't have strange defaults inside
+ 166:../firmware/robot.c ****   for (j = 40; j < 100; j++) {
+ 637              		.loc 1 166 3 view .LVU133
+ 638              		.loc 1 166 16 view .LVU134
+ 162:../firmware/robot.c ****   uint8_t j;
+ 639              		.loc 1 162 1 is_stmt 0 view .LVU135
+ 640 0218 70402DE9 		push	{r4, r5, r6, lr}
+ 641              	.LCFI19:
+ 642              		.cfi_def_cfa_offset 16
+ 643              		.cfi_offset 4, -16
+ 644              		.cfi_offset 5, -12
+ 645              		.cfi_offset 6, -8
+ 646              		.cfi_offset 14, -4
+ 162:../firmware/robot.c ****   uint8_t j;
+ 647              		.loc 1 162 1 view .LVU136
+ 648 021c 0050A0E1 		mov	r5, r0
+ 649              		.loc 1 166 10 view .LVU137
+ 650 0220 2840A0E3 		mov	r4, #40
+ 651              	.LVL46:
+ 652              	.L37:
+ 167:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 653              		.loc 1 167 5 is_stmt 1 view .LVU138
+ 654              	.LBB52:
+ 655              	.LBI52:
+  71:../firmware/robot.c **** {
+ 656              		.loc 1 71 6 view .LVU139
+ 657              	.LBB53:
+  74:../firmware/robot.c **** #else
+ 658              		.loc 1 74 3 view .LVU140
+ 659 0224 0410A0E1 		mov	r1, r4
+ 660              	.LBE53:
+ 661              	.LBE52:
+ 166:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 662              		.loc 1 166 26 is_stmt 0 view .LVU141
+ 663 0228 014084E2 		add	r4, r4, #1
+ 664              	.LVL47:
+ 665              	.LBB56:
+ 666              	.LBB54:
+  74:../firmware/robot.c **** #else
+ 667              		.loc 1 74 3 view .LVU142
+ 668 022c 0020A0E3 		mov	r2, #0
+ 669 0230 0500A0E1 		mov	r0, r5
+ 670              	.LBE54:
+ 671              	.LBE56:
+ 166:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 672              		.loc 1 166 26 view .LVU143
+ 673 0234 FF4004E2 		and	r4, r4, #255
+ 674              	.LBB57:
+ 675              	.LBB55:
+  74:../firmware/robot.c **** #else
+ 676              		.loc 1 74 3 view .LVU144
+ 677 0238 FEFFFFEB 		bl	set_reg_value_b
+ 678              	.LVL48:
+  74:../firmware/robot.c **** #else
+ 679              		.loc 1 74 3 view .LVU145
+ 680              	.LBE55:
+ 681              	.LBE57:
+ 166:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 682              		.loc 1 166 25 is_stmt 1 view .LVU146
+ 166:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 683              		.loc 1 166 16 view .LVU147
+ 166:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 684              		.loc 1 166 3 is_stmt 0 view .LVU148
+ 685 023c 640054E3 		cmp	r4, #100
+ 686 0240 F7FFFF1A 		bne	.L37
+ 168:../firmware/robot.c ****   }
+ 169:../firmware/robot.c ****   send_config(addr);
+ 687              		.loc 1 169 3 is_stmt 1 view .LVU149
+ 688 0244 0500A0E1 		mov	r0, r5
+ 689 0248 87FFFFEB 		bl	send_config
+ 690              	.LVL49:
+ 170:../firmware/robot.c ****   set_torque_bias(addr);
+ 691              		.loc 1 170 3 view .LVU150
+ 692 024c 0500A0E1 		mov	r0, r5
+ 171:../firmware/robot.c **** }
+ 693              		.loc 1 171 1 is_stmt 0 view .LVU151
+ 694 0250 7040BDE8 		pop	{r4, r5, r6, lr}
+ 695              	.LCFI20:
+ 696              		.cfi_restore 14
+ 697              		.cfi_restore 6
+ 698              		.cfi_restore 5
+ 699              		.cfi_restore 4
+ 700              		.cfi_def_cfa_offset 0
+ 701              	.LVL50:
+ 170:../firmware/robot.c ****   set_torque_bias(addr);
+ 702              		.loc 1 170 3 view .LVU152
+ 703 0254 95FFFFEA 		b	set_torque_bias
+ 704              	.LVL51:
+ 705              		.cfi_endproc
+ 706              	.LFE10:
+ 708              		.align	2
+ 709              		.global	init_limb_module
+ 710              		.syntax unified
+ 711              		.arm
+ 713              	init_limb_module:
+ 714              	.LVL52:
+ 715              	.LFB11:
+ 172:../firmware/robot.c **** 
+ 173:../firmware/robot.c **** #ifdef HAS_LEGS
+ 174:../firmware/robot.c **** void init_limb_module(uint8_t addr)
+ 175:../firmware/robot.c **** {
+ 716              		.loc 1 175 1 is_stmt 1 view -0
+ 717              		.cfi_startproc
+ 718              		@ Function supports interworking.
+ 719              		@ args = 0, pretend = 0, frame = 0
+ 720              		@ frame_needed = 0, uses_anonymous_args = 0
+ 176:../firmware/robot.c ****   uint8_t j;
+ 721              		.loc 1 176 3 view .LVU154
+ 177:../firmware/robot.c **** 
+ 178:../firmware/robot.c ****   // Clears all the registers
+ 179:../firmware/robot.c ****   for (j = 40; j < 100; j++) {
+ 722              		.loc 1 179 3 view .LVU155
+ 723              		.loc 1 179 16 view .LVU156
+ 175:../firmware/robot.c ****   uint8_t j;
+ 724              		.loc 1 175 1 is_stmt 0 view .LVU157
+ 725 0258 70402DE9 		push	{r4, r5, r6, lr}
+ 726              	.LCFI21:
+ 727              		.cfi_def_cfa_offset 16
+ 728              		.cfi_offset 4, -16
+ 729              		.cfi_offset 5, -12
+ 730              		.cfi_offset 6, -8
+ 731              		.cfi_offset 14, -4
+ 175:../firmware/robot.c ****   uint8_t j;
+ 732              		.loc 1 175 1 view .LVU158
+ 733 025c 0040A0E1 		mov	r4, r0
+ 734              		.loc 1 179 10 view .LVU159
+ 735 0260 2850A0E3 		mov	r5, #40
+ 736              	.LVL53:
+ 737              	.L41:
+ 180:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 738              		.loc 1 180 5 is_stmt 1 view .LVU160
+ 739              	.LBB62:
+ 740              	.LBI62:
+  71:../firmware/robot.c **** {
+ 741              		.loc 1 71 6 view .LVU161
+ 742              	.LBB63:
+  74:../firmware/robot.c **** #else
+ 743              		.loc 1 74 3 view .LVU162
+ 744 0264 0510A0E1 		mov	r1, r5
+ 745              	.LBE63:
+ 746              	.LBE62:
+ 179:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 747              		.loc 1 179 26 is_stmt 0 view .LVU163
+ 748 0268 015085E2 		add	r5, r5, #1
+ 749              	.LVL54:
+ 750              	.LBB66:
+ 751              	.LBB64:
+  74:../firmware/robot.c **** #else
+ 752              		.loc 1 74 3 view .LVU164
+ 753 026c 0020A0E3 		mov	r2, #0
+ 754 0270 0400A0E1 		mov	r0, r4
+ 755              	.LBE64:
+ 756              	.LBE66:
+ 179:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 757              		.loc 1 179 26 view .LVU165
+ 758 0274 FF5005E2 		and	r5, r5, #255
+ 759              	.LBB67:
+ 760              	.LBB65:
+  74:../firmware/robot.c **** #else
+ 761              		.loc 1 74 3 view .LVU166
+ 762 0278 FEFFFFEB 		bl	set_reg_value_b
+ 763              	.LVL55:
+  74:../firmware/robot.c **** #else
+ 764              		.loc 1 74 3 view .LVU167
+ 765              	.LBE65:
+ 766              	.LBE67:
+ 179:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 767              		.loc 1 179 25 is_stmt 1 view .LVU168
+ 179:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 768              		.loc 1 179 16 view .LVU169
+ 179:../firmware/robot.c ****     bus_set(addr, j, 0);
+ 769              		.loc 1 179 3 is_stmt 0 view .LVU170
+ 770 027c 640055E3 		cmp	r5, #100
+ 771 0280 F7FFFF1A 		bne	.L41
+ 181:../firmware/robot.c ****   }
+ 182:../firmware/robot.c ****   send_config(addr);
+ 772              		.loc 1 182 3 is_stmt 1 view .LVU171
+ 773 0284 0400A0E1 		mov	r0, r4
+ 774 0288 77FFFFEB 		bl	send_config
+ 775              	.LVL56:
+ 183:../firmware/robot.c ****   send_config_leg(addr);
+ 776              		.loc 1 183 3 view .LVU172
+ 777              	.LBB68:
+ 778              	.LBI68:
+ 114:../firmware/robot.c **** {
+ 779              		.loc 1 114 13 view .LVU173
+ 780              	.LBB69:
+ 116:../firmware/robot.c **** 
+ 781              		.loc 1 116 3 view .LVU174
+ 118:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 782              		.loc 1 118 3 view .LVU175
+ 118:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 783              		.loc 1 118 9 is_stmt 0 view .LVU176
+ 784 028c 0050A0E3 		mov	r5, #0
+ 785              	.LVL57:
+ 118:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 786              		.loc 1 118 23 view .LVU177
+ 787 0290 2C609FE5 		ldr	r6, .L46
+ 788              	.LVL58:
+ 789              	.L42:
+ 118:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 790              		.loc 1 118 9 is_stmt 1 view .LVU178
+ 118:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 791              		.loc 1 118 23 is_stmt 0 view .LVU179
+ 792 0294 FF3005E2 		and	r3, r5, #255
+ 793 0298 833086E0 		add	r3, r6, r3, lsl #1
+ 794 029c 3610D3E5 		ldrb	r1, [r3, #54]	@ zero_extendqisi2
+ 118:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 795              		.loc 1 118 9 view .LVU180
+ 796 02a0 FF0051E3 		cmp	r1, #255
+ 797 02a4 015085E2 		add	r5, r5, #1
+ 798              	.LVL59:
+ 118:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 799              		.loc 1 118 9 view .LVU181
+ 800              	.LVL60:
+ 118:../firmware/robot.c ****     safe_bus_set(addr, leg_regs[idx][0], leg_regs[idx][1]);
+ 801              		.loc 1 118 9 view .LVU182
+ 802              	.LBE69:
+ 803              	.LBE68:
+ 184:../firmware/robot.c ****   set_torque_bias(addr);
+ 804              		.loc 1 184 3 is_stmt 1 view .LVU183
+ 805 02a8 0400A001 		moveq	r0, r4
+ 185:../firmware/robot.c **** }
+ 806              		.loc 1 185 1 is_stmt 0 view .LVU184
+ 807 02ac 7040BD08 		popeq	{r4, r5, r6, lr}
+ 808              	.LCFI22:
+ 809              		.cfi_remember_state
+ 810              		.cfi_restore 14
+ 811              		.cfi_restore 6
+ 812              		.cfi_restore 5
+ 813              		.cfi_restore 4
+ 814              		.cfi_def_cfa_offset 0
+ 184:../firmware/robot.c ****   set_torque_bias(addr);
+ 815              		.loc 1 184 3 view .LVU185
+ 816 02b0 7EFFFF0A 		beq	set_torque_bias
+ 817              	.LVL61:
+ 818              	.L43:
+ 819              	.LCFI23:
+ 820              		.cfi_restore_state
+ 821              	.LBB71:
+ 822              	.LBB70:
+ 119:../firmware/robot.c ****     idx++;
+ 823              		.loc 1 119 5 is_stmt 1 view .LVU186
+ 824 02b4 0400A0E1 		mov	r0, r4
+ 825 02b8 3720D3E5 		ldrb	r2, [r3, #55]	@ zero_extendqisi2
+ 826 02bc FEFFFFEB 		bl	safe_bus_set
+ 827              	.LVL62:
+ 120:../firmware/robot.c ****   }
+ 828              		.loc 1 120 5 view .LVU187
+ 120:../firmware/robot.c ****   }
+ 829              		.loc 1 120 5 is_stmt 0 view .LVU188
+ 830 02c0 F3FFFFEA 		b	.L42
+ 831              	.L47:
+ 832              		.align	2
+ 833              	.L46:
+ 834 02c4 00000000 		.word	.LANCHOR0
+ 835              	.LBE70:
+ 836              	.LBE71:
+ 837              		.cfi_endproc
+ 838              	.LFE11:
+ 840              		.section	.rodata
+ 841              		.set	.LANCHOR0,. + 0
+ 844              	gen_regs:
+ 845 0000 2800     		.ascii	"(\000"
+ 846 0002 2C01     		.ascii	",\001"
+ 847 0004 2A18     		.ascii	"*\030"
+ 848 0006 2B03     		.ascii	"+\003"
+ 849 0008 2900     		.ascii	")\000"
+ 850 000a 2F00     		.ascii	"/\000"
+ 851 000c 3000     		.ascii	"0\000"
+ 852 000e 4D10     		.ascii	"M\020"
+ 853 0010 4E7C     		.ascii	"N|"
+ 854 0012 2D00     		.ascii	"-\000"
+ 855 0014 4304     		.ascii	"C\004"
+ 856 0016 4401     		.ascii	"D\001"
+ 857 0018 4532     		.ascii	"E2"
+ 858 001a 4601     		.ascii	"F\001"
+ 859 001c 4705     		.ascii	"G\005"
+ 860 001e 480A     		.ascii	"H\012"
+ 861 0020 4928     		.ascii	"I("
+ 862 0022 4A05     		.ascii	"J\005"
+ 863 0024 4B50     		.ascii	"KP"
+ 864 0026 4C08     		.ascii	"L\010"
+ 865 0028 3307     		.ascii	"3\007"
+ 866 002a 3B02     		.ascii	";\002"
+ 867 002c 421E     		.ascii	"B\036"
+ 868 002e 3803     		.ascii	"8\003"
+ 869 0030 4064     		.ascii	"@d"
+ 870 0032 4103     		.ascii	"A\003"
+ 871 0034 FF00     		.ascii	"\377\000"
+ 874              	leg_regs:
+ 875 0036 2B02     		.ascii	"+\002"
+ 876 0038 4228     		.ascii	"B("
+ 877 003a 3801     		.ascii	"8\001"
+ 878 003c 4050     		.ascii	"@P"
+ 879 003e 4102     		.ascii	"A\002"
+ 880 0040 635A     		.ascii	"cZ"
+ 881 0042 3308     		.ascii	"3\010"
+ 882 0044 FF00     		.ascii	"\377\000"
+ 883              		.text
+ 884              	.Letext0:
+ 885              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 886              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 887              		.file 4 "../firmware/can.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 robot.c
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:22     .text:00000000 bus_get
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:56     .text:00000010 bus_set
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:89     .text:00000020 safe_bus_set
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:176    .text:0000006c send_config
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:237    .text:000000ac $d
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:241    .text:000000b0 $a
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:245    .text:000000b0 set_torque_bias
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:371    .text:0000011c safe_bus_setw
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:443    .text:00000168 start_pid
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:504    .text:000001c0 reset_pos
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:573    .text:000001f0 set_leg_setpoint
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:628    .text:00000218 init_body_module
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:713    .text:00000258 init_limb_module
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:834    .text:000002c4 $d
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:844    .rodata:00000000 gen_regs
+C:\Users\ishin\AppData\Local\Temp\ccz1bOob.s:874    .rodata:00000036 leg_regs
+
+UNDEFINED SYMBOLS
+get_reg_value_b
+set_reg_value_b
+set_reg_value_w
+get_reg_value_w

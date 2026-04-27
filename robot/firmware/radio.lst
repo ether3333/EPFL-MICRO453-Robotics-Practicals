@@ -1,0 +1,1297 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"radio.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.syntax unified
+  19              		.arm
+  21              	callbacks_call_all:
+  22              	.LVL0:
+  23              	.LFB2:
+  24              		.file 1 "../firmware/radio.c"
+   1:../firmware/radio.c **** /******************************************************************************
+   2:../firmware/radio.c ****  * radio.c - Routines for handling the radio communication protocol
+   3:../firmware/radio.c ****  * Alessandro Crespi & Jeremie Knuesel, Sep. 2010, updated March 2013
+   4:../firmware/radio.c ****  *****************************************************************************/
+   5:../firmware/radio.c **** 
+   6:../firmware/radio.c **** #include <stdint.h>
+   7:../firmware/radio.c **** #include "radio.h"
+   8:../firmware/radio.c **** #include "registers.h"
+   9:../firmware/radio.c **** #include "uart.h"
+  10:../firmware/radio.c **** #include "uartISR.h"
+  11:../firmware/radio.c **** #include "utils.h"
+  12:../firmware/radio.c **** 
+  13:../firmware/radio.c **** // Register banks
+  14:../firmware/radio.c **** volatile uint8_t reg8_table[REG8_MAX];       ///< 8-bit register bank
+  15:../firmware/radio.c **** volatile uint16_t reg16_table[REG16_MAX];    ///< 16-bit register bank
+  16:../firmware/radio.c **** volatile uint32_t reg32_table[REG32_MAX];    ///< 32-bit register bank
+  17:../firmware/radio.c **** 
+  18:../firmware/radio.c **** #define MAX_REG_CALLBACKS 16
+  19:../firmware/radio.c **** 
+  20:../firmware/radio.c **** // Callback function addresses (NULL if entry unused)
+  21:../firmware/radio.c **** static register_callback_t reg_callbacks[MAX_REG_CALLBACKS];
+  22:../firmware/radio.c **** static RadioData regdata2;
+  23:../firmware/radio.c **** 
+  24:../firmware/radio.c **** void radio_add_reg_callback(register_callback_t addr)
+  25:../firmware/radio.c **** {
+  26:../firmware/radio.c ****   uint8_t i;
+  27:../firmware/radio.c **** 
+  28:../firmware/radio.c ****   for (i = 0; i < MAX_REG_CALLBACKS; i++) {
+  29:../firmware/radio.c ****     if (reg_callbacks[i] == NULL) {
+  30:../firmware/radio.c ****       reg_callbacks[i] = addr;
+  31:../firmware/radio.c ****       break;
+  32:../firmware/radio.c ****     }
+  33:../firmware/radio.c ****   }
+  34:../firmware/radio.c **** }
+  35:../firmware/radio.c **** 
+  36:../firmware/radio.c **** void radio_del_reg_callback(register_callback_t addr)
+  37:../firmware/radio.c **** {
+  38:../firmware/radio.c ****   uint8_t i;
+  39:../firmware/radio.c **** 
+  40:../firmware/radio.c ****   for (i = 0; i < MAX_REG_CALLBACKS; i++) {
+  41:../firmware/radio.c ****     if (reg_callbacks[i] == addr) {
+  42:../firmware/radio.c ****       reg_callbacks[i] = NULL;
+  43:../firmware/radio.c ****       break;
+  44:../firmware/radio.c ****     }
+  45:../firmware/radio.c ****   }
+  46:../firmware/radio.c **** }
+  47:../firmware/radio.c **** 
+  48:../firmware/radio.c **** static void callbacks_call_all(const uint8_t operation, const uint8_t address)
+  49:../firmware/radio.c **** {
+  25              		.loc 1 49 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  50:../firmware/radio.c ****   uint8_t i;
+  30              		.loc 1 50 3 view .LVU1
+  51:../firmware/radio.c **** 
+  52:../firmware/radio.c ****   for (i = 0; i < MAX_REG_CALLBACKS; i++) {
+  31              		.loc 1 52 3 view .LVU2
+  32              		.loc 1 52 15 view .LVU3
+  49:../firmware/radio.c ****   uint8_t i;
+  33              		.loc 1 49 1 is_stmt 0 view .LVU4
+  34 0000 F0412DE9 		push	{r4, r5, r6, r7, r8, lr}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 24
+  37              		.cfi_offset 4, -24
+  38              		.cfi_offset 5, -20
+  39              		.cfi_offset 6, -16
+  40              		.cfi_offset 7, -12
+  41              		.cfi_offset 8, -8
+  42              		.cfi_offset 14, -4
+  49:../firmware/radio.c ****   uint8_t i;
+  43              		.loc 1 49 1 view .LVU5
+  44 0004 0060A0E1 		mov	r6, r0
+  45 0008 0170A0E1 		mov	r7, r1
+  46 000c 1040A0E3 		mov	r4, #16
+  47 0010 34509FE5 		ldr	r5, .L9
+  53:../firmware/radio.c ****     if (reg_callbacks[i] != NULL) {
+  54:../firmware/radio.c ****       reg_callbacks[i](operation, address, &regdata2);
+  48              		.loc 1 54 7 view .LVU6
+  49 0014 408085E2 		add	r8, r5, #64
+  50              	.LVL1:
+  51              	.L3:
+  53:../firmware/radio.c ****     if (reg_callbacks[i] != NULL) {
+  52              		.loc 1 53 5 is_stmt 1 view .LVU7
+  53:../firmware/radio.c ****     if (reg_callbacks[i] != NULL) {
+  53              		.loc 1 53 22 is_stmt 0 view .LVU8
+  54 0018 043095E4 		ldr	r3, [r5], #4
+  53:../firmware/radio.c ****     if (reg_callbacks[i] != NULL) {
+  55              		.loc 1 53 8 view .LVU9
+  56 001c 000053E3 		cmp	r3, #0
+  57 0020 0400000A 		beq	.L2
+  58              		.loc 1 54 7 is_stmt 1 view .LVU10
+  59 0024 0820A0E1 		mov	r2, r8
+  60 0028 0710A0E1 		mov	r1, r7
+  61 002c 0600A0E1 		mov	r0, r6
+  62 0030 0FE0A0E1 		mov	lr, pc
+  63 0034 13FF2FE1 		bx	r3
+  64              	.LVL2:
+  65              	.L2:
+  52:../firmware/radio.c ****     if (reg_callbacks[i] != NULL) {
+  66              		.loc 1 52 38 discriminator 2 view .LVU11
+  52:../firmware/radio.c ****     if (reg_callbacks[i] != NULL) {
+  67              		.loc 1 52 15 discriminator 2 view .LVU12
+  52:../firmware/radio.c ****     if (reg_callbacks[i] != NULL) {
+  68              		.loc 1 52 3 is_stmt 0 discriminator 2 view .LVU13
+  69 0038 014044E2 		sub	r4, r4, #1
+  70              	.LVL3:
+  52:../firmware/radio.c ****     if (reg_callbacks[i] != NULL) {
+  71              		.loc 1 52 3 discriminator 2 view .LVU14
+  72 003c FF4014E2 		ands	r4, r4, #255
+  73 0040 F4FFFF1A 		bne	.L3
+  55:../firmware/radio.c ****     }
+  56:../firmware/radio.c ****   }
+  57:../firmware/radio.c **** }
+  74              		.loc 1 57 1 view .LVU15
+  75 0044 F041BDE8 		pop	{r4, r5, r6, r7, r8, lr}
+  76              	.LCFI1:
+  77              		.cfi_restore 14
+  78              		.cfi_restore 8
+  79              		.cfi_restore 7
+  80              		.cfi_restore 6
+  81              		.cfi_restore 5
+  82              		.cfi_restore 4
+  83              		.cfi_def_cfa_offset 0
+  84 0048 1EFF2FE1 		bx	lr
+  85              	.L10:
+  86              		.align	2
+  87              	.L9:
+  88 004c 00000000 		.word	.LANCHOR0
+  89              		.cfi_endproc
+  90              	.LFE2:
+  92              		.align	2
+  93              		.syntax unified
+  94              		.arm
+  96              	callbacks_call_one:
+  97              	.LVL4:
+  98              	.LFB3:
+  58:../firmware/radio.c **** 
+  59:../firmware/radio.c **** static uint8_t callbacks_call_one(const uint8_t operation, const uint8_t address)
+  60:../firmware/radio.c **** {
+  99              		.loc 1 60 1 is_stmt 1 view -0
+ 100              		.cfi_startproc
+ 101              		@ Function supports interworking.
+ 102              		@ args = 0, pretend = 0, frame = 0
+ 103              		@ frame_needed = 0, uses_anonymous_args = 0
+  61:../firmware/radio.c ****   uint8_t i;
+ 104              		.loc 1 61 3 view .LVU17
+  62:../firmware/radio.c **** 
+  63:../firmware/radio.c ****   for (i = 0; i < MAX_REG_CALLBACKS; i++) {
+ 105              		.loc 1 63 3 view .LVU18
+ 106              		.loc 1 63 15 view .LVU19
+  60:../firmware/radio.c ****   uint8_t i;
+ 107              		.loc 1 60 1 is_stmt 0 view .LVU20
+ 108 0050 F0412DE9 		push	{r4, r5, r6, r7, r8, lr}
+ 109              	.LCFI2:
+ 110              		.cfi_def_cfa_offset 24
+ 111              		.cfi_offset 4, -24
+ 112              		.cfi_offset 5, -20
+ 113              		.cfi_offset 6, -16
+ 114              		.cfi_offset 7, -12
+ 115              		.cfi_offset 8, -8
+ 116              		.cfi_offset 14, -4
+  60:../firmware/radio.c ****   uint8_t i;
+ 117              		.loc 1 60 1 view .LVU21
+ 118 0054 0050A0E1 		mov	r5, r0
+ 119 0058 0160A0E1 		mov	r6, r1
+ 120 005c 1040A0E3 		mov	r4, #16
+ 121 0060 48709FE5 		ldr	r7, .L21
+  64:../firmware/radio.c ****     if (reg_callbacks[i] != NULL && reg_callbacks[i](operation, address, &regdata2))
+ 122              		.loc 1 64 37 view .LVU22
+ 123 0064 408087E2 		add	r8, r7, #64
+ 124              	.LVL5:
+ 125              	.L13:
+ 126              		.loc 1 64 5 is_stmt 1 view .LVU23
+ 127              		.loc 1 64 22 is_stmt 0 view .LVU24
+ 128 0068 043097E4 		ldr	r3, [r7], #4
+ 129              		.loc 1 64 8 view .LVU25
+ 130 006c 000053E3 		cmp	r3, #0
+ 131 0070 0500001A 		bne	.L12
+ 132              	.L15:
+  63:../firmware/radio.c ****     if (reg_callbacks[i] != NULL && reg_callbacks[i](operation, address, &regdata2))
+ 133              		.loc 1 63 38 is_stmt 1 view .LVU26
+ 134              	.LVL6:
+  63:../firmware/radio.c ****     if (reg_callbacks[i] != NULL && reg_callbacks[i](operation, address, &regdata2))
+ 135              		.loc 1 63 15 view .LVU27
+  63:../firmware/radio.c ****     if (reg_callbacks[i] != NULL && reg_callbacks[i](operation, address, &regdata2))
+ 136              		.loc 1 63 3 is_stmt 0 view .LVU28
+ 137 0074 014044E2 		sub	r4, r4, #1
+ 138              	.LVL7:
+  63:../firmware/radio.c ****     if (reg_callbacks[i] != NULL && reg_callbacks[i](operation, address, &regdata2))
+ 139              		.loc 1 63 3 view .LVU29
+ 140 0078 FF4014E2 		ands	r4, r4, #255
+ 141 007c F9FFFF1A 		bne	.L13
+ 142              	.L14:
+  65:../firmware/radio.c ****     return TRUE;
+  66:../firmware/radio.c ****   }
+  67:../firmware/radio.c ****   return FALSE;
+  68:../firmware/radio.c **** }
+ 143              		.loc 1 68 1 view .LVU30
+ 144 0080 0400A0E1 		mov	r0, r4
+ 145 0084 F041BDE8 		pop	{r4, r5, r6, r7, r8, lr}
+ 146              	.LCFI3:
+ 147              		.cfi_remember_state
+ 148              		.cfi_restore 14
+ 149              		.cfi_restore 8
+ 150              		.cfi_restore 7
+ 151              		.cfi_restore 6
+ 152              		.cfi_restore 5
+ 153              		.cfi_restore 4
+ 154              		.cfi_def_cfa_offset 0
+ 155 0088 1EFF2FE1 		bx	lr
+ 156              	.LVL8:
+ 157              	.L12:
+ 158              	.LCFI4:
+ 159              		.cfi_restore_state
+  64:../firmware/radio.c ****     return TRUE;
+ 160              		.loc 1 64 37 discriminator 1 view .LVU31
+ 161 008c 0820A0E1 		mov	r2, r8
+ 162 0090 0610A0E1 		mov	r1, r6
+ 163 0094 0500A0E1 		mov	r0, r5
+ 164 0098 0FE0A0E1 		mov	lr, pc
+ 165 009c 13FF2FE1 		bx	r3
+ 166              	.LVL9:
+  64:../firmware/radio.c ****     return TRUE;
+ 167              		.loc 1 64 34 discriminator 1 view .LVU32
+ 168 00a0 000050E3 		cmp	r0, #0
+ 169 00a4 F2FFFF0A 		beq	.L15
+  65:../firmware/radio.c ****     return TRUE;
+ 170              		.loc 1 65 12 view .LVU33
+ 171 00a8 0140A0E3 		mov	r4, #1
+ 172              	.LVL10:
+  65:../firmware/radio.c ****     return TRUE;
+ 173              		.loc 1 65 12 view .LVU34
+ 174 00ac F3FFFFEA 		b	.L14
+ 175              	.L22:
+ 176              		.align	2
+ 177              	.L21:
+ 178 00b0 00000000 		.word	.LANCHOR0
+ 179              		.cfi_endproc
+ 180              	.LFE3:
+ 182              		.align	2
+ 183              		.global	radio_add_reg_callback
+ 184              		.syntax unified
+ 185              		.arm
+ 187              	radio_add_reg_callback:
+ 188              	.LVL11:
+ 189              	.LFB0:
+  25:../firmware/radio.c ****   uint8_t i;
+ 190              		.loc 1 25 1 is_stmt 1 view -0
+ 191              		.cfi_startproc
+ 192              		@ Function supports interworking.
+ 193              		@ args = 0, pretend = 0, frame = 0
+ 194              		@ frame_needed = 0, uses_anonymous_args = 0
+ 195              		@ link register save eliminated.
+  26:../firmware/radio.c **** 
+ 196              		.loc 1 26 3 view .LVU36
+  28:../firmware/radio.c ****     if (reg_callbacks[i] == NULL) {
+ 197              		.loc 1 28 3 view .LVU37
+  28:../firmware/radio.c ****     if (reg_callbacks[i] == NULL) {
+ 198              		.loc 1 28 15 view .LVU38
+ 199 00b4 28209FE5 		ldr	r2, .L28
+  25:../firmware/radio.c ****   uint8_t i;
+ 200              		.loc 1 25 1 is_stmt 0 view .LVU39
+ 201 00b8 0030A0E3 		mov	r3, #0
+ 202 00bc 0210A0E1 		mov	r1, r2
+ 203              	.LVL12:
+ 204              	.L26:
+  29:../firmware/radio.c ****       reg_callbacks[i] = addr;
+ 205              		.loc 1 29 5 is_stmt 1 view .LVU40
+  29:../firmware/radio.c ****       reg_callbacks[i] = addr;
+ 206              		.loc 1 29 22 is_stmt 0 view .LVU41
+ 207 00c0 04C092E4 		ldr	ip, [r2], #4
+  29:../firmware/radio.c ****       reg_callbacks[i] = addr;
+ 208              		.loc 1 29 8 view .LVU42
+ 209 00c4 00005CE3 		cmp	ip, #0
+ 210 00c8 0100001A 		bne	.L24
+  30:../firmware/radio.c ****       break;
+ 211              		.loc 1 30 7 is_stmt 1 view .LVU43
+  30:../firmware/radio.c ****       break;
+ 212              		.loc 1 30 24 is_stmt 0 view .LVU44
+ 213 00cc 030181E7 		str	r0, [r1, r3, lsl #2]
+  31:../firmware/radio.c ****     }
+ 214              		.loc 1 31 7 is_stmt 1 view .LVU45
+ 215 00d0 1EFF2FE1 		bx	lr
+ 216              	.L24:
+  28:../firmware/radio.c ****     if (reg_callbacks[i] == NULL) {
+ 217              		.loc 1 28 38 discriminator 2 view .LVU46
+ 218              	.LVL13:
+  28:../firmware/radio.c ****     if (reg_callbacks[i] == NULL) {
+ 219              		.loc 1 28 15 discriminator 2 view .LVU47
+  28:../firmware/radio.c ****     if (reg_callbacks[i] == NULL) {
+ 220              		.loc 1 28 3 is_stmt 0 discriminator 2 view .LVU48
+ 221 00d4 013083E2 		add	r3, r3, #1
+ 222              	.LVL14:
+  28:../firmware/radio.c ****     if (reg_callbacks[i] == NULL) {
+ 223              		.loc 1 28 3 discriminator 2 view .LVU49
+ 224 00d8 100053E3 		cmp	r3, #16
+ 225 00dc F7FFFF1A 		bne	.L26
+ 226 00e0 1EFF2FE1 		bx	lr
+ 227              	.L29:
+ 228              		.align	2
+ 229              	.L28:
+ 230 00e4 00000000 		.word	.LANCHOR0
+ 231              		.cfi_endproc
+ 232              	.LFE0:
+ 234              		.align	2
+ 235              		.global	radio_del_reg_callback
+ 236              		.syntax unified
+ 237              		.arm
+ 239              	radio_del_reg_callback:
+ 240              	.LVL15:
+ 241              	.LFB1:
+  37:../firmware/radio.c ****   uint8_t i;
+ 242              		.loc 1 37 1 is_stmt 1 view -0
+ 243              		.cfi_startproc
+ 244              		@ Function supports interworking.
+ 245              		@ args = 0, pretend = 0, frame = 0
+ 246              		@ frame_needed = 0, uses_anonymous_args = 0
+ 247              		@ link register save eliminated.
+  38:../firmware/radio.c **** 
+ 248              		.loc 1 38 3 view .LVU51
+  40:../firmware/radio.c ****     if (reg_callbacks[i] == addr) {
+ 249              		.loc 1 40 3 view .LVU52
+  40:../firmware/radio.c ****     if (reg_callbacks[i] == addr) {
+ 250              		.loc 1 40 15 view .LVU53
+ 251 00e8 2C209FE5 		ldr	r2, .L35
+  37:../firmware/radio.c ****   uint8_t i;
+ 252              		.loc 1 37 1 is_stmt 0 view .LVU54
+ 253 00ec 0030A0E3 		mov	r3, #0
+ 254 00f0 0210A0E1 		mov	r1, r2
+ 255              	.LVL16:
+ 256              	.L33:
+  41:../firmware/radio.c ****       reg_callbacks[i] = NULL;
+ 257              		.loc 1 41 5 is_stmt 1 view .LVU55
+  41:../firmware/radio.c ****       reg_callbacks[i] = NULL;
+ 258              		.loc 1 41 22 is_stmt 0 view .LVU56
+ 259 00f4 04C092E4 		ldr	ip, [r2], #4
+  41:../firmware/radio.c ****       reg_callbacks[i] = NULL;
+ 260              		.loc 1 41 8 view .LVU57
+ 261 00f8 00005CE1 		cmp	ip, r0
+ 262 00fc 0200001A 		bne	.L31
+  42:../firmware/radio.c ****       break;
+ 263              		.loc 1 42 7 is_stmt 1 view .LVU58
+  42:../firmware/radio.c ****       break;
+ 264              		.loc 1 42 24 is_stmt 0 view .LVU59
+ 265 0100 0020A0E3 		mov	r2, #0
+ 266 0104 032181E7 		str	r2, [r1, r3, lsl #2]
+  43:../firmware/radio.c ****     }
+ 267              		.loc 1 43 7 is_stmt 1 view .LVU60
+ 268 0108 1EFF2FE1 		bx	lr
+ 269              	.L31:
+  40:../firmware/radio.c ****     if (reg_callbacks[i] == addr) {
+ 270              		.loc 1 40 38 discriminator 2 view .LVU61
+ 271              	.LVL17:
+  40:../firmware/radio.c ****     if (reg_callbacks[i] == addr) {
+ 272              		.loc 1 40 15 discriminator 2 view .LVU62
+  40:../firmware/radio.c ****     if (reg_callbacks[i] == addr) {
+ 273              		.loc 1 40 3 is_stmt 0 discriminator 2 view .LVU63
+ 274 010c 013083E2 		add	r3, r3, #1
+ 275              	.LVL18:
+  40:../firmware/radio.c ****     if (reg_callbacks[i] == addr) {
+ 276              		.loc 1 40 3 discriminator 2 view .LVU64
+ 277 0110 100053E3 		cmp	r3, #16
+ 278 0114 F6FFFF1A 		bne	.L33
+ 279 0118 1EFF2FE1 		bx	lr
+ 280              	.L36:
+ 281              		.align	2
+ 282              	.L35:
+ 283 011c 00000000 		.word	.LANCHOR0
+ 284              		.cfi_endproc
+ 285              	.LFE1:
+ 287              		.align	2
+ 288              		.global	process_UART_in
+ 289              		.syntax unified
+ 290              		.arm
+ 292              	process_UART_in:
+ 293              	.LFB12:
+  69:../firmware/radio.c **** 
+  70:../firmware/radio.c **** 
+  71:../firmware/radio.c **** static void internal_reg_read_8(uint16_t addr)
+  72:../firmware/radio.c **** {
+  73:../firmware/radio.c ****   if (callbacks_call_one (ROP_READ_8, addr))
+  74:../firmware/radio.c ****     return;
+  75:../firmware/radio.c **** 
+  76:../firmware/radio.c ****   // If the register address is in the static register table, return the
+  77:../firmware/radio.c ****   // corresponding table contents. If it is not, return 0xFF.
+  78:../firmware/radio.c ****   if (addr < REG8_MAX)
+  79:../firmware/radio.c ****     regdata2.byte = reg8_table[addr];
+  80:../firmware/radio.c ****   else
+  81:../firmware/radio.c ****     regdata2.byte = 0xFF;
+  82:../firmware/radio.c **** }
+  83:../firmware/radio.c **** 
+  84:../firmware/radio.c **** static void internal_reg_read_16(uint16_t addr)
+  85:../firmware/radio.c **** {
+  86:../firmware/radio.c ****   if (callbacks_call_one (ROP_READ_16, addr))
+  87:../firmware/radio.c ****     return;
+  88:../firmware/radio.c **** 
+  89:../firmware/radio.c ****   // If the register address is in the static register table, return the
+  90:../firmware/radio.c ****   // corresponding table contents. If it is not, return 0xFFFF.
+  91:../firmware/radio.c ****   if (addr < REG16_MAX)
+  92:../firmware/radio.c ****     regdata2.word = reg16_table[addr];
+  93:../firmware/radio.c ****   else
+  94:../firmware/radio.c ****     regdata2.word = 0xFFFF;
+  95:../firmware/radio.c **** }
+  96:../firmware/radio.c **** 
+  97:../firmware/radio.c **** static void internal_reg_read_32(uint16_t addr)
+  98:../firmware/radio.c **** {
+  99:../firmware/radio.c ****   if (callbacks_call_one (ROP_READ_32, addr))
+ 100:../firmware/radio.c ****     return;
+ 101:../firmware/radio.c **** 
+ 102:../firmware/radio.c ****   // If the register address is in the static register table, return the
+ 103:../firmware/radio.c ****   // corresponding table contents. If it is not, return 0xFFFFFFFF.
+ 104:../firmware/radio.c ****   if (addr < REG32_MAX)
+ 105:../firmware/radio.c ****     regdata2.dword = reg32_table[addr];
+ 106:../firmware/radio.c ****   else
+ 107:../firmware/radio.c ****     regdata2.dword = 0xFFFFFFFF;
+ 108:../firmware/radio.c **** }
+ 109:../firmware/radio.c **** 
+ 110:../firmware/radio.c **** static void internal_reg_read_mb(uint16_t addr)
+ 111:../firmware/radio.c **** {
+ 112:../firmware/radio.c ****   regdata2.multibyte.size = 0; // default value
+ 113:../firmware/radio.c ****   callbacks_call_one (ROP_READ_MB, addr);
+ 114:../firmware/radio.c **** }
+ 115:../firmware/radio.c **** 
+ 116:../firmware/radio.c **** static void internal_reg_write_8(uint16_t addr)
+ 117:../firmware/radio.c **** {
+ 118:../firmware/radio.c ****   // If the register address is valid, write the data to it
+ 119:../firmware/radio.c ****   if (addr < REG8_MAX) {
+ 120:../firmware/radio.c ****     reg8_table[addr] = regdata2.byte;
+ 121:../firmware/radio.c ****   }
+ 122:../firmware/radio.c **** 
+ 123:../firmware/radio.c ****   callbacks_call_all (ROP_WRITE_8, addr);
+ 124:../firmware/radio.c **** }
+ 125:../firmware/radio.c **** 
+ 126:../firmware/radio.c **** static void internal_reg_write_16(uint16_t addr)
+ 127:../firmware/radio.c **** {
+ 128:../firmware/radio.c ****   // If the register address is valid, write the data to it
+ 129:../firmware/radio.c ****   if (addr < REG16_MAX) {
+ 130:../firmware/radio.c ****     reg16_table[addr] = regdata2.word;
+ 131:../firmware/radio.c ****   }
+ 132:../firmware/radio.c **** 
+ 133:../firmware/radio.c ****   callbacks_call_all (ROP_WRITE_16, addr);
+ 134:../firmware/radio.c **** }
+ 135:../firmware/radio.c **** 
+ 136:../firmware/radio.c **** static void internal_reg_write_32(uint16_t addr)
+ 137:../firmware/radio.c **** {
+ 138:../firmware/radio.c ****   // If the register address is valid, write the data to it
+ 139:../firmware/radio.c ****   if (addr < REG32_MAX) {
+ 140:../firmware/radio.c ****     reg32_table[addr] = regdata2.dword;
+ 141:../firmware/radio.c ****   }
+ 142:../firmware/radio.c **** 
+ 143:../firmware/radio.c ****   callbacks_call_all (ROP_WRITE_32, addr);
+ 144:../firmware/radio.c **** }
+ 145:../firmware/radio.c **** 
+ 146:../firmware/radio.c **** static void internal_reg_write_mb(uint16_t addr)
+ 147:../firmware/radio.c **** {
+ 148:../firmware/radio.c ****   callbacks_call_all (ROP_WRITE_MB, addr);
+ 149:../firmware/radio.c **** }
+ 150:../firmware/radio.c **** 
+ 151:../firmware/radio.c **** void process_UART_in()
+ 152:../firmware/radio.c **** {
+ 294              		.loc 1 152 1 is_stmt 1 view -0
+ 295              		.cfi_startproc
+ 296              		@ Function supports interworking.
+ 297              		@ args = 0, pretend = 0, frame = 0
+ 298              		@ frame_needed = 0, uses_anonymous_args = 0
+ 153:../firmware/radio.c ****   uint8_t b1, b2, i;
+ 299              		.loc 1 153 3 view .LVU66
+ 154:../firmware/radio.c ****   uint8_t op, cnt;
+ 300              		.loc 1 154 3 view .LVU67
+ 155:../firmware/radio.c ****   uint16_t addr;
+ 301              		.loc 1 155 3 view .LVU68
+ 156:../firmware/radio.c ****   uint8_t *input_buffer;
+ 302              		.loc 1 156 3 view .LVU69
+ 157:../firmware/radio.c **** 
+ 158:../firmware/radio.c ****   // Reads the first request bytes
+ 159:../firmware/radio.c ****   b1 = uart0_waitch();
+ 303              		.loc 1 159 3 view .LVU70
+ 152:../firmware/radio.c ****   uint8_t b1, b2, i;
+ 304              		.loc 1 152 1 is_stmt 0 view .LVU71
+ 305 0120 F0412DE9 		push	{r4, r5, r6, r7, r8, lr}
+ 306              	.LCFI5:
+ 307              		.cfi_def_cfa_offset 24
+ 308              		.cfi_offset 4, -24
+ 309              		.cfi_offset 5, -20
+ 310              		.cfi_offset 6, -16
+ 311              		.cfi_offset 7, -12
+ 312              		.cfi_offset 8, -8
+ 313              		.cfi_offset 14, -4
+ 314              		.loc 1 159 8 view .LVU72
+ 315 0124 FEFFFFEB 		bl	uart0_waitch
+ 316              	.LVL19:
+ 317 0128 0050A0E1 		mov	r5, r0
+ 318              	.LVL20:
+ 160:../firmware/radio.c ****   b2 = uart0_waitch();
+ 319              		.loc 1 160 3 is_stmt 1 view .LVU73
+ 320              		.loc 1 160 8 is_stmt 0 view .LVU74
+ 321 012c FEFFFFEB 		bl	uart0_waitch
+ 322              	.LVL21:
+ 161:../firmware/radio.c **** 
+ 162:../firmware/radio.c ****   op = (b1 >> 2);
+ 323              		.loc 1 162 3 is_stmt 1 view .LVU75
+ 324              		.loc 1 162 6 is_stmt 0 view .LVU76
+ 325 0130 2571A0E1 		lsr	r7, r5, #2
+ 163:../firmware/radio.c ****   addr = ((uint16_t)(b1 & 0x03) << 8) | b2;
+ 326              		.loc 1 163 33 view .LVU77
+ 327 0134 0554A0E1 		lsl	r5, r5, #8
+ 328              	.LVL22:
+ 329              		.loc 1 163 33 view .LVU78
+ 330 0138 035C05E2 		and	r5, r5, #768
+ 162:../firmware/radio.c ****   addr = ((uint16_t)(b1 & 0x03) << 8) | b2;
+ 331              		.loc 1 162 6 view .LVU79
+ 332 013c FF7007E2 		and	r7, r7, #255
+ 333              	.LVL23:
+ 334              		.loc 1 163 3 is_stmt 1 view .LVU80
+ 335              		.loc 1 163 39 is_stmt 0 view .LVU81
+ 336 0140 005085E1 		orr	r5, r5, r0
+ 337 0144 0548A0E1 		lsl	r4, r5, #16
+ 164:../firmware/radio.c **** 
+ 165:../firmware/radio.c ****   input_buffer = regdata2.bytes;
+ 166:../firmware/radio.c **** 
+ 167:../firmware/radio.c ****   // Computes how many bytes we should read
+ 168:../firmware/radio.c ****   switch (op) {
+ 338              		.loc 1 168 3 view .LVU82
+ 339 0148 043047E2 		sub	r3, r7, #4
+ 163:../firmware/radio.c **** 
+ 340              		.loc 1 163 39 view .LVU83
+ 341 014c 4448A0E1 		asr	r4, r4, #16
+ 342              	.LVL24:
+ 165:../firmware/radio.c **** 
+ 343              		.loc 1 165 3 is_stmt 1 view .LVU84
+ 344              		.loc 1 168 3 view .LVU85
+ 345 0150 030053E3 		cmp	r3, #3
+ 346 0154 03F19F97 		ldrls	pc, [pc, r3, asl #2]
+ 347 0158 1C0000EA 		b	.L38
+ 348              	.L40:
+ 349 015c DC010000 		.word	.L64
+ 350 0160 6C010000 		.word	.L42
+ 351 0164 B0010000 		.word	.L41
+ 352 0168 BC010000 		.word	.L39
+ 353              	.L42:
+ 169:../firmware/radio.c ****     case ROP_WRITE_8:
+ 170:../firmware/radio.c ****       cnt = 1;
+ 171:../firmware/radio.c ****       break;
+ 172:../firmware/radio.c ****     case ROP_WRITE_16:
+ 173:../firmware/radio.c ****       cnt = 2;
+ 354              		.loc 1 173 11 is_stmt 0 view .LVU86
+ 355 016c 0200A0E3 		mov	r0, #2
+ 356              	.LVL25:
+ 165:../firmware/radio.c **** 
+ 357              		.loc 1 165 16 view .LVU87
+ 358 0170 C4319FE5 		ldr	r3, .L74
+ 359              	.LVL26:
+ 360              	.L43:
+ 174:../firmware/radio.c ****       break;
+ 175:../firmware/radio.c ****     case ROP_WRITE_32:
+ 176:../firmware/radio.c ****       cnt = 4;
+ 177:../firmware/radio.c ****       break;
+ 178:../firmware/radio.c ****     case ROP_WRITE_MB:
+ 179:../firmware/radio.c ****       cnt = uart0_waitch();
+ 180:../firmware/radio.c ****       input_buffer = regdata2.multibyte.data;
+ 181:../firmware/radio.c ****       regdata2.multibyte.size = cnt;
+ 182:../firmware/radio.c ****       break;
+ 183:../firmware/radio.c ****     default:
+ 184:../firmware/radio.c ****       cnt = 0;
+ 185:../firmware/radio.c ****   }
+ 186:../firmware/radio.c **** 
+ 187:../firmware/radio.c ****   // Reads the request bytes
+ 188:../firmware/radio.c ****   for (i = 0; i < cnt; i++)
+ 361              		.loc 1 188 3 is_stmt 1 view .LVU88
+ 362              		.loc 1 188 3 is_stmt 0 view .LVU89
+ 363 0174 0350A0E1 		mov	r5, r3
+ 364 0178 006083E0 		add	r6, r3, r0
+ 365              	.LVL27:
+ 366              	.L44:
+ 367              		.loc 1 188 15 is_stmt 1 discriminator 1 view .LVU90
+ 368              		.loc 1 188 3 is_stmt 0 discriminator 1 view .LVU91
+ 369 017c 050056E1 		cmp	r6, r5
+ 370 0180 1800001A 		bne	.L45
+ 189:../firmware/radio.c ****     input_buffer[i] = uart0_waitch();
+ 190:../firmware/radio.c **** 
+ 191:../firmware/radio.c ****   // Calls the appropriate function
+ 192:../firmware/radio.c ****   switch (op) {
+ 371              		.loc 1 192 3 is_stmt 1 view .LVU92
+ 372 0184 070057E3 		cmp	r7, #7
+ 373 0188 07F19F97 		ldrls	pc, [pc, r7, asl #2]
+ 374 018c 530000EA 		b	.L65
+ 375              	.L48:
+ 376 0190 F4010000 		.word	.L55
+ 377 0194 24020000 		.word	.L54
+ 378 0198 54020000 		.word	.L53
+ 379 019c 84020000 		.word	.L52
+ 380 01a0 C4020000 		.word	.L51
+ 381 01a4 E8020000 		.word	.L50
+ 382 01a8 04030000 		.word	.L49
+ 383 01ac 20030000 		.word	.L47
+ 384              	.LVL28:
+ 385              	.L41:
+ 176:../firmware/radio.c ****       break;
+ 386              		.loc 1 176 7 view .LVU93
+ 177:../firmware/radio.c ****     case ROP_WRITE_MB:
+ 387              		.loc 1 177 7 view .LVU94
+ 176:../firmware/radio.c ****       break;
+ 388              		.loc 1 176 11 is_stmt 0 view .LVU95
+ 389 01b0 0400A0E3 		mov	r0, #4
+ 390              	.LVL29:
+ 165:../firmware/radio.c **** 
+ 391              		.loc 1 165 16 view .LVU96
+ 392 01b4 80319FE5 		ldr	r3, .L74
+ 177:../firmware/radio.c ****     case ROP_WRITE_MB:
+ 393              		.loc 1 177 7 view .LVU97
+ 394 01b8 EDFFFFEA 		b	.L43
+ 395              	.LVL30:
+ 396              	.L39:
+ 179:../firmware/radio.c ****       input_buffer = regdata2.multibyte.data;
+ 397              		.loc 1 179 7 is_stmt 1 view .LVU98
+ 179:../firmware/radio.c ****       input_buffer = regdata2.multibyte.data;
+ 398              		.loc 1 179 13 is_stmt 0 view .LVU99
+ 399 01bc FEFFFFEB 		bl	uart0_waitch
+ 400              	.LVL31:
+ 180:../firmware/radio.c ****       regdata2.multibyte.size = cnt;
+ 401              		.loc 1 180 7 is_stmt 1 view .LVU100
+ 181:../firmware/radio.c ****       break;
+ 402              		.loc 1 181 7 view .LVU101
+ 181:../firmware/radio.c ****       break;
+ 403              		.loc 1 181 31 is_stmt 0 view .LVU102
+ 404 01c0 78319FE5 		ldr	r3, .L74+4
+ 405 01c4 4000C3E5 		strb	r0, [r3, #64]
+ 182:../firmware/radio.c ****     default:
+ 406              		.loc 1 182 7 is_stmt 1 view .LVU103
+ 180:../firmware/radio.c ****       regdata2.multibyte.size = cnt;
+ 407              		.loc 1 180 20 is_stmt 0 view .LVU104
+ 408 01c8 413083E2 		add	r3, r3, #65
+ 182:../firmware/radio.c ****     default:
+ 409              		.loc 1 182 7 view .LVU105
+ 410 01cc E8FFFFEA 		b	.L43
+ 411              	.LVL32:
+ 412              	.L38:
+ 184:../firmware/radio.c ****   }
+ 413              		.loc 1 184 7 is_stmt 1 view .LVU106
+ 184:../firmware/radio.c ****   }
+ 414              		.loc 1 184 11 is_stmt 0 view .LVU107
+ 415 01d0 0000A0E3 		mov	r0, #0
+ 416              	.LVL33:
+ 165:../firmware/radio.c **** 
+ 417              		.loc 1 165 16 view .LVU108
+ 418 01d4 60319FE5 		ldr	r3, .L74
+ 419 01d8 E5FFFFEA 		b	.L43
+ 420              	.LVL34:
+ 421              	.L64:
+ 168:../firmware/radio.c ****     case ROP_WRITE_8:
+ 422              		.loc 1 168 3 view .LVU109
+ 423 01dc 0100A0E3 		mov	r0, #1
+ 424              	.LVL35:
+ 168:../firmware/radio.c ****     case ROP_WRITE_8:
+ 425              		.loc 1 168 3 view .LVU110
+ 426 01e0 54319FE5 		ldr	r3, .L74
+ 427 01e4 E2FFFFEA 		b	.L43
+ 428              	.LVL36:
+ 429              	.L45:
+ 189:../firmware/radio.c **** 
+ 430              		.loc 1 189 5 is_stmt 1 discriminator 3 view .LVU111
+ 189:../firmware/radio.c **** 
+ 431              		.loc 1 189 23 is_stmt 0 discriminator 3 view .LVU112
+ 432 01e8 FEFFFFEB 		bl	uart0_waitch
+ 433              	.LVL37:
+ 189:../firmware/radio.c **** 
+ 434              		.loc 1 189 21 discriminator 3 view .LVU113
+ 435 01ec 0100C5E4 		strb	r0, [r5], #1
+ 188:../firmware/radio.c ****     input_buffer[i] = uart0_waitch();
+ 436              		.loc 1 188 24 is_stmt 1 discriminator 3 view .LVU114
+ 188:../firmware/radio.c ****     input_buffer[i] = uart0_waitch();
+ 437              		.loc 1 188 24 is_stmt 0 discriminator 3 view .LVU115
+ 438 01f0 E1FFFFEA 		b	.L44
+ 439              	.L55:
+ 193:../firmware/radio.c ****     case ROP_READ_8:  // byte read
+ 194:../firmware/radio.c ****       internal_reg_read_8(addr);
+ 440              		.loc 1 194 7 is_stmt 1 view .LVU116
+ 441              	.LVL38:
+ 442              	.LBB18:
+ 443              	.LBI18:
+  71:../firmware/radio.c **** {
+ 444              		.loc 1 71 13 view .LVU117
+ 445              	.LBB19:
+  73:../firmware/radio.c ****     return;
+ 446              		.loc 1 73 3 view .LVU118
+  73:../firmware/radio.c ****     return;
+ 447              		.loc 1 73 7 is_stmt 0 view .LVU119
+ 448 01f4 0000A0E3 		mov	r0, #0
+ 449 01f8 FF1004E2 		and	r1, r4, #255
+ 450 01fc 93FFFFEB 		bl	callbacks_call_one
+ 451              	.LVL39:
+  73:../firmware/radio.c ****     return;
+ 452              		.loc 1 73 6 view .LVU120
+ 453 0200 000050E3 		cmp	r0, #0
+ 454 0204 0400001A 		bne	.L66
+  78:../firmware/radio.c ****     regdata2.byte = reg8_table[addr];
+ 455              		.loc 1 78 3 is_stmt 1 view .LVU121
+  78:../firmware/radio.c ****     regdata2.byte = reg8_table[addr];
+ 456              		.loc 1 78 6 is_stmt 0 view .LVU122
+ 457 0208 000054E3 		cmp	r4, #0
+  81:../firmware/radio.c **** }
+ 458              		.loc 1 81 19 view .LVU123
+ 459 020c 0020E013 		mvnne	r2, #0
+ 460 0210 28319FE5 		ldr	r3, .L74+4
+  79:../firmware/radio.c ****   else
+ 461              		.loc 1 79 5 is_stmt 1 view .LVU124
+  79:../firmware/radio.c ****   else
+ 462              		.loc 1 79 31 is_stmt 0 view .LVU125
+ 463 0214 6020D305 		ldrbeq	r2, [r3, #96]	@ zero_extendqisi2
+  81:../firmware/radio.c **** }
+ 464              		.loc 1 81 5 is_stmt 1 view .LVU126
+  81:../firmware/radio.c **** }
+ 465              		.loc 1 81 19 is_stmt 0 view .LVU127
+ 466 0218 4020C3E5 		strb	r2, [r3, #64]
+ 467              	.L66:
+ 468              	.LBE19:
+ 469              	.LBE18:
+ 195:../firmware/radio.c ****       cnt = 1;
+ 470              		.loc 1 195 11 view .LVU128
+ 471 021c 0140A0E3 		mov	r4, #1
+ 472              	.LVL40:
+ 473              		.loc 1 195 11 view .LVU129
+ 474 0220 200000EA 		b	.L46
+ 475              	.LVL41:
+ 476              	.L54:
+ 196:../firmware/radio.c ****       break;
+ 197:../firmware/radio.c ****     case ROP_READ_16:  // word read
+ 198:../firmware/radio.c ****       internal_reg_read_16(addr);
+ 477              		.loc 1 198 7 is_stmt 1 view .LVU130
+ 478              	.LBB20:
+ 479              	.LBI20:
+  84:../firmware/radio.c **** {
+ 480              		.loc 1 84 13 view .LVU131
+ 481              	.LBB21:
+  86:../firmware/radio.c ****     return;
+ 482              		.loc 1 86 3 view .LVU132
+  86:../firmware/radio.c ****     return;
+ 483              		.loc 1 86 7 is_stmt 0 view .LVU133
+ 484 0224 0100A0E3 		mov	r0, #1
+ 485 0228 FF1004E2 		and	r1, r4, #255
+ 486 022c 87FFFFEB 		bl	callbacks_call_one
+ 487              	.LVL42:
+  86:../firmware/radio.c ****     return;
+ 488              		.loc 1 86 6 view .LVU134
+ 489 0230 000050E3 		cmp	r0, #0
+ 490 0234 0400001A 		bne	.L67
+  91:../firmware/radio.c ****     regdata2.word = reg16_table[addr];
+ 491              		.loc 1 91 3 is_stmt 1 view .LVU135
+  91:../firmware/radio.c ****     regdata2.word = reg16_table[addr];
+ 492              		.loc 1 91 6 is_stmt 0 view .LVU136
+ 493 0238 000054E3 		cmp	r4, #0
+  94:../firmware/radio.c **** }
+ 494              		.loc 1 94 19 view .LVU137
+ 495 023c 0020E013 		mvnne	r2, #0
+ 496 0240 F8309FE5 		ldr	r3, .L74+4
+  92:../firmware/radio.c ****   else
+ 497              		.loc 1 92 5 is_stmt 1 view .LVU138
+  92:../firmware/radio.c ****   else
+ 498              		.loc 1 92 32 is_stmt 0 view .LVU139
+ 499 0244 B226D301 		ldrheq	r2, [r3, #98]
+  94:../firmware/radio.c **** }
+ 500              		.loc 1 94 5 is_stmt 1 view .LVU140
+  94:../firmware/radio.c **** }
+ 501              		.loc 1 94 19 is_stmt 0 view .LVU141
+ 502 0248 B024C3E1 		strh	r2, [r3, #64]	@ movhi
+ 503              	.L67:
+ 504              	.LBE21:
+ 505              	.LBE20:
+ 199:../firmware/radio.c ****       cnt = 2;
+ 506              		.loc 1 199 11 view .LVU142
+ 507 024c 0240A0E3 		mov	r4, #2
+ 508              	.LVL43:
+ 509              		.loc 1 199 11 view .LVU143
+ 510 0250 140000EA 		b	.L46
+ 511              	.LVL44:
+ 512              	.L53:
+ 200:../firmware/radio.c ****       break;
+ 201:../firmware/radio.c ****     case ROP_READ_32:  // dword read
+ 202:../firmware/radio.c ****       internal_reg_read_32(addr);
+ 513              		.loc 1 202 7 is_stmt 1 view .LVU144
+ 514              	.LBB22:
+ 515              	.LBI22:
+  97:../firmware/radio.c **** {
+ 516              		.loc 1 97 13 view .LVU145
+ 517              	.LBB23:
+  99:../firmware/radio.c ****     return;
+ 518              		.loc 1 99 3 view .LVU146
+  99:../firmware/radio.c ****     return;
+ 519              		.loc 1 99 7 is_stmt 0 view .LVU147
+ 520 0254 0200A0E3 		mov	r0, #2
+ 521 0258 FF1004E2 		and	r1, r4, #255
+ 522 025c 7BFFFFEB 		bl	callbacks_call_one
+ 523              	.LVL45:
+  99:../firmware/radio.c ****     return;
+ 524              		.loc 1 99 6 view .LVU148
+ 525 0260 000050E3 		cmp	r0, #0
+ 526 0264 0400001A 		bne	.L68
+ 104:../firmware/radio.c ****     regdata2.dword = reg32_table[addr];
+ 527              		.loc 1 104 3 is_stmt 1 view .LVU149
+ 104:../firmware/radio.c ****     regdata2.dword = reg32_table[addr];
+ 528              		.loc 1 104 6 is_stmt 0 view .LVU150
+ 529 0268 000054E3 		cmp	r4, #0
+ 107:../firmware/radio.c **** }
+ 530              		.loc 1 107 20 view .LVU151
+ 531 026c 0020E013 		mvnne	r2, #0
+ 532 0270 C8309FE5 		ldr	r3, .L74+4
+ 105:../firmware/radio.c ****   else
+ 533              		.loc 1 105 5 is_stmt 1 view .LVU152
+ 105:../firmware/radio.c ****   else
+ 534              		.loc 1 105 33 is_stmt 0 view .LVU153
+ 535 0274 64209305 		ldreq	r2, [r3, #100]
+ 107:../firmware/radio.c **** }
+ 536              		.loc 1 107 5 is_stmt 1 view .LVU154
+ 107:../firmware/radio.c **** }
+ 537              		.loc 1 107 20 is_stmt 0 view .LVU155
+ 538 0278 402083E5 		str	r2, [r3, #64]
+ 539              	.L68:
+ 540              	.LBE23:
+ 541              	.LBE22:
+ 203:../firmware/radio.c ****       cnt = 4;
+ 542              		.loc 1 203 11 view .LVU156
+ 543 027c 0440A0E3 		mov	r4, #4
+ 544              	.LVL46:
+ 545              		.loc 1 203 11 view .LVU157
+ 546 0280 080000EA 		b	.L46
+ 547              	.LVL47:
+ 548              	.L52:
+ 204:../firmware/radio.c ****       break;
+ 205:../firmware/radio.c ****     case ROP_READ_MB:  // multibyte read
+ 206:../firmware/radio.c ****       internal_reg_read_mb(addr);
+ 549              		.loc 1 206 7 is_stmt 1 view .LVU158
+ 550              	.LBB24:
+ 551              	.LBI24:
+ 110:../firmware/radio.c **** {
+ 552              		.loc 1 110 13 view .LVU159
+ 553              	.LBB25:
+ 112:../firmware/radio.c ****   callbacks_call_one (ROP_READ_MB, addr);
+ 554              		.loc 1 112 3 view .LVU160
+ 112:../firmware/radio.c ****   callbacks_call_one (ROP_READ_MB, addr);
+ 555              		.loc 1 112 27 is_stmt 0 view .LVU161
+ 556 0284 0030A0E3 		mov	r3, #0
+ 557 0288 B0509FE5 		ldr	r5, .L74+4
+ 113:../firmware/radio.c **** }
+ 558              		.loc 1 113 3 view .LVU162
+ 559 028c FF1004E2 		and	r1, r4, #255
+ 560 0290 0300A0E3 		mov	r0, #3
+ 112:../firmware/radio.c ****   callbacks_call_one (ROP_READ_MB, addr);
+ 561              		.loc 1 112 27 view .LVU163
+ 562 0294 4030C5E5 		strb	r3, [r5, #64]
+ 113:../firmware/radio.c **** }
+ 563              		.loc 1 113 3 is_stmt 1 view .LVU164
+ 564 0298 6CFFFFEB 		bl	callbacks_call_one
+ 565              	.LVL48:
+ 113:../firmware/radio.c **** }
+ 566              		.loc 1 113 3 is_stmt 0 view .LVU165
+ 567              	.LBE25:
+ 568              	.LBE24:
+ 207:../firmware/radio.c ****       cnt = regdata2.multibyte.size + 1;
+ 569              		.loc 1 207 7 is_stmt 1 view .LVU166
+ 570              		.loc 1 207 11 is_stmt 0 view .LVU167
+ 571 029c 4040D5E5 		ldrb	r4, [r5, #64]	@ zero_extendqisi2
+ 572              	.LVL49:
+ 573              		.loc 1 207 11 view .LVU168
+ 574 02a0 014084E2 		add	r4, r4, #1
+ 575 02a4 FF4004E2 		and	r4, r4, #255
+ 576              	.LVL50:
+ 208:../firmware/radio.c ****       break;
+ 577              		.loc 1 208 7 is_stmt 1 view .LVU169
+ 578              	.L46:
+ 209:../firmware/radio.c ****     case ROP_WRITE_8:  // byte write
+ 210:../firmware/radio.c ****       internal_reg_write_8(addr);
+ 211:../firmware/radio.c ****       cnt = 0;
+ 212:../firmware/radio.c ****       break;
+ 213:../firmware/radio.c ****     case ROP_WRITE_16:  // word write
+ 214:../firmware/radio.c ****       internal_reg_write_16(addr);
+ 215:../firmware/radio.c ****       cnt = 0;
+ 216:../firmware/radio.c ****       break;
+ 217:../firmware/radio.c ****     case ROP_WRITE_32:  // dword write
+ 218:../firmware/radio.c ****       internal_reg_write_32(addr);
+ 219:../firmware/radio.c ****       cnt = 0;
+ 220:../firmware/radio.c ****       break;
+ 221:../firmware/radio.c ****     case ROP_WRITE_MB:  // multibyte write
+ 222:../firmware/radio.c ****       internal_reg_write_mb(addr);
+ 223:../firmware/radio.c ****       cnt = 0;
+ 224:../firmware/radio.c ****       break;
+ 225:../firmware/radio.c ****     default:
+ 226:../firmware/radio.c ****       cnt = 0;
+ 227:../firmware/radio.c ****   }
+ 228:../firmware/radio.c **** 
+ 229:../firmware/radio.c ****   // Sends any output bytes
+ 230:../firmware/radio.c ****   for (i = 0; i < cnt; i++) uart0Putch(regdata2.bytes[i]);
+ 579              		.loc 1 230 3 view .LVU170
+ 580              		.loc 1 230 3 is_stmt 0 view .LVU171
+ 581 02a8 0050A0E3 		mov	r5, #0
+ 582 02ac 88609FE5 		ldr	r6, .L74
+ 583              	.LVL51:
+ 584              	.L62:
+ 585              		.loc 1 230 15 is_stmt 1 discriminator 1 view .LVU172
+ 586              		.loc 1 230 3 is_stmt 0 discriminator 1 view .LVU173
+ 587 02b0 FF3005E2 		and	r3, r5, #255
+ 588 02b4 030054E1 		cmp	r4, r3
+ 589 02b8 1B00008A 		bhi	.L63
+ 231:../firmware/radio.c **** 
+ 232:../firmware/radio.c **** }
+ 590              		.loc 1 232 1 view .LVU174
+ 591 02bc F041BDE8 		pop	{r4, r5, r6, r7, r8, lr}
+ 592              	.LCFI6:
+ 593              		.cfi_remember_state
+ 594              		.cfi_restore 14
+ 595              		.cfi_restore 8
+ 596              		.cfi_restore 7
+ 597              		.cfi_restore 6
+ 598              		.cfi_restore 5
+ 599              		.cfi_restore 4
+ 600              		.cfi_def_cfa_offset 0
+ 601              	.LVL52:
+ 602              		.loc 1 232 1 view .LVU175
+ 603 02c0 1EFF2FE1 		bx	lr
+ 604              	.LVL53:
+ 605              	.L51:
+ 606              	.LCFI7:
+ 607              		.cfi_restore_state
+ 210:../firmware/radio.c ****       cnt = 0;
+ 608              		.loc 1 210 7 is_stmt 1 view .LVU176
+ 609              	.LBB26:
+ 610              	.LBI26:
+ 116:../firmware/radio.c **** {
+ 611              		.loc 1 116 13 view .LVU177
+ 612              	.LBB27:
+ 119:../firmware/radio.c ****     reg8_table[addr] = regdata2.byte;
+ 613              		.loc 1 119 3 view .LVU178
+ 123:../firmware/radio.c **** }
+ 614              		.loc 1 123 3 is_stmt 0 view .LVU179
+ 615 02c4 0400A0E3 		mov	r0, #4
+ 119:../firmware/radio.c ****     reg8_table[addr] = regdata2.byte;
+ 616              		.loc 1 119 6 view .LVU180
+ 617 02c8 000054E3 		cmp	r4, #0
+ 120:../firmware/radio.c ****   }
+ 618              		.loc 1 120 5 is_stmt 1 view .LVU181
+ 120:../firmware/radio.c ****   }
+ 619              		.loc 1 120 32 is_stmt 0 view .LVU182
+ 620 02cc 6C309F05 		ldreq	r3, .L74+4
+ 621 02d0 4020D305 		ldrbeq	r2, [r3, #64]	@ zero_extendqisi2
+ 120:../firmware/radio.c ****   }
+ 622              		.loc 1 120 22 view .LVU183
+ 623 02d4 6020C305 		strbeq	r2, [r3, #96]
+ 123:../firmware/radio.c **** }
+ 624              		.loc 1 123 3 is_stmt 1 view .LVU184
+ 625 02d8 FF1004E2 		and	r1, r4, #255
+ 626              	.LVL54:
+ 627              	.L70:
+ 123:../firmware/radio.c **** }
+ 628              		.loc 1 123 3 is_stmt 0 view .LVU185
+ 629              	.LBE27:
+ 630              	.LBE26:
+ 631              	.LBB28:
+ 632              	.LBB29:
+ 148:../firmware/radio.c **** }
+ 633              		.loc 1 148 3 view .LVU186
+ 634 02dc 47FFFFEB 		bl	callbacks_call_all
+ 635              	.LVL55:
+ 636              	.L65:
+ 637              	.LBE29:
+ 638              	.LBE28:
+ 192:../firmware/radio.c ****     case ROP_READ_8:  // byte read
+ 639              		.loc 1 192 3 view .LVU187
+ 640 02e0 0040A0E3 		mov	r4, #0
+ 641              	.LVL56:
+ 192:../firmware/radio.c ****     case ROP_READ_8:  // byte read
+ 642              		.loc 1 192 3 view .LVU188
+ 643 02e4 EFFFFFEA 		b	.L46
+ 644              	.LVL57:
+ 645              	.L50:
+ 214:../firmware/radio.c ****       cnt = 0;
+ 646              		.loc 1 214 7 is_stmt 1 view .LVU189
+ 647              	.LBB31:
+ 648              	.LBI31:
+ 126:../firmware/radio.c **** {
+ 649              		.loc 1 126 13 view .LVU190
+ 650              	.LBB32:
+ 129:../firmware/radio.c ****     reg16_table[addr] = regdata2.word;
+ 651              		.loc 1 129 3 view .LVU191
+ 129:../firmware/radio.c ****     reg16_table[addr] = regdata2.word;
+ 652              		.loc 1 129 6 is_stmt 0 view .LVU192
+ 653 02e8 000054E3 		cmp	r4, #0
+ 130:../firmware/radio.c ****   }
+ 654              		.loc 1 130 5 is_stmt 1 view .LVU193
+ 130:../firmware/radio.c ****   }
+ 655              		.loc 1 130 33 is_stmt 0 view .LVU194
+ 656 02ec 4C309F05 		ldreq	r3, .L74+4
+ 657 02f0 B024D301 		ldrheq	r2, [r3, #64]
+ 133:../firmware/radio.c **** }
+ 658              		.loc 1 133 3 view .LVU195
+ 659 02f4 0500A0E3 		mov	r0, #5
+ 130:../firmware/radio.c ****   }
+ 660              		.loc 1 130 23 view .LVU196
+ 661 02f8 B226C301 		strheq	r2, [r3, #98]	@ movhi
+ 133:../firmware/radio.c **** }
+ 662              		.loc 1 133 3 is_stmt 1 view .LVU197
+ 663 02fc FF1004E2 		and	r1, r4, #255
+ 664 0300 F5FFFFEA 		b	.L70
+ 665              	.LVL58:
+ 666              	.L49:
+ 133:../firmware/radio.c **** }
+ 667              		.loc 1 133 3 is_stmt 0 view .LVU198
+ 668              	.LBE32:
+ 669              	.LBE31:
+ 218:../firmware/radio.c ****       cnt = 0;
+ 670              		.loc 1 218 7 is_stmt 1 view .LVU199
+ 671              	.LBB33:
+ 672              	.LBI33:
+ 136:../firmware/radio.c **** {
+ 673              		.loc 1 136 13 view .LVU200
+ 674              	.LBB34:
+ 139:../firmware/radio.c ****     reg32_table[addr] = regdata2.dword;
+ 675              		.loc 1 139 3 view .LVU201
+ 139:../firmware/radio.c ****     reg32_table[addr] = regdata2.dword;
+ 676              		.loc 1 139 6 is_stmt 0 view .LVU202
+ 677 0304 000054E3 		cmp	r4, #0
+ 140:../firmware/radio.c ****   }
+ 678              		.loc 1 140 5 is_stmt 1 view .LVU203
+ 140:../firmware/radio.c ****   }
+ 679              		.loc 1 140 33 is_stmt 0 view .LVU204
+ 680 0308 30309F05 		ldreq	r3, .L74+4
+ 681 030c 40209305 		ldreq	r2, [r3, #64]
+ 143:../firmware/radio.c **** }
+ 682              		.loc 1 143 3 view .LVU205
+ 683 0310 0600A0E3 		mov	r0, #6
+ 140:../firmware/radio.c ****   }
+ 684              		.loc 1 140 23 view .LVU206
+ 685 0314 64208305 		streq	r2, [r3, #100]
+ 143:../firmware/radio.c **** }
+ 686              		.loc 1 143 3 is_stmt 1 view .LVU207
+ 687 0318 FF1004E2 		and	r1, r4, #255
+ 688 031c EEFFFFEA 		b	.L70
+ 689              	.LVL59:
+ 690              	.L47:
+ 143:../firmware/radio.c **** }
+ 691              		.loc 1 143 3 is_stmt 0 view .LVU208
+ 692              	.LBE34:
+ 693              	.LBE33:
+ 222:../firmware/radio.c ****       cnt = 0;
+ 694              		.loc 1 222 7 is_stmt 1 view .LVU209
+ 695              	.LBB35:
+ 696              	.LBI28:
+ 146:../firmware/radio.c **** {
+ 697              		.loc 1 146 13 view .LVU210
+ 698              	.LBB30:
+ 148:../firmware/radio.c **** }
+ 699              		.loc 1 148 3 view .LVU211
+ 700 0320 0700A0E3 		mov	r0, #7
+ 701 0324 FF1004E2 		and	r1, r4, #255
+ 702 0328 EBFFFFEA 		b	.L70
+ 703              	.LVL60:
+ 704              	.L63:
+ 148:../firmware/radio.c **** }
+ 705              		.loc 1 148 3 is_stmt 0 view .LVU212
+ 706              	.LBE30:
+ 707              	.LBE35:
+ 230:../firmware/radio.c **** 
+ 708              		.loc 1 230 29 is_stmt 1 discriminator 3 view .LVU213
+ 709 032c 0100D6E4 		ldrb	r0, [r6], #1	@ zero_extendqisi2
+ 710 0330 FEFFFFEB 		bl	uart0Putch
+ 711              	.LVL61:
+ 230:../firmware/radio.c **** 
+ 712              		.loc 1 230 24 discriminator 3 view .LVU214
+ 230:../firmware/radio.c **** 
+ 713              		.loc 1 230 24 is_stmt 0 discriminator 3 view .LVU215
+ 714 0334 015085E2 		add	r5, r5, #1
+ 715              	.LVL62:
+ 230:../firmware/radio.c **** 
+ 716              		.loc 1 230 24 discriminator 3 view .LVU216
+ 717 0338 DCFFFFEA 		b	.L62
+ 718              	.L75:
+ 719              		.align	2
+ 720              	.L74:
+ 721 033c 40000000 		.word	.LANCHOR0+64
+ 722 0340 00000000 		.word	.LANCHOR0
+ 723              		.cfi_endproc
+ 724              	.LFE12:
+ 726              		.align	2
+ 727              		.global	radio_init
+ 728              		.syntax unified
+ 729              		.arm
+ 731              	radio_init:
+ 732              	.LFB14:
+ 233:../firmware/radio.c **** 
+ 234:../firmware/radio.c **** // UART synchronization with the radio controlling PIC
+ 235:../firmware/radio.c **** static void sync_radio_pic(void)
+ 236:../firmware/radio.c **** {
+ 237:../firmware/radio.c ****   uint8_t i;
+ 238:../firmware/radio.c ****   do {
+ 239:../firmware/radio.c ****     i = uart0_waitch();
+ 240:../firmware/radio.c ****   } while (i!=0xAA);
+ 241:../firmware/radio.c ****   uart0Putch(0x55);
+ 242:../firmware/radio.c **** }
+ 243:../firmware/radio.c **** 
+ 244:../firmware/radio.c **** void radio_init()
+ 245:../firmware/radio.c **** {
+ 733              		.loc 1 245 1 is_stmt 1 view -0
+ 734              		.cfi_startproc
+ 735              		@ Function supports interworking.
+ 736              		@ args = 0, pretend = 0, frame = 0
+ 737              		@ frame_needed = 0, uses_anonymous_args = 0
+ 246:../firmware/radio.c ****   uint8_t i;
+ 738              		.loc 1 246 3 view .LVU218
+ 247:../firmware/radio.c **** 
+ 248:../firmware/radio.c ****   for (i = 0; i < MAX_REG_CALLBACKS; i++) {
+ 739              		.loc 1 248 3 view .LVU219
+ 740              	.LVL63:
+ 741              		.loc 1 248 15 view .LVU220
+ 245:../firmware/radio.c ****   uint8_t i;
+ 742              		.loc 1 245 1 is_stmt 0 view .LVU221
+ 743 0344 10402DE9 		push	{r4, lr}
+ 744              	.LCFI8:
+ 745              		.cfi_def_cfa_offset 8
+ 746              		.cfi_offset 4, -8
+ 747              		.cfi_offset 14, -4
+ 249:../firmware/radio.c ****     reg_callbacks[i] = NULL;
+ 748              		.loc 1 249 22 view .LVU222
+ 749 0348 4020A0E3 		mov	r2, #64
+ 750 034c 0010A0E3 		mov	r1, #0
+ 751 0350 44009FE5 		ldr	r0, .L80
+ 752 0354 FEFFFFEB 		bl	memset
+ 753              	.LVL64:
+ 250:../firmware/radio.c ****   }
+ 251:../firmware/radio.c ****   uart0Init(UART_BAUD(57600), UART_8N1, UART_FIFO_8); // setup the UART
+ 754              		.loc 1 251 3 is_stmt 1 view .LVU223
+ 755 0358 8120A0E3 		mov	r2, #129
+ 756 035c 0310A0E3 		mov	r1, #3
+ 757 0360 2100A0E3 		mov	r0, #33
+ 758 0364 FEFFFFEB 		bl	uart0Init
+ 759              	.LVL65:
+ 252:../firmware/radio.c ****   init_uart0_isr();
+ 760              		.loc 1 252 3 view .LVU224
+ 761 0368 FEFFFFEB 		bl	init_uart0_isr
+ 762              	.LVL66:
+ 253:../firmware/radio.c ****   IO0SET = LED1_BIT;   // internal LED on
+ 763              		.loc 1 253 3 view .LVU225
+ 764              		.loc 1 253 10 is_stmt 0 view .LVU226
+ 765 036c 013AA0E3 		mov	r3, #4096
+ 766 0370 28409FE5 		ldr	r4, .L80+4
+ 767 0374 043084E5 		str	r3, [r4, #4]
+ 254:../firmware/radio.c ****   sync_radio_pic();
+ 768              		.loc 1 254 3 is_stmt 1 view .LVU227
+ 769              	.LBB38:
+ 770              	.LBI38:
+ 235:../firmware/radio.c **** {
+ 771              		.loc 1 235 13 view .LVU228
+ 772              	.L77:
+ 773              	.LBB39:
+ 237:../firmware/radio.c ****   do {
+ 774              		.loc 1 237 3 view .LVU229
+ 238:../firmware/radio.c ****     i = uart0_waitch();
+ 775              		.loc 1 238 3 view .LVU230
+ 239:../firmware/radio.c ****   } while (i!=0xAA);
+ 776              		.loc 1 239 5 view .LVU231
+ 239:../firmware/radio.c ****   } while (i!=0xAA);
+ 777              		.loc 1 239 9 is_stmt 0 view .LVU232
+ 778 0378 FEFFFFEB 		bl	uart0_waitch
+ 779              	.LVL67:
+ 240:../firmware/radio.c ****   uart0Putch(0x55);
+ 780              		.loc 1 240 11 is_stmt 1 view .LVU233
+ 240:../firmware/radio.c ****   uart0Putch(0x55);
+ 781              		.loc 1 240 3 is_stmt 0 view .LVU234
+ 782 037c AA0050E3 		cmp	r0, #170
+ 783 0380 FCFFFF1A 		bne	.L77
+ 241:../firmware/radio.c **** }
+ 784              		.loc 1 241 3 is_stmt 1 view .LVU235
+ 785 0384 5500A0E3 		mov	r0, #85
+ 786              	.LVL68:
+ 241:../firmware/radio.c **** }
+ 787              		.loc 1 241 3 is_stmt 0 view .LVU236
+ 788 0388 FEFFFFEB 		bl	uart0Putch
+ 789              	.LVL69:
+ 241:../firmware/radio.c **** }
+ 790              		.loc 1 241 3 view .LVU237
+ 791              	.LBE39:
+ 792              	.LBE38:
+ 255:../firmware/radio.c ****   IO0CLR = LED1_BIT;   // internal LED on
+ 793              		.loc 1 255 3 is_stmt 1 view .LVU238
+ 794              		.loc 1 255 10 is_stmt 0 view .LVU239
+ 795 038c 013AA0E3 		mov	r3, #4096
+ 796 0390 0C3084E5 		str	r3, [r4, #12]
+ 256:../firmware/radio.c **** }
+ 797              		.loc 1 256 1 view .LVU240
+ 798 0394 1040BDE8 		pop	{r4, lr}
+ 799              	.LCFI9:
+ 800              		.cfi_restore 14
+ 801              		.cfi_restore 4
+ 802              		.cfi_def_cfa_offset 0
+ 803 0398 1EFF2FE1 		bx	lr
+ 804              	.L81:
+ 805              		.align	2
+ 806              	.L80:
+ 807 039c 00000000 		.word	.LANCHOR0
+ 808 03a0 008002E0 		.word	-536707072
+ 809              		.cfi_endproc
+ 810              	.LFE14:
+ 812              		.global	reg32_table
+ 813              		.global	reg16_table
+ 814              		.global	reg8_table
+ 815              		.bss
+ 816              		.align	2
+ 817              		.set	.LANCHOR0,. + 0
+ 820              	reg_callbacks:
+ 821 0000 00000000 		.space	64
+ 821      00000000 
+ 821      00000000 
+ 821      00000000 
+ 821      00000000 
+ 824              	regdata2:
+ 825 0040 00000000 		.space	32
+ 825      00000000 
+ 825      00000000 
+ 825      00000000 
+ 825      00000000 
+ 828              	reg8_table:
+ 829 0060 00       		.space	1
+ 830 0061 00       		.space	1
+ 833              	reg16_table:
+ 834 0062 0000     		.space	2
+ 837              	reg32_table:
+ 838 0064 00000000 		.space	4
+ 839              		.text
+ 840              	.Letext0:
+ 841              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 842              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 843              		.file 4 "../firmware/radio.h"
+ 844              		.file 5 "../../common/regdefs.h"
+ 845              		.file 6 "../firmware/registers.h"
+ 846              		.file 7 "../firmware/lpcGPIO.h"
+ 847              		.file 8 "../firmware/uartISR.h"
+ 848              		.file 9 "../firmware/uart.h"
+ 849              		.file 10 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 radio.c
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:21     .text:00000000 callbacks_call_all
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:88     .text:0000004c $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:92     .text:00000050 $a
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:96     .text:00000050 callbacks_call_one
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:178    .text:000000b0 $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:182    .text:000000b4 $a
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:187    .text:000000b4 radio_add_reg_callback
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:230    .text:000000e4 $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:234    .text:000000e8 $a
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:239    .text:000000e8 radio_del_reg_callback
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:283    .text:0000011c $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:287    .text:00000120 $a
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:292    .text:00000120 process_UART_in
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:349    .text:0000015c $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:355    .text:0000016c $a
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:376    .text:00000190 $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:389    .text:000001b0 $a
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:721    .text:0000033c $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:726    .text:00000344 $a
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:731    .text:00000344 radio_init
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:807    .text:0000039c $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:837    .bss:00000064 reg32_table
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:833    .bss:00000062 reg16_table
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:828    .bss:00000060 reg8_table
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:816    .bss:00000000 $d
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:820    .bss:00000000 reg_callbacks
+C:\Users\ishin\AppData\Local\Temp\ccmzElsx.s:824    .bss:00000040 regdata2
+
+UNDEFINED SYMBOLS
+uart0_waitch
+uart0Putch
+memset
+uart0Init
+init_uart0_isr

@@ -1,0 +1,240 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"utils.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	unaligned_read_16
+  19              		.syntax unified
+  20              		.arm
+  22              	unaligned_read_16:
+  23              	.LVL0:
+  24              	.LFB0:
+  25              		.file 1 "../firmware/utils.c"
+   1:../firmware/utils.c **** #include "utils.h"
+   2:../firmware/utils.c **** 
+   3:../firmware/utils.c **** uint16_t unaligned_read_16(uint8_t* ptr)
+   4:../firmware/utils.c **** {
+  26              		.loc 1 4 1 view -0
+  27              		.cfi_startproc
+  28              		@ Function supports interworking.
+  29              		@ args = 0, pretend = 0, frame = 8
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+   5:../firmware/utils.c ****   uint16_t result;
+  32              		.loc 1 5 3 view .LVU1
+   6:../firmware/utils.c **** 
+   7:../firmware/utils.c ****   uint8_t* i = (uint8_t*) ptr;
+  33              		.loc 1 7 3 view .LVU2
+   8:../firmware/utils.c ****   uint8_t* j = (uint8_t*) &result;
+  34              		.loc 1 8 3 view .LVU3
+   9:../firmware/utils.c **** 
+  10:../firmware/utils.c ****   j[0] = i[0];
+  35              		.loc 1 10 8 is_stmt 0 view .LVU4
+  36 0000 0030D0E5 		ldrb	r3, [r0]	@ zero_extendqisi2
+   4:../firmware/utils.c ****   uint8_t* i = (uint8_t*) ptr;
+  37              		.loc 1 4 1 view .LVU5
+  38 0004 08D04DE2 		sub	sp, sp, #8
+  39              	.LCFI0:
+  40              		.cfi_def_cfa_offset 8
+  41              	.LVL1:
+  42              		.loc 1 10 3 is_stmt 1 view .LVU6
+  43              		.loc 1 10 8 is_stmt 0 view .LVU7
+  44 0008 0630CDE5 		strb	r3, [sp, #6]
+  11:../firmware/utils.c ****   j[1] = i[1];
+  45              		.loc 1 11 3 is_stmt 1 view .LVU8
+  46              		.loc 1 11 8 is_stmt 0 view .LVU9
+  47 000c 0130D0E5 		ldrb	r3, [r0, #1]	@ zero_extendqisi2
+  48 0010 0730CDE5 		strb	r3, [sp, #7]
+  12:../firmware/utils.c **** 
+  13:../firmware/utils.c ****   return result;
+  49              		.loc 1 13 3 is_stmt 1 view .LVU10
+  14:../firmware/utils.c **** }
+  50              		.loc 1 14 1 is_stmt 0 view .LVU11
+  51 0014 B600DDE1 		ldrh	r0, [sp, #6]
+  52              	.LVL2:
+  53              		.loc 1 14 1 view .LVU12
+  54 0018 08D08DE2 		add	sp, sp, #8
+  55              	.LCFI1:
+  56              		.cfi_def_cfa_offset 0
+  57              		@ sp needed
+  58 001c 1EFF2FE1 		bx	lr
+  59              		.cfi_endproc
+  60              	.LFE0:
+  62              		.align	2
+  63              		.global	unaligned_read_32
+  64              		.syntax unified
+  65              		.arm
+  67              	unaligned_read_32:
+  68              	.LVL3:
+  69              	.LFB1:
+  15:../firmware/utils.c **** 
+  16:../firmware/utils.c **** uint32_t unaligned_read_32(uint8_t* ptr)
+  17:../firmware/utils.c **** {
+  70              		.loc 1 17 1 is_stmt 1 view -0
+  71              		.cfi_startproc
+  72              		@ Function supports interworking.
+  73              		@ args = 0, pretend = 0, frame = 8
+  74              		@ frame_needed = 0, uses_anonymous_args = 0
+  75              		@ link register save eliminated.
+  18:../firmware/utils.c ****   uint32_t result;
+  76              		.loc 1 18 3 view .LVU14
+  19:../firmware/utils.c **** 
+  20:../firmware/utils.c ****   uint8_t* i = (uint8_t*) ptr;
+  77              		.loc 1 20 3 view .LVU15
+  21:../firmware/utils.c ****   uint8_t* j = (uint8_t*) &result;
+  78              		.loc 1 21 3 view .LVU16
+  22:../firmware/utils.c **** 
+  23:../firmware/utils.c ****   j[0] = i[0];
+  79              		.loc 1 23 8 is_stmt 0 view .LVU17
+  80 0020 0030D0E5 		ldrb	r3, [r0]	@ zero_extendqisi2
+  17:../firmware/utils.c ****   uint32_t result;
+  81              		.loc 1 17 1 view .LVU18
+  82 0024 08D04DE2 		sub	sp, sp, #8
+  83              	.LCFI2:
+  84              		.cfi_def_cfa_offset 8
+  85              	.LVL4:
+  86              		.loc 1 23 3 is_stmt 1 view .LVU19
+  87              		.loc 1 23 8 is_stmt 0 view .LVU20
+  88 0028 0430CDE5 		strb	r3, [sp, #4]
+  24:../firmware/utils.c ****   j[1] = i[1];
+  89              		.loc 1 24 3 is_stmt 1 view .LVU21
+  90              		.loc 1 24 8 is_stmt 0 view .LVU22
+  91 002c 0130D0E5 		ldrb	r3, [r0, #1]	@ zero_extendqisi2
+  92 0030 0530CDE5 		strb	r3, [sp, #5]
+  25:../firmware/utils.c ****   j[2] = i[2];
+  93              		.loc 1 25 3 is_stmt 1 view .LVU23
+  94              		.loc 1 25 8 is_stmt 0 view .LVU24
+  95 0034 0230D0E5 		ldrb	r3, [r0, #2]	@ zero_extendqisi2
+  96 0038 0630CDE5 		strb	r3, [sp, #6]
+  26:../firmware/utils.c ****   j[3] = i[3];
+  97              		.loc 1 26 3 is_stmt 1 view .LVU25
+  98              		.loc 1 26 8 is_stmt 0 view .LVU26
+  99 003c 0330D0E5 		ldrb	r3, [r0, #3]	@ zero_extendqisi2
+ 100 0040 0730CDE5 		strb	r3, [sp, #7]
+  27:../firmware/utils.c **** 
+  28:../firmware/utils.c ****   return result;
+ 101              		.loc 1 28 3 is_stmt 1 view .LVU27
+  29:../firmware/utils.c **** }
+ 102              		.loc 1 29 1 is_stmt 0 view .LVU28
+ 103 0044 04009DE5 		ldr	r0, [sp, #4]
+ 104              	.LVL5:
+ 105              		.loc 1 29 1 view .LVU29
+ 106 0048 08D08DE2 		add	sp, sp, #8
+ 107              	.LCFI3:
+ 108              		.cfi_def_cfa_offset 0
+ 109              		@ sp needed
+ 110 004c 1EFF2FE1 		bx	lr
+ 111              		.cfi_endproc
+ 112              	.LFE1:
+ 114              		.align	2
+ 115              		.global	unaligned_write_16
+ 116              		.syntax unified
+ 117              		.arm
+ 119              	unaligned_write_16:
+ 120              	.LVL6:
+ 121              	.LFB2:
+  30:../firmware/utils.c **** 
+  31:../firmware/utils.c **** void unaligned_write_16(uint8_t* ptr, uint16_t val)
+  32:../firmware/utils.c **** {
+ 122              		.loc 1 32 1 is_stmt 1 view -0
+ 123              		.cfi_startproc
+ 124              		@ Function supports interworking.
+ 125              		@ args = 0, pretend = 0, frame = 0
+ 126              		@ frame_needed = 0, uses_anonymous_args = 0
+ 127              		@ link register save eliminated.
+  33:../firmware/utils.c ****   uint8_t* i = (uint8_t*) ptr;
+ 128              		.loc 1 33 3 view .LVU31
+  34:../firmware/utils.c ****   uint8_t* j = (uint8_t*) &val;
+ 129              		.loc 1 34 3 view .LVU32
+  35:../firmware/utils.c **** 
+  36:../firmware/utils.c ****   i[0] = j[0];
+ 130              		.loc 1 36 3 view .LVU33
+ 131              		.loc 1 36 11 is_stmt 0 view .LVU34
+ 132 0050 0010C0E5 		strb	r1, [r0]
+  37:../firmware/utils.c ****   i[1] = j[1];
+ 133              		.loc 1 37 3 is_stmt 1 view .LVU35
+ 134              		.loc 1 37 8 is_stmt 0 view .LVU36
+ 135 0054 2114A0E1 		lsr	r1, r1, #8
+ 136              	.LVL7:
+ 137              		.loc 1 37 8 view .LVU37
+ 138 0058 0110C0E5 		strb	r1, [r0, #1]
+  38:../firmware/utils.c **** }
+ 139              		.loc 1 38 1 view .LVU38
+ 140 005c 1EFF2FE1 		bx	lr
+ 141              		.cfi_endproc
+ 142              	.LFE2:
+ 144              		.align	2
+ 145              		.global	unaligned_write_32
+ 146              		.syntax unified
+ 147              		.arm
+ 149              	unaligned_write_32:
+ 150              	.LVL8:
+ 151              	.LFB3:
+  39:../firmware/utils.c **** 
+  40:../firmware/utils.c **** void unaligned_write_32(uint8_t* ptr, uint32_t val)
+  41:../firmware/utils.c **** {
+ 152              		.loc 1 41 1 is_stmt 1 view -0
+ 153              		.cfi_startproc
+ 154              		@ Function supports interworking.
+ 155              		@ args = 0, pretend = 0, frame = 0
+ 156              		@ frame_needed = 0, uses_anonymous_args = 0
+ 157              		@ link register save eliminated.
+  42:../firmware/utils.c ****   uint8_t* i = (uint8_t*) ptr;
+ 158              		.loc 1 42 3 view .LVU40
+  43:../firmware/utils.c ****   uint8_t* j = (uint8_t*) &val;
+ 159              		.loc 1 43 3 view .LVU41
+  44:../firmware/utils.c **** 
+  45:../firmware/utils.c ****   i[0] = j[0];
+ 160              		.loc 1 45 3 view .LVU42
+  46:../firmware/utils.c ****   i[1] = j[1];
+ 161              		.loc 1 46 8 is_stmt 0 view .LVU43
+ 162 0060 2134A0E1 		lsr	r3, r1, #8
+  45:../firmware/utils.c ****   i[1] = j[1];
+ 163              		.loc 1 45 11 view .LVU44
+ 164 0064 0010C0E5 		strb	r1, [r0]
+ 165              		.loc 1 46 3 is_stmt 1 view .LVU45
+ 166              		.loc 1 46 8 is_stmt 0 view .LVU46
+ 167 0068 0130C0E5 		strb	r3, [r0, #1]
+  47:../firmware/utils.c ****   i[2] = j[2];
+ 168              		.loc 1 47 3 is_stmt 1 view .LVU47
+ 169              		.loc 1 47 8 is_stmt 0 view .LVU48
+ 170 006c 2138A0E1 		lsr	r3, r1, #16
+  48:../firmware/utils.c ****   i[3] = j[3];
+ 171              		.loc 1 48 8 view .LVU49
+ 172 0070 211CA0E1 		lsr	r1, r1, #24
+ 173              	.LVL9:
+  47:../firmware/utils.c ****   i[2] = j[2];
+ 174              		.loc 1 47 8 view .LVU50
+ 175 0074 0230C0E5 		strb	r3, [r0, #2]
+ 176              		.loc 1 48 3 is_stmt 1 view .LVU51
+ 177              		.loc 1 48 8 is_stmt 0 view .LVU52
+ 178 0078 0310C0E5 		strb	r1, [r0, #3]
+  49:../firmware/utils.c **** }
+ 179              		.loc 1 49 1 view .LVU53
+ 180 007c 1EFF2FE1 		bx	lr
+ 181              		.cfi_endproc
+ 182              	.LFE3:
+ 184              	.Letext0:
+ 185              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 186              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 utils.c
+C:\Users\ishin\AppData\Local\Temp\ccbxS3zx.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccbxS3zx.s:22     .text:00000000 unaligned_read_16
+C:\Users\ishin\AppData\Local\Temp\ccbxS3zx.s:67     .text:00000020 unaligned_read_32
+C:\Users\ishin\AppData\Local\Temp\ccbxS3zx.s:119    .text:00000050 unaligned_write_16
+C:\Users\ishin\AppData\Local\Temp\ccbxS3zx.s:149    .text:00000060 unaligned_write_32
+
+NO UNDEFINED SYMBOLS

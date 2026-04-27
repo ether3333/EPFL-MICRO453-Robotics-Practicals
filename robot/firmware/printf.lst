@@ -1,0 +1,1371 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"printf.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.syntax unified
+  19              		.arm
+  21              	printchar:
+  22              	.LVL0:
+  23              	.LFB1:
+  24              		.file 1 "../firmware/printf.c"
+   1:../firmware/printf.c **** /*
+   2:../firmware/printf.c **** 	Copyright 2001, 2002 Georges Menie (www.menie.org)
+   3:../firmware/printf.c **** 	stdarg version contributed by Christian Ettinger
+   4:../firmware/printf.c **** 
+   5:../firmware/printf.c ****     This program is free software; you can redistribute it and/or modify
+   6:../firmware/printf.c ****     it under the terms of the GNU Lesser General Public License as published by
+   7:../firmware/printf.c ****     the Free Software Foundation; either version 2 of the License, or
+   8:../firmware/printf.c ****     (at your option) any later version.
+   9:../firmware/printf.c **** 
+  10:../firmware/printf.c ****     This program is distributed in the hope that it will be useful,
+  11:../firmware/printf.c ****     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12:../firmware/printf.c ****     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13:../firmware/printf.c ****     GNU Lesser General Public License for more details.
+  14:../firmware/printf.c **** 
+  15:../firmware/printf.c ****     You should have received a copy of the GNU Lesser General Public License
+  16:../firmware/printf.c ****     along with this program; if not, write to the Free Software
+  17:../firmware/printf.c ****     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  18:../firmware/printf.c **** */
+  19:../firmware/printf.c **** 
+  20:../firmware/printf.c **** /* Adapted for ARM UART0/1, 19 Feb. 2009 */
+  21:../firmware/printf.c **** 
+  22:../firmware/printf.c **** #include <stdarg.h>
+  23:../firmware/printf.c **** #include "printf.h"
+  24:../firmware/printf.c **** 
+  25:../firmware/printf.c **** static uint8_t printf_uart = 0;
+  26:../firmware/printf.c **** 
+  27:../firmware/printf.c **** static int _putchar(int c)
+  28:../firmware/printf.c **** {
+  29:../firmware/printf.c ****   if (printf_uart == 0) {
+  30:../firmware/printf.c ****     uart0Putch(c);
+  31:../firmware/printf.c **** #if UART1_SUPPORT
+  32:../firmware/printf.c ****   } else if (printf_uart == 1) {
+  33:../firmware/printf.c ****     uart1Putch(c);
+  34:../firmware/printf.c **** #endif
+  35:../firmware/printf.c ****   }
+  36:../firmware/printf.c ****   return c;
+  37:../firmware/printf.c **** }
+  38:../firmware/printf.c **** 
+  39:../firmware/printf.c **** static void printchar(char **str, int c)
+  40:../firmware/printf.c **** {
+  25              		.loc 1 40 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  41:../firmware/printf.c **** 	if (str) {
+  30              		.loc 1 41 2 view .LVU1
+  40:../firmware/printf.c **** 	if (str) {
+  31              		.loc 1 40 1 is_stmt 0 view .LVU2
+  32 0000 0030A0E1 		mov	r3, r0
+  33              		.loc 1 41 5 view .LVU3
+  34 0004 000053E3 		cmp	r3, #0
+  40:../firmware/printf.c **** 	if (str) {
+  35              		.loc 1 40 1 view .LVU4
+  36 0008 0100A0E1 		mov	r0, r1
+  37              	.LVL1:
+  38              		.loc 1 41 5 view .LVU5
+  39 000c 0500000A 		beq	.L2
+  42:../firmware/printf.c **** 		**str = c;
+  40              		.loc 1 42 3 is_stmt 1 view .LVU6
+  41              		.loc 1 42 4 is_stmt 0 view .LVU7
+  42 0010 002093E5 		ldr	r2, [r3]
+  43              		.loc 1 42 9 view .LVU8
+  44 0014 0010C2E5 		strb	r1, [r2]
+  43:../firmware/printf.c **** 		++(*str);
+  45              		.loc 1 43 3 is_stmt 1 view .LVU9
+  46 0018 002093E5 		ldr	r2, [r3]
+  47 001c 012082E2 		add	r2, r2, #1
+  48 0020 002083E5 		str	r2, [r3]
+  49 0024 1EFF2FE1 		bx	lr
+  50              	.L2:
+  44:../firmware/printf.c **** 	} else {
+  45:../firmware/printf.c ****     _putchar(c);
+  51              		.loc 1 45 5 view .LVU10
+  52              	.LVL2:
+  53              	.LBB4:
+  54              	.LBI4:
+  27:../firmware/printf.c **** {
+  55              		.loc 1 27 12 view .LVU11
+  56              	.LBB5:
+  29:../firmware/printf.c ****     uart0Putch(c);
+  57              		.loc 1 29 3 view .LVU12
+  29:../firmware/printf.c ****     uart0Putch(c);
+  58              		.loc 1 29 19 is_stmt 0 view .LVU13
+  59 0028 18309FE5 		ldr	r3, .L8
+  60              	.LVL3:
+  29:../firmware/printf.c ****     uart0Putch(c);
+  61              		.loc 1 29 6 view .LVU14
+  62 002c 0030D3E5 		ldrb	r3, [r3]	@ zero_extendqisi2
+  63 0030 000053E3 		cmp	r3, #0
+  64 0034 1EFF2F11 		bxne	lr
+  30:../firmware/printf.c **** #if UART1_SUPPORT
+  65              		.loc 1 30 5 is_stmt 1 view .LVU15
+  66              	.LBE5:
+  67              	.LBE4:
+  40:../firmware/printf.c **** 	if (str) {
+  68              		.loc 1 40 1 is_stmt 0 view .LVU16
+  69 0038 10402DE9 		push	{r4, lr}
+  70              	.LCFI0:
+  71              		.cfi_def_cfa_offset 8
+  72              		.cfi_offset 4, -8
+  73              		.cfi_offset 14, -4
+  74              	.LBB7:
+  75              	.LBB6:
+  30:../firmware/printf.c **** #if UART1_SUPPORT
+  76              		.loc 1 30 5 view .LVU17
+  77 003c FEFFFFEB 		bl	uart0Putch
+  78              	.LVL4:
+  30:../firmware/printf.c **** #if UART1_SUPPORT
+  79              		.loc 1 30 5 view .LVU18
+  80              	.LBE6:
+  81              	.LBE7:
+  46:../firmware/printf.c ****   }
+  47:../firmware/printf.c **** }
+  82              		.loc 1 47 1 view .LVU19
+  83 0040 1040BDE8 		pop	{r4, lr}
+  84              	.LCFI1:
+  85              		.cfi_restore 14
+  86              		.cfi_restore 4
+  87              		.cfi_def_cfa_offset 0
+  88 0044 1EFF2FE1 		bx	lr
+  89              	.L9:
+  90              		.align	2
+  91              	.L8:
+  92 0048 00000000 		.word	.LANCHOR0
+  93              		.cfi_endproc
+  94              	.LFE1:
+  96              		.align	2
+  97              		.syntax unified
+  98              		.arm
+ 100              	prints:
+ 101              	.LVL5:
+ 102              	.LFB3:
+  48:../firmware/printf.c **** 
+  49:../firmware/printf.c **** void set_printf_uart(uint8_t u)
+  50:../firmware/printf.c **** {
+  51:../firmware/printf.c ****   printf_uart = u;
+  52:../firmware/printf.c **** }
+  53:../firmware/printf.c **** 
+  54:../firmware/printf.c **** #define PAD_RIGHT 1
+  55:../firmware/printf.c **** #define PAD_ZERO 2
+  56:../firmware/printf.c **** 
+  57:../firmware/printf.c **** static int prints(char **out, const char *string, int width, int pad)
+  58:../firmware/printf.c **** {
+ 103              		.loc 1 58 1 is_stmt 1 view -0
+ 104              		.cfi_startproc
+ 105              		@ Function supports interworking.
+ 106              		@ args = 0, pretend = 0, frame = 0
+ 107              		@ frame_needed = 0, uses_anonymous_args = 0
+ 108              		.loc 1 58 1 is_stmt 0 view .LVU21
+ 109 004c F0472DE9 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 110              	.LCFI2:
+ 111              		.cfi_def_cfa_offset 32
+ 112              		.cfi_offset 4, -32
+ 113              		.cfi_offset 5, -28
+ 114              		.cfi_offset 6, -24
+ 115              		.cfi_offset 7, -20
+ 116              		.cfi_offset 8, -16
+ 117              		.cfi_offset 9, -12
+ 118              		.cfi_offset 10, -8
+ 119              		.cfi_offset 14, -4
+  59:../firmware/printf.c **** 	register int pc = 0, padchar = ' ';
+  60:../firmware/printf.c **** 
+  61:../firmware/printf.c **** 	if (width > 0) {
+ 120              		.loc 1 61 5 view .LVU22
+ 121 0050 004052E2 		subs	r4, r2, #0
+  58:../firmware/printf.c **** 	register int pc = 0, padchar = ' ';
+ 122              		.loc 1 58 1 view .LVU23
+ 123 0054 0060A0E1 		mov	r6, r0
+  59:../firmware/printf.c **** 	register int pc = 0, padchar = ' ';
+ 124              		.loc 1 59 2 is_stmt 1 view .LVU24
+ 125              	.LVL6:
+ 126              		.loc 1 61 2 view .LVU25
+  58:../firmware/printf.c **** 	register int pc = 0, padchar = ' ';
+ 127              		.loc 1 58 1 is_stmt 0 view .LVU26
+ 128 0058 0150A0E1 		mov	r5, r1
+  59:../firmware/printf.c **** 	register int pc = 0, padchar = ' ';
+ 129              		.loc 1 59 23 view .LVU27
+ 130 005c 2080A0D3 		movle	r8, #32
+ 131              		.loc 1 61 5 view .LVU28
+ 132 0060 0B0000DA 		ble	.L12
+ 133              	.LBB8:
+  62:../firmware/printf.c **** 		register int len = 0;
+ 134              		.loc 1 62 16 view .LVU29
+ 135 0064 0020A0E3 		mov	r2, #0
+ 136              	.LVL7:
+ 137              		.loc 1 62 16 view .LVU30
+ 138 0068 000000EA 		b	.L11
+ 139              	.LVL8:
+ 140              	.L13:
+  63:../firmware/printf.c **** 		register const char *ptr;
+  64:../firmware/printf.c **** 		for (ptr = string; *ptr; ++ptr) ++len;
+ 141              		.loc 1 64 35 is_stmt 1 discriminator 3 view .LVU31
+ 142 006c 012082E2 		add	r2, r2, #1
+ 143              	.LVL9:
+ 144              		.loc 1 64 28 discriminator 3 view .LVU32
+ 145              	.L11:
+ 146              		.loc 1 64 22 discriminator 1 view .LVU33
+ 147              		.loc 1 64 3 is_stmt 0 discriminator 1 view .LVU34
+ 148 0070 0210D5E7 		ldrb	r1, [r5, r2]	@ zero_extendqisi2
+ 149 0074 000051E3 		cmp	r1, #0
+ 150 0078 FBFFFF1A 		bne	.L13
+  65:../firmware/printf.c **** 		if (len >= width) width = 0;
+ 151              		.loc 1 65 3 is_stmt 1 view .LVU35
+ 152              		.loc 1 65 6 is_stmt 0 view .LVU36
+ 153 007c 040052E1 		cmp	r2, r4
+  66:../firmware/printf.c **** 		else width -= len;
+ 154              		.loc 1 66 8 is_stmt 1 view .LVU37
+  65:../firmware/printf.c **** 		if (len >= width) width = 0;
+ 155              		.loc 1 65 27 is_stmt 0 view .LVU38
+ 156 0080 0140A0A1 		movge	r4, r1
+ 157              	.LVL10:
+ 158              		.loc 1 66 14 view .LVU39
+ 159 0084 024044B0 		sublt	r4, r4, r2
+ 160              	.LVL11:
+  67:../firmware/printf.c **** 		if (pad & PAD_ZERO) padchar = '0';
+ 161              		.loc 1 67 3 is_stmt 1 view .LVU40
+ 162              		.loc 1 67 31 is_stmt 0 view .LVU41
+ 163 0088 020013E3 		tst	r3, #2
+ 164 008c 2080A003 		moveq	r8, #32
+ 165 0090 3080A013 		movne	r8, #48
+ 166              	.LVL12:
+ 167              	.L12:
+ 168              		.loc 1 67 31 view .LVU42
+ 169              	.LBE8:
+  68:../firmware/printf.c **** 	}
+  69:../firmware/printf.c **** 	if (!(pad & PAD_RIGHT)) {
+ 170              		.loc 1 69 2 is_stmt 1 view .LVU43
+ 171              		.loc 1 69 5 is_stmt 0 view .LVU44
+ 172 0094 010013E3 		tst	r3, #1
+  59:../firmware/printf.c **** 
+ 173              		.loc 1 59 15 view .LVU45
+ 174 0098 0030A013 		movne	r3, #0
+ 175              	.LVL13:
+ 176              		.loc 1 69 5 view .LVU46
+ 177 009c 0900001A 		bne	.L16
+ 178              		.loc 1 69 5 view .LVU47
+ 179 00a0 0470A0E1 		mov	r7, r4
+ 180 00a4 030000EA 		b	.L15
+ 181              	.LVL14:
+ 182              	.L17:
+  70:../firmware/printf.c **** 		for ( ; width > 0; --width) {
+  71:../firmware/printf.c **** 			printchar (out, padchar);
+ 183              		.loc 1 71 4 is_stmt 1 discriminator 2 view .LVU48
+ 184 00a8 0810A0E1 		mov	r1, r8
+ 185 00ac 0600A0E1 		mov	r0, r6
+ 186 00b0 D2FFFFEB 		bl	printchar
+ 187              	.LVL15:
+  72:../firmware/printf.c **** 			++pc;
+ 188              		.loc 1 72 4 discriminator 2 view .LVU49
+  70:../firmware/printf.c **** 		for ( ; width > 0; --width) {
+ 189              		.loc 1 70 22 discriminator 2 view .LVU50
+  70:../firmware/printf.c **** 		for ( ; width > 0; --width) {
+ 190              		.loc 1 70 22 is_stmt 0 discriminator 2 view .LVU51
+ 191 00b4 017047E2 		sub	r7, r7, #1
+ 192              	.LVL16:
+ 193              	.L15:
+  70:../firmware/printf.c **** 		for ( ; width > 0; --width) {
+ 194              		.loc 1 70 11 is_stmt 1 discriminator 1 view .LVU52
+  70:../firmware/printf.c **** 		for ( ; width > 0; --width) {
+ 195              		.loc 1 70 3 is_stmt 0 discriminator 1 view .LVU53
+ 196 00b8 000057E3 		cmp	r7, #0
+ 197 00bc F9FFFFCA 		bgt	.L17
+  70:../firmware/printf.c **** 		for ( ; width > 0; --width) {
+ 198              		.loc 1 70 3 discriminator 1 view .LVU54
+ 199 00c0 C43FC4E1 		bic	r3, r4, r4, asr #31
+ 200 00c4 034044E0 		sub	r4, r4, r3
+ 201              	.LVL17:
+ 202              	.L16:
+  70:../firmware/printf.c **** 		for ( ; width > 0; --width) {
+ 203              		.loc 1 70 3 discriminator 1 view .LVU55
+ 204 00c8 057043E0 		sub	r7, r3, r5
+ 205 00cc 010000EA 		b	.L18
+ 206              	.LVL18:
+ 207              	.L19:
+  73:../firmware/printf.c **** 		}
+  74:../firmware/printf.c **** 	}
+  75:../firmware/printf.c **** 	for ( ; *string ; ++string) {
+  76:../firmware/printf.c **** 		printchar (out, *string);
+ 208              		.loc 1 76 3 is_stmt 1 discriminator 2 view .LVU56
+ 209 00d0 0600A0E1 		mov	r0, r6
+ 210 00d4 C9FFFFEB 		bl	printchar
+ 211              	.LVL19:
+  77:../firmware/printf.c **** 		++pc;
+ 212              		.loc 1 77 3 discriminator 2 view .LVU57
+  75:../firmware/printf.c **** 		printchar (out, *string);
+ 213              		.loc 1 75 20 discriminator 2 view .LVU58
+ 214              	.L18:
+  75:../firmware/printf.c **** 		printchar (out, *string);
+ 215              		.loc 1 75 20 is_stmt 0 discriminator 2 view .LVU59
+ 216 00d8 059087E0 		add	r9, r7, r5
+ 217              	.LVL20:
+  75:../firmware/printf.c **** 		printchar (out, *string);
+ 218              		.loc 1 75 10 is_stmt 1 discriminator 1 view .LVU60
+ 219 00dc 0110D5E4 		ldrb	r1, [r5], #1	@ zero_extendqisi2
+ 220              	.LVL21:
+  75:../firmware/printf.c **** 		printchar (out, *string);
+ 221              		.loc 1 75 2 is_stmt 0 discriminator 1 view .LVU61
+ 222 00e0 000051E3 		cmp	r1, #0
+ 223 00e4 F9FFFF1A 		bne	.L19
+ 224 00e8 0450A0E1 		mov	r5, r4
+ 225              	.LVL22:
+ 226              	.L20:
+  78:../firmware/printf.c **** 	}
+  79:../firmware/printf.c **** 	for ( ; width > 0; --width) {
+ 227              		.loc 1 79 10 is_stmt 1 discriminator 1 view .LVU62
+ 228              		.loc 1 79 2 is_stmt 0 discriminator 1 view .LVU63
+ 229 00ec 000055E3 		cmp	r5, #0
+ 230 00f0 040000CA 		bgt	.L21
+  80:../firmware/printf.c **** 		printchar (out, padchar);
+  81:../firmware/printf.c **** 		++pc;
+  82:../firmware/printf.c **** 	}
+  83:../firmware/printf.c **** 
+  84:../firmware/printf.c **** 	return pc;
+ 231              		.loc 1 84 2 is_stmt 1 view .LVU64
+  85:../firmware/printf.c **** }
+ 232              		.loc 1 85 1 is_stmt 0 view .LVU65
+ 233 00f4 000054E3 		cmp	r4, #0
+ 234 00f8 040089A0 		addge	r0, r9, r4
+ 235 00fc 000089B2 		addlt	r0, r9, #0
+ 236 0100 F047BDE8 		pop	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 237              	.LCFI3:
+ 238              		.cfi_remember_state
+ 239              		.cfi_restore 14
+ 240              		.cfi_restore 10
+ 241              		.cfi_restore 9
+ 242              		.cfi_restore 8
+ 243              		.cfi_restore 7
+ 244              		.cfi_restore 6
+ 245              		.cfi_restore 5
+ 246              		.cfi_restore 4
+ 247              		.cfi_def_cfa_offset 0
+ 248              	.LVL23:
+ 249              		.loc 1 85 1 view .LVU66
+ 250 0104 1EFF2FE1 		bx	lr
+ 251              	.LVL24:
+ 252              	.L21:
+ 253              	.LCFI4:
+ 254              		.cfi_restore_state
+  80:../firmware/printf.c **** 		printchar (out, padchar);
+ 255              		.loc 1 80 3 is_stmt 1 discriminator 2 view .LVU67
+ 256 0108 0810A0E1 		mov	r1, r8
+ 257 010c 0600A0E1 		mov	r0, r6
+ 258 0110 BAFFFFEB 		bl	printchar
+ 259              	.LVL25:
+  81:../firmware/printf.c **** 	}
+ 260              		.loc 1 81 3 discriminator 2 view .LVU68
+  79:../firmware/printf.c **** 		printchar (out, padchar);
+ 261              		.loc 1 79 21 discriminator 2 view .LVU69
+ 262 0114 015045E2 		sub	r5, r5, #1
+ 263              	.LVL26:
+  79:../firmware/printf.c **** 		printchar (out, padchar);
+ 264              		.loc 1 79 21 is_stmt 0 discriminator 2 view .LVU70
+ 265 0118 F3FFFFEA 		b	.L20
+ 266              		.cfi_endproc
+ 267              	.LFE3:
+ 269              		.global	__aeabi_uidivmod
+ 270              		.align	2
+ 271              		.syntax unified
+ 272              		.arm
+ 274              	printi:
+ 275              	.LVL27:
+ 276              	.LFB4:
+  86:../firmware/printf.c **** 
+  87:../firmware/printf.c **** /* the following should be enough for 32 bit int */
+  88:../firmware/printf.c **** #define PRINT_BUF_LEN 12
+  89:../firmware/printf.c **** 
+  90:../firmware/printf.c **** static int printi(char **out, int i, int b, int sg, int width, int pad, int letbase)
+  91:../firmware/printf.c **** {
+ 277              		.loc 1 91 1 is_stmt 1 view -0
+ 278              		.cfi_startproc
+ 279              		@ Function supports interworking.
+ 280              		@ args = 12, pretend = 0, frame = 24
+ 281              		@ frame_needed = 0, uses_anonymous_args = 0
+  92:../firmware/printf.c **** 	char print_buf[PRINT_BUF_LEN];
+ 282              		.loc 1 92 2 view .LVU72
+  93:../firmware/printf.c **** 	register char *s;
+ 283              		.loc 1 93 2 view .LVU73
+  94:../firmware/printf.c **** 	register int t, neg = 0, pc = 0;
+ 284              		.loc 1 94 2 view .LVU74
+  95:../firmware/printf.c **** 	register unsigned int u = i;
+ 285              		.loc 1 95 2 view .LVU75
+  96:../firmware/printf.c **** 
+  97:../firmware/printf.c **** 	if (i == 0) {
+ 286              		.loc 1 97 2 view .LVU76
+  91:../firmware/printf.c **** 	char print_buf[PRINT_BUF_LEN];
+ 287              		.loc 1 91 1 is_stmt 0 view .LVU77
+ 288 011c F04F2DE9 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 289              	.LCFI5:
+ 290              		.cfi_def_cfa_offset 36
+ 291              		.cfi_offset 4, -36
+ 292              		.cfi_offset 5, -32
+ 293              		.cfi_offset 6, -28
+ 294              		.cfi_offset 7, -24
+ 295              		.cfi_offset 8, -20
+ 296              		.cfi_offset 9, -16
+ 297              		.cfi_offset 10, -12
+ 298              		.cfi_offset 11, -8
+ 299              		.cfi_offset 14, -4
+ 300 0120 1CD04DE2 		sub	sp, sp, #28
+ 301              	.LCFI6:
+ 302              		.cfi_def_cfa_offset 64
+  91:../firmware/printf.c **** 	char print_buf[PRINT_BUF_LEN];
+ 303              		.loc 1 91 1 view .LVU78
+ 304 0124 40508DE2 		add	r5, sp, #64
+ 305              		.loc 1 97 5 view .LVU79
+ 306 0128 004051E2 		subs	r4, r1, #0
+  91:../firmware/printf.c **** 	char print_buf[PRINT_BUF_LEN];
+ 307              		.loc 1 91 1 view .LVU80
+ 308 012c 200895E8 		ldm	r5, {r5, fp}
+ 309              		.loc 1 97 5 view .LVU81
+ 310 0130 0900001A 		bne	.L28
+  98:../firmware/printf.c **** 		print_buf[0] = '0';
+ 311              		.loc 1 98 3 is_stmt 1 view .LVU82
+ 312              		.loc 1 98 16 is_stmt 0 view .LVU83
+ 313 0134 3030A0E3 		mov	r3, #48
+ 314              	.LVL28:
+  99:../firmware/printf.c **** 		print_buf[1] = '\0';
+ 100:../firmware/printf.c **** 		return prints (out, print_buf, width, pad);
+ 315              		.loc 1 100 10 view .LVU84
+ 316 0138 0520A0E1 		mov	r2, r5
+ 317              	.LVL29:
+  98:../firmware/printf.c **** 		print_buf[0] = '0';
+ 318              		.loc 1 98 16 view .LVU85
+ 319 013c 0C30CDE5 		strb	r3, [sp, #12]
+  99:../firmware/printf.c **** 		print_buf[1] = '\0';
+ 320              		.loc 1 99 3 is_stmt 1 view .LVU86
+ 321              		.loc 1 100 10 is_stmt 0 view .LVU87
+ 322 0140 0C108DE2 		add	r1, sp, #12
+ 323 0144 0B30A0E1 		mov	r3, fp
+  99:../firmware/printf.c **** 		print_buf[1] = '\0';
+ 324              		.loc 1 99 16 view .LVU88
+ 325 0148 0D40CDE5 		strb	r4, [sp, #13]
+ 326              		.loc 1 100 3 is_stmt 1 view .LVU89
+ 327              		.loc 1 100 10 is_stmt 0 view .LVU90
+ 328 014c BEFFFFEB 		bl	prints
+ 329              	.LVL30:
+ 330              	.L27:
+ 101:../firmware/printf.c **** 	}
+ 102:../firmware/printf.c **** 
+ 103:../firmware/printf.c **** 	if (sg && b == 10 && i < 0) {
+ 104:../firmware/printf.c **** 		neg = 1;
+ 105:../firmware/printf.c **** 		u = -i;
+ 106:../firmware/printf.c **** 	}
+ 107:../firmware/printf.c **** 
+ 108:../firmware/printf.c **** 	s = print_buf + PRINT_BUF_LEN-1;
+ 109:../firmware/printf.c **** 	*s = '\0';
+ 110:../firmware/printf.c **** 
+ 111:../firmware/printf.c **** 	while (u) {
+ 112:../firmware/printf.c **** 		t = u % b;
+ 113:../firmware/printf.c **** 		if( t >= 10 )
+ 114:../firmware/printf.c **** 			t += letbase - '0' - 10;
+ 115:../firmware/printf.c **** 		*--s = t + '0';
+ 116:../firmware/printf.c **** 		u /= b;
+ 117:../firmware/printf.c **** 	}
+ 118:../firmware/printf.c **** 
+ 119:../firmware/printf.c **** 	if (neg) {
+ 120:../firmware/printf.c **** 		if( width && (pad & PAD_ZERO) ) {
+ 121:../firmware/printf.c **** 			printchar (out, '-');
+ 122:../firmware/printf.c **** 			++pc;
+ 123:../firmware/printf.c **** 			--width;
+ 124:../firmware/printf.c **** 		}
+ 125:../firmware/printf.c **** 		else {
+ 126:../firmware/printf.c **** 			*--s = '-';
+ 127:../firmware/printf.c **** 		}
+ 128:../firmware/printf.c **** 	}
+ 129:../firmware/printf.c **** 
+ 130:../firmware/printf.c **** 	return pc + prints (out, s, width, pad);
+ 131:../firmware/printf.c **** }
+ 331              		.loc 1 131 1 view .LVU91
+ 332 0150 1CD08DE2 		add	sp, sp, #28
+ 333              	.LCFI7:
+ 334              		.cfi_remember_state
+ 335              		.cfi_def_cfa_offset 36
+ 336              		@ sp needed
+ 337 0154 F04FBDE8 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 338              	.LCFI8:
+ 339              		.cfi_restore 14
+ 340              		.cfi_restore 11
+ 341              		.cfi_restore 10
+ 342              		.cfi_restore 9
+ 343              		.cfi_restore 8
+ 344              		.cfi_restore 7
+ 345              		.cfi_restore 6
+ 346              		.cfi_restore 5
+ 347              		.cfi_restore 4
+ 348              		.cfi_def_cfa_offset 0
+ 349 0158 1EFF2FE1 		bx	lr
+ 350              	.LVL31:
+ 351              	.L28:
+ 352              	.LCFI9:
+ 353              		.cfi_restore_state
+ 103:../firmware/printf.c **** 		neg = 1;
+ 354              		.loc 1 103 9 view .LVU92
+ 355 015c 0A0052E3 		cmp	r2, #10
+ 356 0160 0030A013 		movne	r3, #0
+ 357 0164 01300302 		andeq	r3, r3, #1
+ 358              	.LVL32:
+ 103:../firmware/printf.c **** 		neg = 1;
+ 359              		.loc 1 103 20 view .LVU93
+ 360 0168 A43F13E0 		ands	r3, r3, r4, lsr #31
+ 361 016c 0030A0E3 		mov	r3, #0
+ 362 0170 0080A0E1 		mov	r8, r0
+ 363 0174 0260A0E1 		mov	r6, r2
+ 103:../firmware/printf.c **** 		neg = 1;
+ 364              		.loc 1 103 2 is_stmt 1 view .LVU94
+ 104:../firmware/printf.c **** 		u = -i;
+ 365              		.loc 1 104 7 is_stmt 0 view .LVU95
+ 366 0178 0170A013 		movne	r7, #1
+  94:../firmware/printf.c **** 	register unsigned int u = i;
+ 367              		.loc 1 94 18 view .LVU96
+ 368 017c 0370A001 		moveq	r7, r3
+ 104:../firmware/printf.c **** 		u = -i;
+ 369              		.loc 1 104 3 is_stmt 1 view .LVU97
+ 370              	.LVL33:
+ 105:../firmware/printf.c **** 	}
+ 371              		.loc 1 105 3 view .LVU98
+ 109:../firmware/printf.c **** 
+ 372              		.loc 1 109 5 is_stmt 0 view .LVU99
+ 373 0180 1730CDE5 		strb	r3, [sp, #23]
+ 114:../firmware/printf.c **** 		*--s = t + '0';
+ 374              		.loc 1 114 23 view .LVU100
+ 375 0184 48309DE5 		ldr	r3, [sp, #72]
+ 105:../firmware/printf.c **** 	}
+ 376              		.loc 1 105 7 view .LVU101
+ 377 0188 00406412 		rsbne	r4, r4, #0
+ 378              	.LVL34:
+ 108:../firmware/printf.c **** 	*s = '\0';
+ 379              		.loc 1 108 2 is_stmt 1 view .LVU102
+ 109:../firmware/printf.c **** 
+ 380              		.loc 1 109 2 view .LVU103
+ 111:../firmware/printf.c **** 		t = u % b;
+ 381              		.loc 1 111 2 view .LVU104
+ 111:../firmware/printf.c **** 		t = u % b;
+ 382              		.loc 1 111 8 view .LVU105
+ 108:../firmware/printf.c **** 	*s = '\0';
+ 383              		.loc 1 108 4 is_stmt 0 view .LVU106
+ 384 018c 17A08DE2 		add	r10, sp, #23
+ 114:../firmware/printf.c **** 		*--s = t + '0';
+ 385              		.loc 1 114 23 view .LVU107
+ 386 0190 3A3043E2 		sub	r3, r3, #58
+ 387              	.LVL35:
+ 388              	.L33:
+ 114:../firmware/printf.c **** 		*--s = t + '0';
+ 389              		.loc 1 114 23 view .LVU108
+ 390 0194 0610A0E1 		mov	r1, r6
+ 391 0198 0400A0E1 		mov	r0, r4
+ 392 019c 04308DE5 		str	r3, [sp, #4]
+ 393              	.LVL36:
+ 112:../firmware/printf.c **** 		if( t >= 10 )
+ 394              		.loc 1 112 3 is_stmt 1 view .LVU109
+ 395 01a0 FEFFFFEB 		bl	__aeabi_uidivmod
+ 396              	.LVL37:
+ 113:../firmware/printf.c **** 			t += letbase - '0' - 10;
+ 397              		.loc 1 113 3 view .LVU110
+ 113:../firmware/printf.c **** 			t += letbase - '0' - 10;
+ 398              		.loc 1 113 5 is_stmt 0 view .LVU111
+ 399 01a4 04309DE5 		ldr	r3, [sp, #4]
+ 114:../firmware/printf.c **** 		*--s = t + '0';
+ 400              		.loc 1 114 4 is_stmt 1 view .LVU112
+ 113:../firmware/printf.c **** 			t += letbase - '0' - 10;
+ 401              		.loc 1 113 5 is_stmt 0 view .LVU113
+ 402 01a8 090051E3 		cmp	r1, #9
+ 114:../firmware/printf.c **** 		*--s = t + '0';
+ 403              		.loc 1 114 6 view .LVU114
+ 404 01ac 03108180 		addhi	r1, r1, r3
+ 405              	.LVL38:
+ 115:../firmware/printf.c **** 		u /= b;
+ 406              		.loc 1 115 3 is_stmt 1 view .LVU115
+ 115:../firmware/printf.c **** 		u /= b;
+ 407              		.loc 1 115 12 is_stmt 0 view .LVU116
+ 408 01b0 301081E2 		add	r1, r1, #48
+ 409              	.LVL39:
+ 111:../firmware/printf.c **** 		t = u % b;
+ 410              		.loc 1 111 8 view .LVU117
+ 411 01b4 040056E1 		cmp	r6, r4
+ 115:../firmware/printf.c **** 		u /= b;
+ 412              		.loc 1 115 8 view .LVU118
+ 413 01b8 01104AE5 		strb	r1, [r10, #-1]
+ 414 01bc 01904AE2 		sub	r9, r10, #1
+ 415              	.LVL40:
+ 116:../firmware/printf.c **** 	}
+ 416              		.loc 1 116 3 is_stmt 1 view .LVU119
+ 111:../firmware/printf.c **** 		t = u % b;
+ 417              		.loc 1 111 8 view .LVU120
+ 418 01c0 1000009A 		bls	.L36
+ 119:../firmware/printf.c **** 		if( width && (pad & PAD_ZERO) ) {
+ 419              		.loc 1 119 2 view .LVU121
+ 119:../firmware/printf.c **** 		if( width && (pad & PAD_ZERO) ) {
+ 420              		.loc 1 119 5 is_stmt 0 view .LVU122
+ 421 01c4 000057E3 		cmp	r7, #0
+ 422 01c8 0700000A 		beq	.L34
+ 120:../firmware/printf.c **** 			printchar (out, '-');
+ 423              		.loc 1 120 3 is_stmt 1 view .LVU123
+ 120:../firmware/printf.c **** 			printchar (out, '-');
+ 424              		.loc 1 120 5 is_stmt 0 view .LVU124
+ 425 01cc 000055E3 		cmp	r5, #0
+ 426 01d0 0F00000A 		beq	.L35
+ 120:../firmware/printf.c **** 			printchar (out, '-');
+ 427              		.loc 1 120 13 discriminator 1 view .LVU125
+ 428 01d4 02001BE3 		tst	fp, #2
+ 429 01d8 0D00000A 		beq	.L35
+ 121:../firmware/printf.c **** 			++pc;
+ 430              		.loc 1 121 4 is_stmt 1 view .LVU126
+ 431 01dc 2D10A0E3 		mov	r1, #45
+ 432              	.LVL41:
+ 121:../firmware/printf.c **** 			++pc;
+ 433              		.loc 1 121 4 is_stmt 0 view .LVU127
+ 434 01e0 0800A0E1 		mov	r0, r8
+ 435              	.LVL42:
+ 121:../firmware/printf.c **** 			++pc;
+ 436              		.loc 1 121 4 view .LVU128
+ 437 01e4 85FFFFEB 		bl	printchar
+ 438              	.LVL43:
+ 122:../firmware/printf.c **** 			--width;
+ 439              		.loc 1 122 4 is_stmt 1 view .LVU129
+ 123:../firmware/printf.c **** 		}
+ 440              		.loc 1 123 4 view .LVU130
+ 441 01e8 015045E2 		sub	r5, r5, #1
+ 442              	.LVL44:
+ 443              	.L34:
+ 130:../firmware/printf.c **** }
+ 444              		.loc 1 130 2 view .LVU131
+ 130:../firmware/printf.c **** }
+ 445              		.loc 1 130 14 is_stmt 0 view .LVU132
+ 446 01ec 0B30A0E1 		mov	r3, fp
+ 447 01f0 0520A0E1 		mov	r2, r5
+ 448 01f4 0910A0E1 		mov	r1, r9
+ 449 01f8 0800A0E1 		mov	r0, r8
+ 450 01fc 92FFFFEB 		bl	prints
+ 451              	.LVL45:
+ 130:../firmware/printf.c **** }
+ 452              		.loc 1 130 12 view .LVU133
+ 453 0200 070080E0 		add	r0, r0, r7
+ 454 0204 D1FFFFEA 		b	.L27
+ 455              	.LVL46:
+ 456              	.L36:
+ 116:../firmware/printf.c **** 	}
+ 457              		.loc 1 116 5 view .LVU134
+ 458 0208 0040A0E1 		mov	r4, r0
+ 459 020c 09A0A0E1 		mov	r10, r9
+ 460 0210 DFFFFFEA 		b	.L33
+ 461              	.L35:
+ 126:../firmware/printf.c **** 		}
+ 462              		.loc 1 126 4 is_stmt 1 view .LVU135
+ 463              	.LVL47:
+ 126:../firmware/printf.c **** 		}
+ 464              		.loc 1 126 9 is_stmt 0 view .LVU136
+ 465 0214 2D30A0E3 		mov	r3, #45
+  94:../firmware/printf.c **** 	register unsigned int u = i;
+ 466              		.loc 1 94 27 view .LVU137
+ 467 0218 0070A0E3 		mov	r7, #0
+ 468              	.LVL48:
+ 126:../firmware/printf.c **** 		}
+ 469              		.loc 1 126 9 view .LVU138
+ 470 021c 013049E5 		strb	r3, [r9, #-1]
+ 471 0220 02904AE2 		sub	r9, r10, #2
+ 472              	.LVL49:
+ 126:../firmware/printf.c **** 		}
+ 473              		.loc 1 126 9 view .LVU139
+ 474 0224 F0FFFFEA 		b	.L34
+ 475              		.cfi_endproc
+ 476              	.LFE4:
+ 478              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 479              	.LC0:
+ 480 0000 286E756C 		.ascii	"(null)\000"
+ 480      6C2900
+ 481              		.text
+ 482              		.align	2
+ 483              		.syntax unified
+ 484              		.arm
+ 486              	print:
+ 487              	.LVL50:
+ 488              	.LFB5:
+ 132:../firmware/printf.c **** 
+ 133:../firmware/printf.c **** static int print(char **out, const char *format, va_list args )
+ 134:../firmware/printf.c **** {
+ 489              		.loc 1 134 1 is_stmt 1 view -0
+ 490              		.cfi_startproc
+ 491              		@ Function supports interworking.
+ 492              		@ args = 0, pretend = 0, frame = 8
+ 493              		@ frame_needed = 0, uses_anonymous_args = 0
+ 494              		.loc 1 134 1 is_stmt 0 view .LVU141
+ 495 0228 F0432DE9 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 496              	.LCFI10:
+ 497              		.cfi_def_cfa_offset 28
+ 498              		.cfi_offset 4, -28
+ 499              		.cfi_offset 5, -24
+ 500              		.cfi_offset 6, -20
+ 501              		.cfi_offset 7, -16
+ 502              		.cfi_offset 8, -12
+ 503              		.cfi_offset 9, -8
+ 504              		.cfi_offset 14, -4
+ 505 022c 0070A0E1 		mov	r7, r0
+ 135:../firmware/printf.c **** 	register int width, pad;
+ 506              		.loc 1 135 2 is_stmt 1 view .LVU142
+ 136:../firmware/printf.c **** 	register int pc = 0;
+ 507              		.loc 1 136 2 view .LVU143
+ 508              	.LVL51:
+ 137:../firmware/printf.c **** 	char scr[2];
+ 509              		.loc 1 137 2 view .LVU144
+ 138:../firmware/printf.c **** 
+ 139:../firmware/printf.c **** 	for (; *format != 0; ++format) {
+ 510              		.loc 1 139 2 view .LVU145
+ 134:../firmware/printf.c **** 	register int width, pad;
+ 511              		.loc 1 134 1 is_stmt 0 view .LVU146
+ 512 0230 0160A0E1 		mov	r6, r1
+ 513 0234 0240A0E1 		mov	r4, r2
+ 514              	.LVL52:
+ 136:../firmware/printf.c **** 	char scr[2];
+ 515              		.loc 1 136 15 view .LVU147
+ 516 0238 0050A0E3 		mov	r5, #0
+ 140:../firmware/printf.c **** 		if (*format == '%') {
+ 141:../firmware/printf.c **** 			++format;
+ 142:../firmware/printf.c **** 			width = pad = 0;
+ 143:../firmware/printf.c **** 			if (*format == '\0') break;
+ 144:../firmware/printf.c **** 			if (*format == '%') goto out;
+ 145:../firmware/printf.c **** 			if (*format == '-') {
+ 146:../firmware/printf.c **** 				++format;
+ 147:../firmware/printf.c **** 				pad = PAD_RIGHT;
+ 148:../firmware/printf.c **** 			}
+ 149:../firmware/printf.c **** 			while (*format == '0') {
+ 150:../firmware/printf.c **** 				++format;
+ 151:../firmware/printf.c **** 				pad |= PAD_ZERO;
+ 152:../firmware/printf.c **** 			}
+ 153:../firmware/printf.c **** 			for ( ; *format >= '0' && *format <= '9'; ++format) {
+ 154:../firmware/printf.c **** 				width *= 10;
+ 517              		.loc 1 154 11 view .LVU148
+ 518 023c 0A80A0E3 		mov	r8, #10
+ 519              	.LBB9:
+ 155:../firmware/printf.c **** 				width += *format - '0';
+ 156:../firmware/printf.c **** 			}
+ 157:../firmware/printf.c **** 			if( *format == 's' ) {
+ 158:../firmware/printf.c **** 				register char *s = (char *)va_arg( args, int );
+ 520              		.loc 1 158 20 view .LVU149
+ 521 0240 8C919FE5 		ldr	r9, .L81
+ 522              	.LBE9:
+ 134:../firmware/printf.c **** 	register int width, pad;
+ 523              		.loc 1 134 1 view .LVU150
+ 524 0244 1CD04DE2 		sub	sp, sp, #28
+ 525              	.LCFI11:
+ 526              		.cfi_def_cfa_offset 56
+ 527              	.LVL53:
+ 528              	.L48:
+ 139:../firmware/printf.c **** 		if (*format == '%') {
+ 529              		.loc 1 139 9 is_stmt 1 discriminator 1 view .LVU151
+ 530 0248 0030D6E5 		ldrb	r3, [r6]	@ zero_extendqisi2
+ 139:../firmware/printf.c **** 		if (*format == '%') {
+ 531              		.loc 1 139 2 is_stmt 0 discriminator 1 view .LVU152
+ 532 024c 000053E3 		cmp	r3, #0
+ 533 0250 0700001A 		bne	.L63
+ 534              	.LVL54:
+ 535              	.L50:
+ 159:../firmware/printf.c **** 				pc += prints (out, s?s:"(null)", width, pad);
+ 160:../firmware/printf.c **** 				continue;
+ 161:../firmware/printf.c **** 			}
+ 162:../firmware/printf.c **** 			if( *format == 'd' ) {
+ 163:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 10, 1, width, pad, 'a');
+ 164:../firmware/printf.c **** 				continue;
+ 165:../firmware/printf.c **** 			}
+ 166:../firmware/printf.c **** 			if( *format == 'x' ) {
+ 167:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'a');
+ 168:../firmware/printf.c **** 				continue;
+ 169:../firmware/printf.c **** 			}
+ 170:../firmware/printf.c **** 			if( *format == 'X' ) {
+ 171:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'A');
+ 172:../firmware/printf.c **** 				continue;
+ 173:../firmware/printf.c **** 			}
+ 174:../firmware/printf.c **** 			if( *format == 'u' ) {
+ 175:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 10, 0, width, pad, 'a');
+ 176:../firmware/printf.c **** 				continue;
+ 177:../firmware/printf.c **** 			}
+ 178:../firmware/printf.c **** 			if( *format == 'c' ) {
+ 179:../firmware/printf.c **** 				/* char are converted to int then pushed on the stack */
+ 180:../firmware/printf.c **** 				scr[0] = (char)va_arg( args, int );
+ 181:../firmware/printf.c **** 				scr[1] = '\0';
+ 182:../firmware/printf.c **** 				pc += prints (out, scr, width, pad);
+ 183:../firmware/printf.c **** 				continue;
+ 184:../firmware/printf.c **** 			}
+ 185:../firmware/printf.c **** 		}
+ 186:../firmware/printf.c **** 		else {
+ 187:../firmware/printf.c **** 		out:
+ 188:../firmware/printf.c **** 			printchar (out, *format);
+ 189:../firmware/printf.c **** 			++pc;
+ 190:../firmware/printf.c **** 		}
+ 191:../firmware/printf.c **** 	}
+ 192:../firmware/printf.c **** 	if (out) **out = '\0';
+ 536              		.loc 1 192 2 is_stmt 1 view .LVU153
+ 537              		.loc 1 192 5 is_stmt 0 view .LVU154
+ 538 0254 000057E3 		cmp	r7, #0
+ 539              		.loc 1 192 11 is_stmt 1 view .LVU155
+ 540              		.loc 1 192 17 is_stmt 0 view .LVU156
+ 541 0258 0020A013 		movne	r2, #0
+ 193:../firmware/printf.c **** 	va_end( args );
+ 194:../firmware/printf.c **** 	return pc;
+ 195:../firmware/printf.c **** }
+ 542              		.loc 1 195 1 view .LVU157
+ 543 025c 0500A0E1 		mov	r0, r5
+ 192:../firmware/printf.c **** 	va_end( args );
+ 544              		.loc 1 192 12 view .LVU158
+ 545 0260 00309715 		ldrne	r3, [r7]
+ 192:../firmware/printf.c **** 	va_end( args );
+ 546              		.loc 1 192 17 view .LVU159
+ 547 0264 0020C315 		strbne	r2, [r3]
+ 193:../firmware/printf.c **** 	va_end( args );
+ 548              		.loc 1 193 2 is_stmt 1 view .LVU160
+ 194:../firmware/printf.c **** }
+ 549              		.loc 1 194 2 view .LVU161
+ 550              		.loc 1 195 1 is_stmt 0 view .LVU162
+ 551 0268 1CD08DE2 		add	sp, sp, #28
+ 552              	.LCFI12:
+ 553              		.cfi_remember_state
+ 554              		.cfi_def_cfa_offset 28
+ 555              		@ sp needed
+ 556 026c F043BDE8 		pop	{r4, r5, r6, r7, r8, r9, lr}
+ 557              	.LCFI13:
+ 558              		.cfi_restore 14
+ 559              		.cfi_restore 9
+ 560              		.cfi_restore 8
+ 561              		.cfi_restore 7
+ 562              		.cfi_restore 6
+ 563              		.cfi_restore 5
+ 564              		.cfi_restore 4
+ 565              		.cfi_def_cfa_offset 0
+ 566              	.LVL55:
+ 567              		.loc 1 195 1 view .LVU163
+ 568 0270 1EFF2FE1 		bx	lr
+ 569              	.LVL56:
+ 570              	.L63:
+ 571              	.LCFI14:
+ 572              		.cfi_restore_state
+ 140:../firmware/printf.c **** 			++format;
+ 573              		.loc 1 140 3 is_stmt 1 view .LVU164
+ 140:../firmware/printf.c **** 			++format;
+ 574              		.loc 1 140 6 is_stmt 0 view .LVU165
+ 575 0274 250053E3 		cmp	r3, #37
+ 576 0278 5000001A 		bne	.L49
+ 141:../firmware/printf.c **** 			width = pad = 0;
+ 577              		.loc 1 141 4 is_stmt 1 view .LVU166
+ 578              	.LVL57:
+ 142:../firmware/printf.c **** 			if (*format == '\0') break;
+ 579              		.loc 1 142 4 view .LVU167
+ 143:../firmware/printf.c **** 			if (*format == '%') goto out;
+ 580              		.loc 1 143 4 view .LVU168
+ 143:../firmware/printf.c **** 			if (*format == '%') goto out;
+ 581              		.loc 1 143 8 is_stmt 0 view .LVU169
+ 582 027c 0130D6E5 		ldrb	r3, [r6, #1]	@ zero_extendqisi2
+ 143:../firmware/printf.c **** 			if (*format == '%') goto out;
+ 583              		.loc 1 143 7 view .LVU170
+ 584 0280 000053E3 		cmp	r3, #0
+ 585 0284 F2FFFF0A 		beq	.L50
+ 144:../firmware/printf.c **** 			if (*format == '-') {
+ 586              		.loc 1 144 7 view .LVU171
+ 587 0288 250053E3 		cmp	r3, #37
+ 141:../firmware/printf.c **** 			width = pad = 0;
+ 588              		.loc 1 141 4 view .LVU172
+ 589 028c 012086E2 		add	r2, r6, #1
+ 144:../firmware/printf.c **** 			if (*format == '-') {
+ 590              		.loc 1 144 4 is_stmt 1 view .LVU173
+ 144:../firmware/printf.c **** 			if (*format == '-') {
+ 591              		.loc 1 144 7 is_stmt 0 view .LVU174
+ 592 0290 4900000A 		beq	.L65
+ 145:../firmware/printf.c **** 				++format;
+ 593              		.loc 1 145 4 is_stmt 1 view .LVU175
+ 145:../firmware/printf.c **** 				++format;
+ 594              		.loc 1 145 7 is_stmt 0 view .LVU176
+ 595 0294 2D0053E3 		cmp	r3, #45
+ 146:../firmware/printf.c **** 				pad = PAD_RIGHT;
+ 596              		.loc 1 146 5 is_stmt 1 view .LVU177
+ 147:../firmware/printf.c **** 			}
+ 597              		.loc 1 147 9 is_stmt 0 view .LVU178
+ 598 0298 0130A003 		moveq	r3, #1
+ 142:../firmware/printf.c **** 			if (*format == '\0') break;
+ 599              		.loc 1 142 16 view .LVU179
+ 600 029c 0030A013 		movne	r3, #0
+ 146:../firmware/printf.c **** 				pad = PAD_RIGHT;
+ 601              		.loc 1 146 5 view .LVU180
+ 602 02a0 02208602 		addeq	r2, r6, #2
+ 603              	.LVL58:
+ 147:../firmware/printf.c **** 			}
+ 604              		.loc 1 147 5 is_stmt 1 view .LVU181
+ 605              	.L75:
+ 150:../firmware/printf.c **** 				pad |= PAD_ZERO;
+ 606              		.loc 1 150 5 is_stmt 0 view .LVU182
+ 607 02a4 0260A0E1 		mov	r6, r2
+ 608              	.LVL59:
+ 149:../firmware/printf.c **** 				++format;
+ 609              		.loc 1 149 10 is_stmt 1 view .LVU183
+ 610 02a8 0110D2E4 		ldrb	r1, [r2], #1	@ zero_extendqisi2
+ 611              	.LVL60:
+ 149:../firmware/printf.c **** 				++format;
+ 612              		.loc 1 149 10 is_stmt 0 view .LVU184
+ 613 02ac 300051E3 		cmp	r1, #48
+ 614 02b0 0F00000A 		beq	.L53
+ 142:../firmware/printf.c **** 			if (*format == '\0') break;
+ 615              		.loc 1 142 10 view .LVU185
+ 616 02b4 0020A0E3 		mov	r2, #0
+ 617              	.LVL61:
+ 618              	.L54:
+ 153:../firmware/printf.c **** 				width *= 10;
+ 619              		.loc 1 153 12 is_stmt 1 discriminator 1 view .LVU186
+ 620 02b8 0600A0E1 		mov	r0, r6
+ 621 02bc 0110D0E4 		ldrb	r1, [r0], #1	@ zero_extendqisi2
+ 153:../firmware/printf.c **** 				width *= 10;
+ 622              		.loc 1 153 27 is_stmt 0 discriminator 1 view .LVU187
+ 623 02c0 30C041E2 		sub	ip, r1, #48
+ 153:../firmware/printf.c **** 				width *= 10;
+ 624              		.loc 1 153 4 discriminator 1 view .LVU188
+ 625 02c4 FFE00CE2 		and	lr, ip, #255
+ 626 02c8 09005EE3 		cmp	lr, #9
+ 627 02cc 0A00009A 		bls	.L55
+ 157:../firmware/printf.c **** 				register char *s = (char *)va_arg( args, int );
+ 628              		.loc 1 157 4 is_stmt 1 view .LVU189
+ 157:../firmware/printf.c **** 				register char *s = (char *)va_arg( args, int );
+ 629              		.loc 1 157 6 is_stmt 0 view .LVU190
+ 630 02d0 730051E3 		cmp	r1, #115
+ 631 02d4 0B00001A 		bne	.L56
+ 632              	.LBB10:
+ 158:../firmware/printf.c **** 				pc += prints (out, s?s:"(null)", width, pad);
+ 633              		.loc 1 158 5 is_stmt 1 view .LVU191
+ 158:../firmware/printf.c **** 				pc += prints (out, s?s:"(null)", width, pad);
+ 634              		.loc 1 158 32 is_stmt 0 view .LVU192
+ 635 02d8 001094E5 		ldr	r1, [r4]
+ 159:../firmware/printf.c **** 				continue;
+ 636              		.loc 1 159 11 view .LVU193
+ 637 02dc 000051E3 		cmp	r1, #0
+ 638 02e0 0910A001 		moveq	r1, r9
+ 158:../firmware/printf.c **** 				pc += prints (out, s?s:"(null)", width, pad);
+ 639              		.loc 1 158 32 view .LVU194
+ 640 02e4 044084E2 		add	r4, r4, #4
+ 641              	.LVL62:
+ 159:../firmware/printf.c **** 				continue;
+ 642              		.loc 1 159 5 is_stmt 1 view .LVU195
+ 643              	.L80:
+ 159:../firmware/printf.c **** 				continue;
+ 644              		.loc 1 159 5 is_stmt 0 view .LVU196
+ 645              	.LBE10:
+ 182:../firmware/printf.c **** 				continue;
+ 646              		.loc 1 182 11 view .LVU197
+ 647 02e8 0700A0E1 		mov	r0, r7
+ 648 02ec 56FFFFEB 		bl	prints
+ 649              	.LVL63:
+ 182:../firmware/printf.c **** 				continue;
+ 650              		.loc 1 182 11 view .LVU198
+ 651 02f0 100000EA 		b	.L76
+ 652              	.LVL64:
+ 653              	.L53:
+ 150:../firmware/printf.c **** 				pad |= PAD_ZERO;
+ 654              		.loc 1 150 5 is_stmt 1 view .LVU199
+ 151:../firmware/printf.c **** 			}
+ 655              		.loc 1 151 5 view .LVU200
+ 151:../firmware/printf.c **** 			}
+ 656              		.loc 1 151 9 is_stmt 0 view .LVU201
+ 657 02f4 023083E3 		orr	r3, r3, #2
+ 658              	.LVL65:
+ 151:../firmware/printf.c **** 			}
+ 659              		.loc 1 151 9 view .LVU202
+ 660 02f8 E9FFFFEA 		b	.L75
+ 661              	.LVL66:
+ 662              	.L55:
+ 154:../firmware/printf.c **** 				width += *format - '0';
+ 663              		.loc 1 154 5 is_stmt 1 discriminator 2 view .LVU203
+ 155:../firmware/printf.c **** 			}
+ 664              		.loc 1 155 5 discriminator 2 view .LVU204
+ 153:../firmware/printf.c **** 				width *= 10;
+ 665              		.loc 1 153 46 is_stmt 0 discriminator 2 view .LVU205
+ 666 02fc 0060A0E1 		mov	r6, r0
+ 667              	.LVL67:
+ 155:../firmware/printf.c **** 			}
+ 668              		.loc 1 155 11 discriminator 2 view .LVU206
+ 669 0300 98C222E0 		mla	r2, r8, r2, ip
+ 670              	.LVL68:
+ 153:../firmware/printf.c **** 				width *= 10;
+ 671              		.loc 1 153 46 is_stmt 1 discriminator 2 view .LVU207
+ 153:../firmware/printf.c **** 				width *= 10;
+ 672              		.loc 1 153 46 is_stmt 0 discriminator 2 view .LVU208
+ 673 0304 EBFFFFEA 		b	.L54
+ 674              	.LVL69:
+ 675              	.L56:
+ 162:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 10, 1, width, pad, 'a');
+ 676              		.loc 1 162 4 is_stmt 1 view .LVU209
+ 162:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 10, 1, width, pad, 'a');
+ 677              		.loc 1 162 6 is_stmt 0 view .LVU210
+ 678 0308 640051E3 		cmp	r1, #100
+ 679 030c 0C00001A 		bne	.L59
+ 163:../firmware/printf.c **** 				continue;
+ 680              		.loc 1 163 5 is_stmt 1 view .LVU211
+ 163:../firmware/printf.c **** 				continue;
+ 681              		.loc 1 163 11 is_stmt 0 view .LVU212
+ 682 0310 6100A0E3 		mov	r0, #97
+ 683 0314 0C008DE8 		stm	sp, {r2, r3}
+ 684 0318 0410A0E1 		mov	r1, r4
+ 685 031c 0130A0E3 		mov	r3, #1
+ 686              	.LVL70:
+ 163:../firmware/printf.c **** 				continue;
+ 687              		.loc 1 163 11 view .LVU213
+ 688 0320 08008DE5 		str	r0, [sp, #8]
+ 689              	.L78:
+ 163:../firmware/printf.c **** 				continue;
+ 690              		.loc 1 163 11 view .LVU214
+ 691 0324 0A20A0E3 		mov	r2, #10
+ 692              	.LVL71:
+ 693              	.L77:
+ 163:../firmware/printf.c **** 				continue;
+ 694              		.loc 1 163 11 view .LVU215
+ 695 0328 0700A0E1 		mov	r0, r7
+ 696 032c 001091E5 		ldr	r1, [r1]
+ 697 0330 044084E2 		add	r4, r4, #4
+ 698              	.LVL72:
+ 163:../firmware/printf.c **** 				continue;
+ 699              		.loc 1 163 11 view .LVU216
+ 700 0334 78FFFFEB 		bl	printi
+ 701              	.LVL73:
+ 702              	.L76:
+ 163:../firmware/printf.c **** 				continue;
+ 703              		.loc 1 163 8 view .LVU217
+ 704 0338 005085E0 		add	r5, r5, r0
+ 705              	.LVL74:
+ 164:../firmware/printf.c **** 			}
+ 706              		.loc 1 164 5 is_stmt 1 view .LVU218
+ 707              	.L58:
+ 139:../firmware/printf.c **** 		if (*format == '%') {
+ 708              		.loc 1 139 23 view .LVU219
+ 139:../firmware/printf.c **** 		if (*format == '%') {
+ 709              		.loc 1 139 23 is_stmt 0 view .LVU220
+ 710 033c 016086E2 		add	r6, r6, #1
+ 711              	.LVL75:
+ 139:../firmware/printf.c **** 		if (*format == '%') {
+ 712              		.loc 1 139 23 view .LVU221
+ 713 0340 C0FFFFEA 		b	.L48
+ 714              	.LVL76:
+ 715              	.L59:
+ 166:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'a');
+ 716              		.loc 1 166 4 is_stmt 1 view .LVU222
+ 166:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'a');
+ 717              		.loc 1 166 6 is_stmt 0 view .LVU223
+ 718 0344 780051E3 		cmp	r1, #120
+ 167:../firmware/printf.c **** 				continue;
+ 719              		.loc 1 167 11 view .LVU224
+ 720 0348 0410A001 		moveq	r1, r4
+ 721 034c 6100A003 		moveq	r0, #97
+ 166:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'a');
+ 722              		.loc 1 166 6 view .LVU225
+ 723 0350 0300000A 		beq	.L79
+ 170:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'A');
+ 724              		.loc 1 170 4 is_stmt 1 view .LVU226
+ 170:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 16, 0, width, pad, 'A');
+ 725              		.loc 1 170 6 is_stmt 0 view .LVU227
+ 726 0354 580051E3 		cmp	r1, #88
+ 727 0358 0600001A 		bne	.L61
+ 171:../firmware/printf.c **** 				continue;
+ 728              		.loc 1 171 5 is_stmt 1 view .LVU228
+ 171:../firmware/printf.c **** 				continue;
+ 729              		.loc 1 171 11 is_stmt 0 view .LVU229
+ 730 035c 0410A0E1 		mov	r1, r4
+ 731 0360 4100A0E3 		mov	r0, #65
+ 732              	.L79:
+ 171:../firmware/printf.c **** 				continue;
+ 733              		.loc 1 171 11 view .LVU230
+ 734 0364 0C008DE8 		stm	sp, {r2, r3}
+ 735 0368 08008DE5 		str	r0, [sp, #8]
+ 736 036c 0030A0E3 		mov	r3, #0
+ 737              	.LVL77:
+ 171:../firmware/printf.c **** 				continue;
+ 738              		.loc 1 171 11 view .LVU231
+ 739 0370 1020A0E3 		mov	r2, #16
+ 740              	.LVL78:
+ 171:../firmware/printf.c **** 				continue;
+ 741              		.loc 1 171 11 view .LVU232
+ 742 0374 EBFFFFEA 		b	.L77
+ 743              	.LVL79:
+ 744              	.L61:
+ 174:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 10, 0, width, pad, 'a');
+ 745              		.loc 1 174 4 is_stmt 1 view .LVU233
+ 174:../firmware/printf.c **** 				pc += printi (out, va_arg( args, int ), 10, 0, width, pad, 'a');
+ 746              		.loc 1 174 6 is_stmt 0 view .LVU234
+ 747 0378 750051E3 		cmp	r1, #117
+ 748 037c 0500001A 		bne	.L62
+ 175:../firmware/printf.c **** 				continue;
+ 749              		.loc 1 175 5 is_stmt 1 view .LVU235
+ 175:../firmware/printf.c **** 				continue;
+ 750              		.loc 1 175 11 is_stmt 0 view .LVU236
+ 751 0380 6100A0E3 		mov	r0, #97
+ 752 0384 0C008DE8 		stm	sp, {r2, r3}
+ 753 0388 0410A0E1 		mov	r1, r4
+ 754 038c 0030A0E3 		mov	r3, #0
+ 755              	.LVL80:
+ 175:../firmware/printf.c **** 				continue;
+ 756              		.loc 1 175 11 view .LVU237
+ 757 0390 08008DE5 		str	r0, [sp, #8]
+ 758 0394 E2FFFFEA 		b	.L78
+ 759              	.LVL81:
+ 760              	.L62:
+ 178:../firmware/printf.c **** 				/* char are converted to int then pushed on the stack */
+ 761              		.loc 1 178 4 is_stmt 1 view .LVU238
+ 178:../firmware/printf.c **** 				/* char are converted to int then pushed on the stack */
+ 762              		.loc 1 178 6 is_stmt 0 view .LVU239
+ 763 0398 630051E3 		cmp	r1, #99
+ 764 039c E6FFFF1A 		bne	.L58
+ 180:../firmware/printf.c **** 				scr[1] = '\0';
+ 765              		.loc 1 180 5 is_stmt 1 view .LVU240
+ 180:../firmware/printf.c **** 				scr[1] = '\0';
+ 766              		.loc 1 180 14 is_stmt 0 view .LVU241
+ 767 03a0 001094E5 		ldr	r1, [r4]
+ 768 03a4 1410CDE5 		strb	r1, [sp, #20]
+ 181:../firmware/printf.c **** 				pc += prints (out, scr, width, pad);
+ 769              		.loc 1 181 5 is_stmt 1 view .LVU242
+ 181:../firmware/printf.c **** 				pc += prints (out, scr, width, pad);
+ 770              		.loc 1 181 12 is_stmt 0 view .LVU243
+ 771 03a8 0010A0E3 		mov	r1, #0
+ 180:../firmware/printf.c **** 				scr[1] = '\0';
+ 772              		.loc 1 180 14 view .LVU244
+ 773 03ac 044084E2 		add	r4, r4, #4
+ 774              	.LVL82:
+ 181:../firmware/printf.c **** 				pc += prints (out, scr, width, pad);
+ 775              		.loc 1 181 12 view .LVU245
+ 776 03b0 1510CDE5 		strb	r1, [sp, #21]
+ 182:../firmware/printf.c **** 				continue;
+ 777              		.loc 1 182 5 is_stmt 1 view .LVU246
+ 182:../firmware/printf.c **** 				continue;
+ 778              		.loc 1 182 11 is_stmt 0 view .LVU247
+ 779 03b4 14108DE2 		add	r1, sp, #20
+ 780 03b8 CAFFFFEA 		b	.L80
+ 781              	.LVL83:
+ 782              	.L65:
+ 141:../firmware/printf.c **** 			width = pad = 0;
+ 783              		.loc 1 141 4 view .LVU248
+ 784 03bc 0260A0E1 		mov	r6, r2
+ 785              	.LVL84:
+ 786              	.L49:
+ 188:../firmware/printf.c **** 			++pc;
+ 787              		.loc 1 188 4 is_stmt 1 view .LVU249
+ 788 03c0 0700A0E1 		mov	r0, r7
+ 789 03c4 0010D6E5 		ldrb	r1, [r6]	@ zero_extendqisi2
+ 790 03c8 0CFFFFEB 		bl	printchar
+ 791              	.LVL85:
+ 189:../firmware/printf.c **** 		}
+ 792              		.loc 1 189 4 view .LVU250
+ 793 03cc 015085E2 		add	r5, r5, #1
+ 794              	.LVL86:
+ 189:../firmware/printf.c **** 		}
+ 795              		.loc 1 189 4 is_stmt 0 view .LVU251
+ 796 03d0 D9FFFFEA 		b	.L58
+ 797              	.L82:
+ 798              		.align	2
+ 799              	.L81:
+ 800 03d4 00000000 		.word	.LC0
+ 801              		.cfi_endproc
+ 802              	.LFE5:
+ 804              		.align	2
+ 805              		.global	set_printf_uart
+ 806              		.syntax unified
+ 807              		.arm
+ 809              	set_printf_uart:
+ 810              	.LVL87:
+ 811              	.LFB2:
+  50:../firmware/printf.c ****   printf_uart = u;
+ 812              		.loc 1 50 1 is_stmt 1 view -0
+ 813              		.cfi_startproc
+ 814              		@ Function supports interworking.
+ 815              		@ args = 0, pretend = 0, frame = 0
+ 816              		@ frame_needed = 0, uses_anonymous_args = 0
+ 817              		@ link register save eliminated.
+  51:../firmware/printf.c **** }
+ 818              		.loc 1 51 3 view .LVU253
+  51:../firmware/printf.c **** }
+ 819              		.loc 1 51 15 is_stmt 0 view .LVU254
+ 820 03d8 04309FE5 		ldr	r3, .L84
+ 821 03dc 0000C3E5 		strb	r0, [r3]
+  52:../firmware/printf.c **** 
+ 822              		.loc 1 52 1 view .LVU255
+ 823 03e0 1EFF2FE1 		bx	lr
+ 824              	.L85:
+ 825              		.align	2
+ 826              	.L84:
+ 827 03e4 00000000 		.word	.LANCHOR0
+ 828              		.cfi_endproc
+ 829              	.LFE2:
+ 831              		.align	2
+ 832              		.global	uart_printf
+ 833              		.syntax unified
+ 834              		.arm
+ 836              	uart_printf:
+ 837              	.LVL88:
+ 838              	.LFB6:
+ 196:../firmware/printf.c **** 
+ 197:../firmware/printf.c **** int uart_printf(const char *format, ...)
+ 198:../firmware/printf.c **** {
+ 839              		.loc 1 198 1 is_stmt 1 view -0
+ 840              		.cfi_startproc
+ 841              		@ Function supports interworking.
+ 842              		@ args = 4, pretend = 16, frame = 8
+ 843              		@ frame_needed = 0, uses_anonymous_args = 1
+ 199:../firmware/printf.c ****         va_list args;
+ 844              		.loc 1 199 9 view .LVU257
+ 200:../firmware/printf.c **** 
+ 201:../firmware/printf.c ****         va_start( args, format );
+ 845              		.loc 1 201 9 view .LVU258
+ 198:../firmware/printf.c ****         va_list args;
+ 846              		.loc 1 198 1 is_stmt 0 view .LVU259
+ 847 03e8 0F002DE9 		push	{r0, r1, r2, r3}
+ 848              	.LCFI15:
+ 849              		.cfi_def_cfa_offset 16
+ 850              		.cfi_offset 0, -16
+ 851              		.cfi_offset 1, -12
+ 852              		.cfi_offset 2, -8
+ 853              		.cfi_offset 3, -4
+ 854 03ec 07402DE9 		push	{r0, r1, r2, lr}
+ 855              	.LCFI16:
+ 856              		.cfi_def_cfa_offset 32
+ 857              		.cfi_offset 14, -20
+ 202:../firmware/printf.c ****         return print( 0, format, args );
+ 858              		.loc 1 202 16 view .LVU260
+ 859 03f0 10109DE5 		ldr	r1, [sp, #16]
+ 201:../firmware/printf.c ****         return print( 0, format, args );
+ 860              		.loc 1 201 9 view .LVU261
+ 861 03f4 14208DE2 		add	r2, sp, #20
+ 862              		.loc 1 202 16 view .LVU262
+ 863 03f8 0000A0E3 		mov	r0, #0
+ 201:../firmware/printf.c ****         return print( 0, format, args );
+ 864              		.loc 1 201 9 view .LVU263
+ 865 03fc 04208DE5 		str	r2, [sp, #4]
+ 866              		.loc 1 202 9 is_stmt 1 view .LVU264
+ 867              		.loc 1 202 16 is_stmt 0 view .LVU265
+ 868 0400 88FFFFEB 		bl	print
+ 869              	.LVL89:
+ 203:../firmware/printf.c **** }
+ 870              		.loc 1 203 1 view .LVU266
+ 871 0404 0CD08DE2 		add	sp, sp, #12
+ 872              	.LCFI17:
+ 873              		.cfi_def_cfa_offset 20
+ 874              		@ sp needed
+ 875 0408 04E09DE4 		ldr	lr, [sp], #4
+ 876              	.LCFI18:
+ 877              		.cfi_restore 14
+ 878              		.cfi_def_cfa_offset 16
+ 879 040c 10D08DE2 		add	sp, sp, #16
+ 880              	.LCFI19:
+ 881              		.cfi_restore 3
+ 882              		.cfi_restore 2
+ 883              		.cfi_restore 1
+ 884              		.cfi_restore 0
+ 885              		.cfi_def_cfa_offset 0
+ 886 0410 1EFF2FE1 		bx	lr
+ 887              		.cfi_endproc
+ 888              	.LFE6:
+ 890              		.align	2
+ 891              		.global	sprintf
+ 892              		.syntax unified
+ 893              		.arm
+ 895              	sprintf:
+ 896              	.LVL90:
+ 897              	.LFB7:
+ 204:../firmware/printf.c **** 
+ 205:../firmware/printf.c **** int sprintf(char *out, const char *format, ...)
+ 206:../firmware/printf.c **** {
+ 898              		.loc 1 206 1 is_stmt 1 view -0
+ 899              		.cfi_startproc
+ 900              		@ Function supports interworking.
+ 901              		@ args = 4, pretend = 12, frame = 16
+ 902              		@ frame_needed = 0, uses_anonymous_args = 1
+ 207:../firmware/printf.c ****         va_list args;
+ 903              		.loc 1 207 9 view .LVU268
+ 208:../firmware/printf.c **** 
+ 209:../firmware/printf.c ****         va_start( args, format );
+ 904              		.loc 1 209 9 view .LVU269
+ 206:../firmware/printf.c ****         va_list args;
+ 905              		.loc 1 206 1 is_stmt 0 view .LVU270
+ 906 0414 0E002DE9 		push	{r1, r2, r3}
+ 907              	.LCFI20:
+ 908              		.cfi_def_cfa_offset 12
+ 909              		.cfi_offset 1, -12
+ 910              		.cfi_offset 2, -8
+ 911              		.cfi_offset 3, -4
+ 912 0418 0F402DE9 		push	{r0, r1, r2, r3, lr}
+ 913              	.LCFI21:
+ 914              		.cfi_def_cfa_offset 32
+ 915              		.cfi_offset 14, -16
+ 210:../firmware/printf.c ****         return print( &out, format, args );
+ 916              		.loc 1 210 16 view .LVU271
+ 917 041c 14109DE5 		ldr	r1, [sp, #20]
+ 206:../firmware/printf.c ****         va_list args;
+ 918              		.loc 1 206 1 view .LVU272
+ 919 0420 04008DE5 		str	r0, [sp, #4]
+ 209:../firmware/printf.c ****         return print( &out, format, args );
+ 920              		.loc 1 209 9 view .LVU273
+ 921 0424 18208DE2 		add	r2, sp, #24
+ 922              		.loc 1 210 16 view .LVU274
+ 923 0428 04008DE2 		add	r0, sp, #4
+ 209:../firmware/printf.c ****         return print( &out, format, args );
+ 924              		.loc 1 209 9 view .LVU275
+ 925 042c 0C208DE5 		str	r2, [sp, #12]
+ 926              		.loc 1 210 9 is_stmt 1 view .LVU276
+ 927              		.loc 1 210 16 is_stmt 0 view .LVU277
+ 928 0430 7CFFFFEB 		bl	print
+ 929              	.LVL91:
+ 211:../firmware/printf.c **** }
+ 930              		.loc 1 211 1 view .LVU278
+ 931 0434 10D08DE2 		add	sp, sp, #16
+ 932              	.LCFI22:
+ 933              		.cfi_def_cfa_offset 16
+ 934              		@ sp needed
+ 935 0438 04E09DE4 		ldr	lr, [sp], #4
+ 936              	.LCFI23:
+ 937              		.cfi_restore 14
+ 938              		.cfi_def_cfa_offset 12
+ 939 043c 0CD08DE2 		add	sp, sp, #12
+ 940              	.LCFI24:
+ 941              		.cfi_restore 3
+ 942              		.cfi_restore 2
+ 943              		.cfi_restore 1
+ 944              		.cfi_def_cfa_offset 0
+ 945 0440 1EFF2FE1 		bx	lr
+ 946              		.cfi_endproc
+ 947              	.LFE7:
+ 949              		.bss
+ 950              		.set	.LANCHOR0,. + 0
+ 953              	printf_uart:
+ 954 0000 00       		.space	1
+ 955              		.text
+ 956              	.Letext0:
+ 957              		.file 2 "c:\\arm-gcc\\lib\\gcc\\arm-none-eabi\\10.3.1\\include\\stdarg.h"
+ 958              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 959              		.file 4 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 960              		.file 5 "<built-in>"
+ 961              		.file 6 "../firmware/uart.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 printf.c
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:21     .text:00000000 printchar
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:92     .text:00000048 $d
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:96     .text:0000004c $a
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:100    .text:0000004c prints
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:274    .text:0000011c printi
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:486    .text:00000228 print
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:800    .text:000003d4 $d
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:804    .text:000003d8 $a
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:809    .text:000003d8 set_printf_uart
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:827    .text:000003e4 $d
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:831    .text:000003e8 $a
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:836    .text:000003e8 uart_printf
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:895    .text:00000414 sprintf
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:953    .bss:00000000 printf_uart
+C:\Users\ishin\AppData\Local\Temp\ccVCDHtt.s:954    .bss:00000000 $d
+
+UNDEFINED SYMBOLS
+uart0Putch
+__aeabi_uidivmod

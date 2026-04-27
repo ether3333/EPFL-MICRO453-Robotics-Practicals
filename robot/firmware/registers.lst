@@ -1,0 +1,104 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"registers.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	registers_init
+  19              		.syntax unified
+  20              		.arm
+  22              	registers_init:
+  23              	.LFB0:
+  24              		.file 1 "../firmware/registers.c"
+   1:../firmware/registers.c **** #include "registers.h"
+   2:../firmware/registers.c **** 
+   3:../firmware/registers.c **** void registers_init()
+   4:../firmware/registers.c **** {
+  25              		.loc 1 4 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+   5:../firmware/registers.c ****   uint8_t i;
+  31              		.loc 1 5 3 view .LVU1
+   6:../firmware/registers.c **** 
+   7:../firmware/registers.c ****   for (i = 0; i < REG8_MAX; i++) {
+  32              		.loc 1 7 3 view .LVU2
+  33              	.LVL0:
+  34              		.loc 1 7 15 view .LVU3
+   8:../firmware/registers.c ****     reg8_table[i] = 0;
+  35              		.loc 1 8 5 view .LVU4
+  36              		.loc 1 8 19 is_stmt 0 view .LVU5
+  37 0000 0030A0E3 		mov	r3, #0
+  38 0004 14209FE5 		ldr	r2, .L2
+  39 0008 0030C2E5 		strb	r3, [r2]
+   7:../firmware/registers.c ****     reg8_table[i] = 0;
+  40              		.loc 1 7 29 is_stmt 1 view .LVU6
+  41              	.LVL1:
+   7:../firmware/registers.c ****     reg8_table[i] = 0;
+  42              		.loc 1 7 15 view .LVU7
+   9:../firmware/registers.c ****   }
+  10:../firmware/registers.c ****   for (i = 0; i < REG16_MAX; i++) {
+  43              		.loc 1 10 15 view .LVU8
+  11:../firmware/registers.c ****     reg16_table[i] = 0;
+  44              		.loc 1 11 5 view .LVU9
+  45              		.loc 1 11 20 is_stmt 0 view .LVU10
+  46 000c 10209FE5 		ldr	r2, .L2+4
+  47 0010 B030C2E1 		strh	r3, [r2]	@ movhi
+  10:../firmware/registers.c ****     reg16_table[i] = 0;
+  48              		.loc 1 10 30 is_stmt 1 view .LVU11
+  49              	.LVL2:
+  10:../firmware/registers.c ****     reg16_table[i] = 0;
+  50              		.loc 1 10 15 view .LVU12
+  12:../firmware/registers.c ****   }
+  13:../firmware/registers.c ****   for (i = 0; i < REG32_MAX; i++) {
+  51              		.loc 1 13 15 view .LVU13
+  14:../firmware/registers.c ****     reg32_table[i] = 0;
+  52              		.loc 1 14 5 view .LVU14
+  53              		.loc 1 14 20 is_stmt 0 view .LVU15
+  54 0014 0C209FE5 		ldr	r2, .L2+8
+  55 0018 003082E5 		str	r3, [r2]
+  13:../firmware/registers.c ****     reg32_table[i] = 0;
+  56              		.loc 1 13 30 is_stmt 1 view .LVU16
+  57              	.LVL3:
+  13:../firmware/registers.c ****     reg32_table[i] = 0;
+  58              		.loc 1 13 15 view .LVU17
+  15:../firmware/registers.c ****   }
+  16:../firmware/registers.c **** }
+  59              		.loc 1 16 1 is_stmt 0 view .LVU18
+  60 001c 1EFF2FE1 		bx	lr
+  61              	.L3:
+  62              		.align	2
+  63              	.L2:
+  64 0020 00000000 		.word	reg8_table
+  65 0024 00000000 		.word	reg16_table
+  66 0028 00000000 		.word	reg32_table
+  67              		.cfi_endproc
+  68              	.LFE0:
+  70              	.Letext0:
+  71              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+  72              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+  73              		.file 4 "../../common/regdefs.h"
+  74              		.file 5 "../firmware/registers.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 registers.c
+C:\Users\ishin\AppData\Local\Temp\ccbT10eN.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccbT10eN.s:22     .text:00000000 registers_init
+C:\Users\ishin\AppData\Local\Temp\ccbT10eN.s:64     .text:00000020 $d
+
+UNDEFINED SYMBOLS
+reg8_table
+reg16_table
+reg32_table

@@ -1,0 +1,696 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"uart.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	uart0Init
+  19              		.syntax unified
+  20              		.arm
+  22              	uart0Init:
+  23              	.LVL0:
+  24              	.LFB0:
+  25              		.file 1 "../firmware/uart.c"
+   1:../firmware/uart.c **** /******************************************************************************
+   2:../firmware/uart.c ****  *
+   3:../firmware/uart.c ****  * This module provides interface routines to the LPC ARM UARTs.
+   4:../firmware/uart.c ****  * Copyright 2004, R O SoftWare
+   5:../firmware/uart.c ****  * No guarantees, warrantees, or promises, implied or otherwise.
+   6:../firmware/uart.c ****  * May be used for hobby or commercial purposes provided copyright
+   7:../firmware/uart.c ****  * notice remains intact.
+   8:../firmware/uart.c ****  *
+   9:../firmware/uart.c ****  *****************************************************************************/
+  10:../firmware/uart.c **** #include <limits.h>
+  11:../firmware/uart.c **** #include <stdint.h>
+  12:../firmware/uart.c **** #include "LPC21xx.h"
+  13:../firmware/uart.c **** #include "uart.h"
+  14:../firmware/uart.c **** 
+  15:../firmware/uart.c **** #if UART0_SUPPORT
+  16:../firmware/uart.c **** 
+  17:../firmware/uart.c **** /******************************************************************************
+  18:../firmware/uart.c ****  *
+  19:../firmware/uart.c ****  * Function Name: uart0Init()
+  20:../firmware/uart.c ****  *
+  21:../firmware/uart.c ****  * Description:
+  22:../firmware/uart.c ****  *    This function initializes the UART for async mode
+  23:../firmware/uart.c ****  *
+  24:../firmware/uart.c ****  * Calling Sequence:
+  25:../firmware/uart.c ****  *    baudrate divisor - use UART_BAUD macro
+  26:../firmware/uart.c ****  *    mode - see typical modes (uart.h)
+  27:../firmware/uart.c ****  *    fmode - see typical fmodes (uart.h)
+  28:../firmware/uart.c ****  *
+  29:../firmware/uart.c ****  * Returns:
+  30:../firmware/uart.c ****  *    void
+  31:../firmware/uart.c ****  *
+  32:../firmware/uart.c ****  * NOTE: uart0Init(UART_BAUD(9600), UART_8N1, UART_FIFO_8);
+  33:../firmware/uart.c ****  *
+  34:../firmware/uart.c ****  *****************************************************************************/
+  35:../firmware/uart.c **** void uart0Init(uint16_t baud, uint8_t mode, uint8_t fmode)
+  36:../firmware/uart.c **** {
+  26              		.loc 1 36 1 view -0
+  27              		.cfi_startproc
+  28              		@ Function supports interworking.
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  37:../firmware/uart.c ****   // set port pins for UART0
+  38:../firmware/uart.c ****   PINSEL0 = (PINSEL0 & ~U0_PINMASK) | U0_PINSEL;
+  32              		.loc 1 38 3 view .LVU1
+  33              		.loc 1 38 14 is_stmt 0 view .LVU2
+  34 0000 4CC09FE5 		ldr	ip, .L2
+  35 0004 00309CE5 		ldr	r3, [ip]
+  36              		.loc 1 38 22 view .LVU3
+  37 0008 0F30C3E3 		bic	r3, r3, #15
+  38              		.loc 1 38 37 view .LVU4
+  39 000c 053083E3 		orr	r3, r3, #5
+  40              		.loc 1 38 11 view .LVU5
+  41 0010 00308CE5 		str	r3, [ip]
+  39:../firmware/uart.c **** 
+  40:../firmware/uart.c ****   U0IER = 0x00;                         // disable all interrupts
+  42              		.loc 1 40 3 is_stmt 1 view .LVU6
+  43              		.loc 1 40 9 is_stmt 0 view .LVU7
+  44 0014 00C0A0E3 		mov	ip, #0
+  45 0018 38309FE5 		ldr	r3, .L2+4
+  46 001c 04C0C3E5 		strb	ip, [r3, #4]
+  41:../firmware/uart.c ****   U0IIR;                                // clear interrupt ID
+  47              		.loc 1 41 3 is_stmt 1 view .LVU8
+  48 0020 08C0D3E5 		ldrb	ip, [r3, #8]	@ zero_extendqisi2
+  42:../firmware/uart.c ****   U0RBR;                                // clear receive register
+  49              		.loc 1 42 3 view .LVU9
+  50 0024 00C0D3E5 		ldrb	ip, [r3]	@ zero_extendqisi2
+  43:../firmware/uart.c ****   U0LSR;                                // clear line status register
+  51              		.loc 1 43 3 view .LVU10
+  52 0028 14C0D3E5 		ldrb	ip, [r3, #20]	@ zero_extendqisi2
+  44:../firmware/uart.c **** 
+  45:../firmware/uart.c ****   // set the baudrate
+  46:../firmware/uart.c ****   U0LCR = ULCR_DLAB_ENABLE;             // select divisor latches
+  53              		.loc 1 46 3 view .LVU11
+  54              		.loc 1 46 9 is_stmt 0 view .LVU12
+  55 002c 7FC0E0E3 		mvn	ip, #127
+  47:../firmware/uart.c ****   U0DLL = (uint8_t)baud;                // set for baud low byte
+  48:../firmware/uart.c ****   U0DLM = (uint8_t)(baud >> 8);         // set for baud high byte
+  49:../firmware/uart.c **** 
+  50:../firmware/uart.c ****   // set the number of characters and other
+  51:../firmware/uart.c ****   // user specified operating parameters
+  52:../firmware/uart.c ****   U0LCR = (mode & ~ULCR_DLAB_ENABLE);
+  56              		.loc 1 52 17 view .LVU13
+  57 0030 7F1001E2 		and	r1, r1, #127
+  58              	.LVL1:
+  46:../firmware/uart.c ****   U0DLL = (uint8_t)baud;                // set for baud low byte
+  59              		.loc 1 46 9 view .LVU14
+  60 0034 0CC0C3E5 		strb	ip, [r3, #12]
+  47:../firmware/uart.c ****   U0DLL = (uint8_t)baud;                // set for baud low byte
+  61              		.loc 1 47 3 is_stmt 1 view .LVU15
+  47:../firmware/uart.c ****   U0DLL = (uint8_t)baud;                // set for baud low byte
+  62              		.loc 1 47 11 is_stmt 0 view .LVU16
+  63 0038 FFC000E2 		and	ip, r0, #255
+  48:../firmware/uart.c **** 
+  64              		.loc 1 48 11 view .LVU17
+  65 003c 2004A0E1 		lsr	r0, r0, #8
+  66              	.LVL2:
+  47:../firmware/uart.c ****   U0DLL = (uint8_t)baud;                // set for baud low byte
+  67              		.loc 1 47 9 view .LVU18
+  68 0040 00C0C3E5 		strb	ip, [r3]
+  48:../firmware/uart.c **** 
+  69              		.loc 1 48 3 is_stmt 1 view .LVU19
+  48:../firmware/uart.c **** 
+  70              		.loc 1 48 9 is_stmt 0 view .LVU20
+  71 0044 0400C3E5 		strb	r0, [r3, #4]
+  72              		.loc 1 52 3 is_stmt 1 view .LVU21
+  73              		.loc 1 52 9 is_stmt 0 view .LVU22
+  74 0048 0C10C3E5 		strb	r1, [r3, #12]
+  53:../firmware/uart.c ****   U0FCR = fmode;
+  75              		.loc 1 53 3 is_stmt 1 view .LVU23
+  76              		.loc 1 53 9 is_stmt 0 view .LVU24
+  77 004c 0820C3E5 		strb	r2, [r3, #8]
+  54:../firmware/uart.c **** 
+  55:../firmware/uart.c **** #if defined(UART0_TX_INT_MODE) || defined(UART0_RX_INT_MODE)
+  56:../firmware/uart.c ****   // initialize the interrupt vector
+  57:../firmware/uart.c ****   VICIntSelect &= ~VIC_BIT(VIC_UART0);  // UART0 selected as IRQ
+  58:../firmware/uart.c ****   VICIntEnable = VIC_BIT(VIC_UART0);    // UART0 interrupt enabled
+  59:../firmware/uart.c ****   VICVectCntl0 = VIC_ENABLE | VIC_UART0;
+  60:../firmware/uart.c ****   VICVectAddr0 = (uint32_t)uart0ISR;    // address of the ISR
+  61:../firmware/uart.c **** 
+  62:../firmware/uart.c **** #ifdef UART0_TX_INT_MODE
+  63:../firmware/uart.c ****   // initialize the transmit data queue
+  64:../firmware/uart.c ****   uart0_tx_extract_idx = uart0_tx_insert_idx = 0;
+  65:../firmware/uart.c ****   uart0_tx_running = 0;
+  66:../firmware/uart.c **** #endif
+  67:../firmware/uart.c **** 
+  68:../firmware/uart.c **** #ifdef UART0_RX_INT_MODE
+  69:../firmware/uart.c ****   // initialize the receive data queue
+  70:../firmware/uart.c ****   uart0_rx_extract_idx = uart0_rx_insert_idx = 0;
+  71:../firmware/uart.c **** 
+  72:../firmware/uart.c ****   // enable receiver interrupts
+  73:../firmware/uart.c ****   U0IER = UIER_ERBFI;
+  74:../firmware/uart.c **** #endif
+  75:../firmware/uart.c **** #endif
+  76:../firmware/uart.c **** }
+  78              		.loc 1 76 1 view .LVU25
+  79 0050 1EFF2FE1 		bx	lr
+  80              	.L3:
+  81              		.align	2
+  82              	.L2:
+  83 0054 00C002E0 		.word	-536690688
+  84 0058 00C000E0 		.word	-536821760
+  85              		.cfi_endproc
+  86              	.LFE0:
+  88              		.align	2
+  89              		.global	uart0Putch
+  90              		.syntax unified
+  91              		.arm
+  93              	uart0Putch:
+  94              	.LVL3:
+  95              	.LFB1:
+  77:../firmware/uart.c **** 
+  78:../firmware/uart.c **** /******************************************************************************
+  79:../firmware/uart.c ****  *
+  80:../firmware/uart.c ****  * Function Name: uart0Putch()
+  81:../firmware/uart.c ****  *
+  82:../firmware/uart.c ****  * Description:
+  83:../firmware/uart.c ****  *    This function puts a character into the UART output queue for
+  84:../firmware/uart.c ****  *    transmission.
+  85:../firmware/uart.c ****  *
+  86:../firmware/uart.c ****  * Calling Sequence:
+  87:../firmware/uart.c ****  *    character to be transmitted
+  88:../firmware/uart.c ****  *
+  89:../firmware/uart.c ****  * Returns:
+  90:../firmware/uart.c ****  *    ch on success, -1 on error (queue full)
+  91:../firmware/uart.c ****  *
+  92:../firmware/uart.c ****  *****************************************************************************/
+  93:../firmware/uart.c **** int uart0Putch(int ch)
+  94:../firmware/uart.c **** {
+  96              		.loc 1 94 1 is_stmt 1 view -0
+  97              		.cfi_startproc
+  98              		@ Function supports interworking.
+  99              		@ args = 0, pretend = 0, frame = 0
+ 100              		@ frame_needed = 0, uses_anonymous_args = 0
+ 101              		@ link register save eliminated.
+  95:../firmware/uart.c **** #ifdef UART0_TX_INT_MODE
+  96:../firmware/uart.c ****   uint16_t temp;
+  97:../firmware/uart.c ****   unsigned cpsr;
+  98:../firmware/uart.c **** 
+  99:../firmware/uart.c ****   temp = (uart0_tx_insert_idx + 1) % UART0_TX_BUFFER_SIZE;
+ 100:../firmware/uart.c **** 
+ 101:../firmware/uart.c ****   if (temp == uart0_tx_extract_idx)
+ 102:../firmware/uart.c ****     return -1;                          // no room
+ 103:../firmware/uart.c **** 
+ 104:../firmware/uart.c ****   cpsr = disableIRQ();                  // disable global interrupts
+ 105:../firmware/uart.c ****   U0IER &= ~UIER_ETBEI;                 // disable TX interrupts
+ 106:../firmware/uart.c ****   restoreIRQ(cpsr);                     // restore global interrupts
+ 107:../firmware/uart.c **** 
+ 108:../firmware/uart.c ****   // check if in process of sending data
+ 109:../firmware/uart.c ****   if (uart0_tx_running)
+ 110:../firmware/uart.c ****     {
+ 111:../firmware/uart.c ****     // add to queue
+ 112:../firmware/uart.c ****     uart0_tx_buffer[uart0_tx_insert_idx] = (uint8_t)ch;
+ 113:../firmware/uart.c ****     uart0_tx_insert_idx = temp;
+ 114:../firmware/uart.c ****     }
+ 115:../firmware/uart.c ****   else
+ 116:../firmware/uart.c ****     {
+ 117:../firmware/uart.c ****     // set running flag and write to output register
+ 118:../firmware/uart.c ****     uart0_tx_running = 1;
+ 119:../firmware/uart.c ****     U0THR = (uint8_t)ch;
+ 120:../firmware/uart.c ****     }
+ 121:../firmware/uart.c **** 
+ 122:../firmware/uart.c ****   cpsr = disableIRQ();                  // disable global interrupts
+ 123:../firmware/uart.c ****   U0IER |= UIER_ETBEI;                  // enable TX interrupts
+ 124:../firmware/uart.c ****   restoreIRQ(cpsr);                     // restore global interrupts
+ 125:../firmware/uart.c **** #else
+ 126:../firmware/uart.c ****   while (!(U0LSR & ULSR_THRE))          // wait for TX buffer to empty
+ 102              		.loc 1 126 3 view .LVU27
+ 103              		.loc 1 126 12 is_stmt 0 view .LVU28
+ 104 005c 14309FE5 		ldr	r3, .L8
+ 105              	.L5:
+ 106              		.loc 1 126 9 is_stmt 1 view .LVU29
+ 107              		.loc 1 126 12 is_stmt 0 view .LVU30
+ 108 0060 1420D3E5 		ldrb	r2, [r3, #20]	@ zero_extendqisi2
+ 109              		.loc 1 126 9 view .LVU31
+ 110 0064 200012E3 		tst	r2, #32
+ 111 0068 FCFFFF0A 		beq	.L5
+ 127:../firmware/uart.c ****     continue;                           // also either WDOG() or swap()
+ 128:../firmware/uart.c **** 
+ 129:../firmware/uart.c ****   U0THR = (uint8_t)ch;
+ 112              		.loc 1 129 3 is_stmt 1 view .LVU32
+ 113              		.loc 1 129 11 is_stmt 0 view .LVU33
+ 114 006c FF0000E2 		and	r0, r0, #255
+ 115              	.LVL4:
+ 116              		.loc 1 129 9 view .LVU34
+ 117 0070 0000C3E5 		strb	r0, [r3]
+ 130:../firmware/uart.c **** #endif
+ 131:../firmware/uart.c ****   return (uint8_t)ch;
+ 118              		.loc 1 131 3 is_stmt 1 view .LVU35
+ 132:../firmware/uart.c **** }
+ 119              		.loc 1 132 1 is_stmt 0 view .LVU36
+ 120 0074 1EFF2FE1 		bx	lr
+ 121              	.L9:
+ 122              		.align	2
+ 123              	.L8:
+ 124 0078 00C000E0 		.word	-536821760
+ 125              		.cfi_endproc
+ 126              	.LFE1:
+ 128              		.align	2
+ 129              		.global	uart0Space
+ 130              		.syntax unified
+ 131              		.arm
+ 133              	uart0Space:
+ 134              	.LFB2:
+ 133:../firmware/uart.c **** 
+ 134:../firmware/uart.c **** /******************************************************************************
+ 135:../firmware/uart.c ****  *
+ 136:../firmware/uart.c ****  * Function Name: uart0Space()
+ 137:../firmware/uart.c ****  *
+ 138:../firmware/uart.c ****  * Description:
+ 139:../firmware/uart.c ****  *    This function gets the available space in the transmit queue
+ 140:../firmware/uart.c ****  *
+ 141:../firmware/uart.c ****  * Calling Sequence:
+ 142:../firmware/uart.c ****  *    void
+ 143:../firmware/uart.c ****  *
+ 144:../firmware/uart.c ****  * Returns:
+ 145:../firmware/uart.c ****  *    available space in the transmit queue
+ 146:../firmware/uart.c ****  *
+ 147:../firmware/uart.c ****  *****************************************************************************/
+ 148:../firmware/uart.c **** uint16_t uart0Space(void)
+ 149:../firmware/uart.c **** {
+ 135              		.loc 1 149 1 is_stmt 1 view -0
+ 136              		.cfi_startproc
+ 137              		@ Function supports interworking.
+ 138              		@ args = 0, pretend = 0, frame = 0
+ 139              		@ frame_needed = 0, uses_anonymous_args = 0
+ 140              		@ link register save eliminated.
+ 150:../firmware/uart.c **** #ifdef UART0_TX_INT_MODE
+ 151:../firmware/uart.c ****   int space;
+ 152:../firmware/uart.c **** 
+ 153:../firmware/uart.c ****   if ((space = (uart0_tx_extract_idx - uart0_tx_insert_idx)) <= 0)
+ 154:../firmware/uart.c ****     space += UART0_TX_BUFFER_SIZE;
+ 155:../firmware/uart.c **** 
+ 156:../firmware/uart.c ****   return (uint16_t)(space - 1);
+ 157:../firmware/uart.c **** #else
+ 158:../firmware/uart.c ****   return USHRT_MAX;
+ 141              		.loc 1 158 3 view .LVU38
+ 159:../firmware/uart.c **** #endif
+ 160:../firmware/uart.c **** }
+ 142              		.loc 1 160 1 is_stmt 0 view .LVU39
+ 143 007c 00009FE5 		ldr	r0, .L11
+ 144 0080 1EFF2FE1 		bx	lr
+ 145              	.L12:
+ 146              		.align	2
+ 147              	.L11:
+ 148 0084 FFFF0000 		.word	65535
+ 149              		.cfi_endproc
+ 150              	.LFE2:
+ 152              		.align	2
+ 153              		.global	uart0Puts
+ 154              		.syntax unified
+ 155              		.arm
+ 157              	uart0Puts:
+ 158              	.LVL5:
+ 159              	.LFB3:
+ 161:../firmware/uart.c **** 
+ 162:../firmware/uart.c **** /******************************************************************************
+ 163:../firmware/uart.c ****  *
+ 164:../firmware/uart.c ****  * Function Name: uart0Puts()
+ 165:../firmware/uart.c ****  *
+ 166:../firmware/uart.c ****  * Description:
+ 167:../firmware/uart.c ****  *    This function writes a NULL terminated 'string' to the UART output
+ 168:../firmware/uart.c ****  *    queue, returning a pointer to the next character to be written.
+ 169:../firmware/uart.c ****  *
+ 170:../firmware/uart.c ****  * Calling Sequence:
+ 171:../firmware/uart.c ****  *    address of the string
+ 172:../firmware/uart.c ****  *
+ 173:../firmware/uart.c ****  * Returns:
+ 174:../firmware/uart.c ****  *    a pointer to the next character to be written
+ 175:../firmware/uart.c ****  *    (\0 if full string is written)
+ 176:../firmware/uart.c ****  *
+ 177:../firmware/uart.c ****  *****************************************************************************/
+ 178:../firmware/uart.c **** const char *uart0Puts(const char *string)
+ 179:../firmware/uart.c **** {
+ 160              		.loc 1 179 1 is_stmt 1 view -0
+ 161              		.cfi_startproc
+ 162              		@ Function supports interworking.
+ 163              		@ args = 0, pretend = 0, frame = 0
+ 164              		@ frame_needed = 0, uses_anonymous_args = 0
+ 165              		.loc 1 179 1 is_stmt 0 view .LVU41
+ 166 0088 0010A0E1 		mov	r1, r0
+ 180:../firmware/uart.c ****   register char ch;
+ 167              		.loc 1 180 3 is_stmt 1 view .LVU42
+ 181:../firmware/uart.c **** 
+ 182:../firmware/uart.c ****   while ((ch = *string) && (uart0Putch(ch) >= 0))
+ 168              		.loc 1 182 3 view .LVU43
+ 179:../firmware/uart.c ****   register char ch;
+ 169              		.loc 1 179 1 is_stmt 0 view .LVU44
+ 170 008c 10402DE9 		push	{r4, lr}
+ 171              	.LCFI0:
+ 172              		.cfi_def_cfa_offset 8
+ 173              		.cfi_offset 4, -8
+ 174              		.cfi_offset 14, -4
+ 175              	.LVL6:
+ 176              	.L15:
+ 179:../firmware/uart.c ****   register char ch;
+ 177              		.loc 1 179 1 view .LVU45
+ 178 0090 0140A0E1 		mov	r4, r1
+ 179              	.LVL7:
+ 180              		.loc 1 182 9 is_stmt 1 view .LVU46
+ 181              		.loc 1 182 14 is_stmt 0 view .LVU47
+ 182 0094 0100D1E4 		ldrb	r0, [r1], #1	@ zero_extendqisi2
+ 183              	.LVL8:
+ 184              		.loc 1 182 9 view .LVU48
+ 185 0098 000050E3 		cmp	r0, #0
+ 186 009c 0200000A 		beq	.L13
+ 187              		.loc 1 182 29 discriminator 1 view .LVU49
+ 188 00a0 FEFFFFEB 		bl	uart0Putch
+ 189              	.LVL9:
+ 190              		.loc 1 182 25 discriminator 1 view .LVU50
+ 191 00a4 000050E3 		cmp	r0, #0
+ 192 00a8 F8FFFFAA 		bge	.L15
+ 193              	.L13:
+ 183:../firmware/uart.c ****     string++;
+ 184:../firmware/uart.c **** 
+ 185:../firmware/uart.c ****   return string;
+ 186:../firmware/uart.c **** }
+ 194              		.loc 1 186 1 view .LVU51
+ 195 00ac 0400A0E1 		mov	r0, r4
+ 196 00b0 1040BDE8 		pop	{r4, lr}
+ 197              	.LCFI1:
+ 198              		.cfi_restore 14
+ 199              		.cfi_restore 4
+ 200              		.cfi_def_cfa_offset 0
+ 201              	.LVL10:
+ 202              		.loc 1 186 1 view .LVU52
+ 203 00b4 1EFF2FE1 		bx	lr
+ 204              		.cfi_endproc
+ 205              	.LFE3:
+ 207              		.align	2
+ 208              		.global	uart0Write
+ 209              		.syntax unified
+ 210              		.arm
+ 212              	uart0Write:
+ 213              	.LVL11:
+ 214              	.LFB4:
+ 187:../firmware/uart.c **** 
+ 188:../firmware/uart.c **** /******************************************************************************
+ 189:../firmware/uart.c ****  *
+ 190:../firmware/uart.c ****  * Function Name: uart0Write()
+ 191:../firmware/uart.c ****  *
+ 192:../firmware/uart.c ****  * Description:
+ 193:../firmware/uart.c ****  *    This function writes 'count' characters from 'buffer' to the UART
+ 194:../firmware/uart.c ****  *    output queue.
+ 195:../firmware/uart.c ****  *
+ 196:../firmware/uart.c ****  * Calling Sequence:
+ 197:../firmware/uart.c ****  *
+ 198:../firmware/uart.c ****  *
+ 199:../firmware/uart.c ****  * Returns:
+ 200:../firmware/uart.c ****  *    0 on success, -1 if insufficient room, -2 on error
+ 201:../firmware/uart.c ****  *    NOTE: if insufficient room, no characters are written.
+ 202:../firmware/uart.c ****  *
+ 203:../firmware/uart.c ****  *****************************************************************************/
+ 204:../firmware/uart.c **** int uart0Write(const char *buffer, uint16_t count)
+ 205:../firmware/uart.c **** {
+ 215              		.loc 1 205 1 is_stmt 1 view -0
+ 216              		.cfi_startproc
+ 217              		@ Function supports interworking.
+ 218              		@ args = 0, pretend = 0, frame = 0
+ 219              		@ frame_needed = 0, uses_anonymous_args = 0
+ 220              		.loc 1 205 1 is_stmt 0 view .LVU54
+ 221 00b8 10402DE9 		push	{r4, lr}
+ 222              	.LCFI2:
+ 223              		.cfi_def_cfa_offset 8
+ 224              		.cfi_offset 4, -8
+ 225              		.cfi_offset 14, -4
+ 226 00bc 0040A0E1 		mov	r4, r0
+ 206:../firmware/uart.c **** #ifdef UART0_TX_INT_MODE
+ 207:../firmware/uart.c ****   if (count > uart0Space())
+ 208:../firmware/uart.c ****     return -1;
+ 209:../firmware/uart.c **** #endif
+ 210:../firmware/uart.c ****   while (count && (uart0Putch(*buffer++) >= 0))
+ 227              		.loc 1 210 3 is_stmt 1 view .LVU55
+ 228              	.LVL12:
+ 229              	.L20:
+ 230              		.loc 1 210 9 view .LVU56
+ 231 00c0 000051E3 		cmp	r1, #0
+ 232 00c4 0A00000A 		beq	.L23
+ 233              	.LVL13:
+ 234              		.loc 1 210 20 is_stmt 0 discriminator 1 view .LVU57
+ 235 00c8 0100D4E4 		ldrb	r0, [r4], #1	@ zero_extendqisi2
+ 236              	.LVL14:
+ 237              		.loc 1 210 20 discriminator 1 view .LVU58
+ 238 00cc FEFFFFEB 		bl	uart0Putch
+ 239              	.LVL15:
+ 240              		.loc 1 210 16 discriminator 1 view .LVU59
+ 241 00d0 000050E3 		cmp	r0, #0
+ 242 00d4 020000AA 		bge	.L22
+ 211:../firmware/uart.c ****     count--;
+ 212:../firmware/uart.c **** 
+ 213:../firmware/uart.c ****   return (count ? -2 : 0);
+ 243              		.loc 1 213 22 view .LVU60
+ 244 00d8 0100E0E3 		mvn	r0, #1
+ 245              	.L19:
+ 214:../firmware/uart.c **** }
+ 246              		.loc 1 214 1 view .LVU61
+ 247 00dc 1040BDE8 		pop	{r4, lr}
+ 248              	.LCFI3:
+ 249              		.cfi_remember_state
+ 250              		.cfi_restore 14
+ 251              		.cfi_restore 4
+ 252              		.cfi_def_cfa_offset 0
+ 253              	.LVL16:
+ 254              		.loc 1 214 1 view .LVU62
+ 255 00e0 1EFF2FE1 		bx	lr
+ 256              	.LVL17:
+ 257              	.L22:
+ 258              	.LCFI4:
+ 259              		.cfi_restore_state
+ 211:../firmware/uart.c ****     count--;
+ 260              		.loc 1 211 5 is_stmt 1 view .LVU63
+ 211:../firmware/uart.c ****     count--;
+ 261              		.loc 1 211 10 is_stmt 0 view .LVU64
+ 262 00e4 011041E2 		sub	r1, r1, #1
+ 263              	.LVL18:
+ 211:../firmware/uart.c ****     count--;
+ 264              		.loc 1 211 10 view .LVU65
+ 265 00e8 0118A0E1 		lsl	r1, r1, #16
+ 266 00ec 2118A0E1 		lsr	r1, r1, #16
+ 267              	.LVL19:
+ 211:../firmware/uart.c ****     count--;
+ 268              		.loc 1 211 10 view .LVU66
+ 269 00f0 F2FFFFEA 		b	.L20
+ 270              	.L23:
+ 213:../firmware/uart.c **** }
+ 271              		.loc 1 213 22 view .LVU67
+ 272 00f4 0100A0E1 		mov	r0, r1
+ 273 00f8 F7FFFFEA 		b	.L19
+ 274              		.cfi_endproc
+ 275              	.LFE4:
+ 277              		.align	2
+ 278              		.global	uart0TxEmpty
+ 279              		.syntax unified
+ 280              		.arm
+ 282              	uart0TxEmpty:
+ 283              	.LFB5:
+ 215:../firmware/uart.c **** 
+ 216:../firmware/uart.c **** /******************************************************************************
+ 217:../firmware/uart.c ****  *
+ 218:../firmware/uart.c ****  * Function Name: uart0TxEmpty()
+ 219:../firmware/uart.c ****  *
+ 220:../firmware/uart.c ****  * Description:
+ 221:../firmware/uart.c ****  *    This function returns the status of the UART transmit data
+ 222:../firmware/uart.c ****  *    registers.
+ 223:../firmware/uart.c ****  *
+ 224:../firmware/uart.c ****  * Calling Sequence:
+ 225:../firmware/uart.c ****  *    void
+ 226:../firmware/uart.c ****  *
+ 227:../firmware/uart.c ****  * Returns:
+ 228:../firmware/uart.c ****  *    FALSE - either the tx holding or shift register is not empty
+ 229:../firmware/uart.c ****  *   !FALSE - if both the tx holding & shift registers are empty
+ 230:../firmware/uart.c ****  *
+ 231:../firmware/uart.c ****  *****************************************************************************/
+ 232:../firmware/uart.c **** int uart0TxEmpty(void)
+ 233:../firmware/uart.c **** {
+ 284              		.loc 1 233 1 is_stmt 1 view -0
+ 285              		.cfi_startproc
+ 286              		@ Function supports interworking.
+ 287              		@ args = 0, pretend = 0, frame = 0
+ 288              		@ frame_needed = 0, uses_anonymous_args = 0
+ 289              		@ link register save eliminated.
+ 234:../firmware/uart.c ****   return (U0LSR & (ULSR_THRE | ULSR_TEMT)) == (ULSR_THRE | ULSR_TEMT);
+ 290              		.loc 1 234 3 view .LVU69
+ 291              		.loc 1 234 11 is_stmt 0 view .LVU70
+ 292 00fc 14309FE5 		ldr	r3, .L26
+ 293 0100 1400D3E5 		ldrb	r0, [r3, #20]	@ zero_extendqisi2
+ 294              		.loc 1 234 44 view .LVU71
+ 295 0104 600000E2 		and	r0, r0, #96
+ 235:../firmware/uart.c **** }
+ 296              		.loc 1 235 1 view .LVU72
+ 297 0108 603040E2 		sub	r3, r0, #96
+ 298 010c 000073E2 		rsbs	r0, r3, #0
+ 299 0110 0300A0E0 		adc	r0, r0, r3
+ 300 0114 1EFF2FE1 		bx	lr
+ 301              	.L27:
+ 302              		.align	2
+ 303              	.L26:
+ 304 0118 00C000E0 		.word	-536821760
+ 305              		.cfi_endproc
+ 306              	.LFE5:
+ 308              		.align	2
+ 309              		.global	uart0TxFlush
+ 310              		.syntax unified
+ 311              		.arm
+ 313              	uart0TxFlush:
+ 314              	.LFB6:
+ 236:../firmware/uart.c **** 
+ 237:../firmware/uart.c **** /******************************************************************************
+ 238:../firmware/uart.c ****  *
+ 239:../firmware/uart.c ****  * Function Name: uart0TxFlush()
+ 240:../firmware/uart.c ****  *
+ 241:../firmware/uart.c ****  * Description:
+ 242:../firmware/uart.c ****  *    This function removes all characters from the UART transmit queue
+ 243:../firmware/uart.c ****  *    (without transmitting them).
+ 244:../firmware/uart.c ****  *
+ 245:../firmware/uart.c ****  * Calling Sequence:
+ 246:../firmware/uart.c ****  *    void
+ 247:../firmware/uart.c ****  *
+ 248:../firmware/uart.c ****  * Returns:
+ 249:../firmware/uart.c ****  *    void
+ 250:../firmware/uart.c ****  *
+ 251:../firmware/uart.c ****  *****************************************************************************/
+ 252:../firmware/uart.c **** void uart0TxFlush(void)
+ 253:../firmware/uart.c **** {
+ 315              		.loc 1 253 1 is_stmt 1 view -0
+ 316              		.cfi_startproc
+ 317              		@ Function supports interworking.
+ 318              		@ args = 0, pretend = 0, frame = 0
+ 319              		@ frame_needed = 0, uses_anonymous_args = 0
+ 320              		@ link register save eliminated.
+ 254:../firmware/uart.c **** #ifdef UART0_TX_INT_MODE
+ 255:../firmware/uart.c ****   unsigned cpsr;
+ 256:../firmware/uart.c **** 
+ 257:../firmware/uart.c ****   U0FCR |= UFCR_TX_FIFO_RESET;          // clear the TX fifo
+ 258:../firmware/uart.c **** 
+ 259:../firmware/uart.c ****   // "Empty" the transmit buffer.
+ 260:../firmware/uart.c ****   cpsr = disableIRQ();                  // disable global interrupts
+ 261:../firmware/uart.c ****   U0IER &= ~UIER_ETBEI;                 // disable TX interrupts
+ 262:../firmware/uart.c ****   restoreIRQ(cpsr);                     // restore global interrupts
+ 263:../firmware/uart.c ****   uart0_tx_insert_idx = uart0_tx_extract_idx = 0;
+ 264:../firmware/uart.c **** #else
+ 265:../firmware/uart.c ****   U0FCR |= UFCR_TX_FIFO_RESET;          // clear the TX fifo
+ 321              		.loc 1 265 3 view .LVU74
+ 322              		.loc 1 265 9 is_stmt 0 view .LVU75
+ 323 011c 0C209FE5 		ldr	r2, .L29
+ 324 0120 0830D2E5 		ldrb	r3, [r2, #8]	@ zero_extendqisi2
+ 325 0124 043083E3 		orr	r3, r3, #4
+ 326 0128 0830C2E5 		strb	r3, [r2, #8]
+ 266:../firmware/uart.c **** #endif
+ 267:../firmware/uart.c **** }
+ 327              		.loc 1 267 1 view .LVU76
+ 328 012c 1EFF2FE1 		bx	lr
+ 329              	.L30:
+ 330              		.align	2
+ 331              	.L29:
+ 332 0130 00C000E0 		.word	-536821760
+ 333              		.cfi_endproc
+ 334              	.LFE6:
+ 336              		.align	2
+ 337              		.global	uart0Getch
+ 338              		.syntax unified
+ 339              		.arm
+ 341              	uart0Getch:
+ 342              	.LFB7:
+ 268:../firmware/uart.c **** 
+ 269:../firmware/uart.c **** /******************************************************************************
+ 270:../firmware/uart.c ****  *
+ 271:../firmware/uart.c ****  * Function Name: uart0Getch()
+ 272:../firmware/uart.c ****  *
+ 273:../firmware/uart.c ****  * Description:
+ 274:../firmware/uart.c ****  *    This function gets a character from the UART receive queue
+ 275:../firmware/uart.c ****  *
+ 276:../firmware/uart.c ****  * Calling Sequence:
+ 277:../firmware/uart.c ****  *    void
+ 278:../firmware/uart.c ****  *
+ 279:../firmware/uart.c ****  * Returns:
+ 280:../firmware/uart.c ****  *    character on success, -1 if no character is available
+ 281:../firmware/uart.c ****  *
+ 282:../firmware/uart.c ****  *****************************************************************************/
+ 283:../firmware/uart.c **** int uart0Getch(void)
+ 284:../firmware/uart.c **** {
+ 343              		.loc 1 284 1 is_stmt 1 view -0
+ 344              		.cfi_startproc
+ 345              		@ Function supports interworking.
+ 346              		@ args = 0, pretend = 0, frame = 0
+ 347              		@ frame_needed = 0, uses_anonymous_args = 0
+ 348              		@ link register save eliminated.
+ 285:../firmware/uart.c **** #ifdef UART0_RX_INT_MODE
+ 286:../firmware/uart.c ****   uint8_t ch;
+ 287:../firmware/uart.c **** 
+ 288:../firmware/uart.c ****   if (uart0_rx_insert_idx == uart0_rx_extract_idx) // check if character is available
+ 289:../firmware/uart.c ****     return -1;
+ 290:../firmware/uart.c **** 
+ 291:../firmware/uart.c ****   ch = uart0_rx_buffer[uart0_rx_extract_idx++]; // get character, bump pointer
+ 292:../firmware/uart.c ****   uart0_rx_extract_idx %= UART0_RX_BUFFER_SIZE; // limit the pointer
+ 293:../firmware/uart.c ****   return ch;
+ 294:../firmware/uart.c **** #else
+ 295:../firmware/uart.c ****   if (U0LSR & ULSR_RDR)                 // check if character is available
+ 349              		.loc 1 295 3 view .LVU78
+ 350              		.loc 1 295 7 is_stmt 0 view .LVU79
+ 351 0134 14309FE5 		ldr	r3, .L34
+ 352 0138 1420D3E5 		ldrb	r2, [r3, #20]	@ zero_extendqisi2
+ 353              		.loc 1 295 6 view .LVU80
+ 354 013c 010012E3 		tst	r2, #1
+ 296:../firmware/uart.c ****     return U0RBR;                       // return character
+ 355              		.loc 1 296 5 is_stmt 1 view .LVU81
+ 356              		.loc 1 296 12 is_stmt 0 view .LVU82
+ 357 0140 0000D315 		ldrbne	r0, [r3]	@ zero_extendqisi2
+ 358 0144 FF000012 		andne	r0, r0, #255
+ 297:../firmware/uart.c **** 
+ 298:../firmware/uart.c ****   return -1;
+ 359              		.loc 1 298 10 view .LVU83
+ 360 0148 0000E003 		mvneq	r0, #0
+ 299:../firmware/uart.c **** #endif
+ 300:../firmware/uart.c **** }
+ 361              		.loc 1 300 1 view .LVU84
+ 362 014c 1EFF2FE1 		bx	lr
+ 363              	.L35:
+ 364              		.align	2
+ 365              	.L34:
+ 366 0150 00C000E0 		.word	-536821760
+ 367              		.cfi_endproc
+ 368              	.LFE7:
+ 370              	.Letext0:
+ 371              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 372              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 373              		.file 4 "../firmware/lpcUART.h"
+ 374              		.file 5 "../firmware/lpcPIN.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 uart.c
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:22     .text:00000000 uart0Init
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:83     .text:00000054 $d
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:88     .text:0000005c $a
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:93     .text:0000005c uart0Putch
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:124    .text:00000078 $d
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:128    .text:0000007c $a
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:133    .text:0000007c uart0Space
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:148    .text:00000084 $d
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:152    .text:00000088 $a
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:157    .text:00000088 uart0Puts
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:212    .text:000000b8 uart0Write
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:282    .text:000000fc uart0TxEmpty
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:304    .text:00000118 $d
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:308    .text:0000011c $a
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:313    .text:0000011c uart0TxFlush
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:332    .text:00000130 $d
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:336    .text:00000134 $a
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:341    .text:00000134 uart0Getch
+C:\Users\ishin\AppData\Local\Temp\ccc6fo92.s:366    .text:00000150 $d
+
+NO UNDEFINED SYMBOLS

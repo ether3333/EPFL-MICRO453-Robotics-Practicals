@@ -1,0 +1,356 @@
+   1              		.cpu arm7tdmi
+   2              		.arch armv4t
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.file	"sysTime.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.align	2
+  18              		.global	initSysTime
+  19              		.syntax unified
+  20              		.arm
+  22              	initSysTime:
+  23              	.LFB0:
+  24              		.file 1 "../firmware/sysTime.c"
+   1:../firmware/sysTime.c **** /******************************************************************************
+   2:../firmware/sysTime.c ****  *
+   3:../firmware/sysTime.c ****  * This module provides the interface routines for initializing and
+   4:../firmware/sysTime.c ****  * accessing the system timing functions.
+   5:../firmware/sysTime.c ****  * Copyright 2004, R O SoftWare
+   6:../firmware/sysTime.c ****  * No guarantees, warrantees, or promises, implied or otherwise.
+   7:../firmware/sysTime.c ****  * May be used for hobby or commercial purposes provided copyright
+   8:../firmware/sysTime.c ****  * notice remains intact.
+   9:../firmware/sysTime.c ****  *
+  10:../firmware/sysTime.c ****  *****************************************************************************/
+  11:../firmware/sysTime.c **** #include "LPC21xx.h"
+  12:../firmware/sysTime.c **** #include "hwconfig.h"
+  13:../firmware/sysTime.c **** #include "sysTime.h"
+  14:../firmware/sysTime.c **** 
+  15:../firmware/sysTime.c **** static uint32_t sysTICs;
+  16:../firmware/sysTime.c **** static uint32_t lastT0TC;
+  17:../firmware/sysTime.c **** 
+  18:../firmware/sysTime.c **** /******************************************************************************
+  19:../firmware/sysTime.c ****  *
+  20:../firmware/sysTime.c ****  * Function Name: initSysTime()
+  21:../firmware/sysTime.c ****  *
+  22:../firmware/sysTime.c ****  * Description:
+  23:../firmware/sysTime.c ****  *    This function initializes the LPC's Timer 0 for use as the system timer.
+  24:../firmware/sysTime.c ****  *
+  25:../firmware/sysTime.c ****  * Calling Sequence:
+  26:../firmware/sysTime.c ****  *    void
+  27:../firmware/sysTime.c ****  *
+  28:../firmware/sysTime.c ****  * Returns:
+  29:../firmware/sysTime.c ****  *    void
+  30:../firmware/sysTime.c ****  *
+  31:../firmware/sysTime.c ****  *****************************************************************************/
+  32:../firmware/sysTime.c **** void initSysTime(void)
+  33:../firmware/sysTime.c **** {
+  25              		.loc 1 33 1 view -0
+  26              		.cfi_startproc
+  27              		@ Function supports interworking.
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  34:../firmware/sysTime.c ****   // setup Timer 0 to count forever
+  35:../firmware/sysTime.c ****   T0TCR = TCR_RESET;                    // reset & disable timer 0
+  31              		.loc 1 35 3 view .LVU1
+  32              		.loc 1 35 9 is_stmt 0 view .LVU2
+  33 0000 0220A0E3 		mov	r2, #2
+  34 0004 28309FE5 		ldr	r3, .L2
+  36:../firmware/sysTime.c ****   T0PR = T0_PCLK_DIV - 1;               // set the prescale divider
+  37:../firmware/sysTime.c ****   T0MCR = 0;                            // disable match registers
+  38:../firmware/sysTime.c ****   T0CCR = 0;                            // disable compare registers
+  39:../firmware/sysTime.c ****   T0EMR = 0;                            // disable external match register
+  40:../firmware/sysTime.c ****   T0TCR = TCR_ENABLE;                   // enable timer 0
+  35              		.loc 1 40 9 view .LVU3
+  36 0008 0110A0E3 		mov	r1, #1
+  35:../firmware/sysTime.c ****   T0PR = T0_PCLK_DIV - 1;               // set the prescale divider
+  37              		.loc 1 35 9 view .LVU4
+  38 000c 042083E5 		str	r2, [r3, #4]
+  36:../firmware/sysTime.c ****   T0PR = T0_PCLK_DIV - 1;               // set the prescale divider
+  39              		.loc 1 36 3 is_stmt 1 view .LVU5
+  36:../firmware/sysTime.c ****   T0PR = T0_PCLK_DIV - 1;               // set the prescale divider
+  40              		.loc 1 36 8 is_stmt 0 view .LVU6
+  41 0010 0C2083E5 		str	r2, [r3, #12]
+  37:../firmware/sysTime.c ****   T0CCR = 0;                            // disable compare registers
+  42              		.loc 1 37 3 is_stmt 1 view .LVU7
+  37:../firmware/sysTime.c ****   T0CCR = 0;                            // disable compare registers
+  43              		.loc 1 37 9 is_stmt 0 view .LVU8
+  44 0014 0020A0E3 		mov	r2, #0
+  45 0018 142083E5 		str	r2, [r3, #20]
+  38:../firmware/sysTime.c ****   T0EMR = 0;                            // disable external match register
+  46              		.loc 1 38 3 is_stmt 1 view .LVU9
+  38:../firmware/sysTime.c ****   T0EMR = 0;                            // disable external match register
+  47              		.loc 1 38 9 is_stmt 0 view .LVU10
+  48 001c 282083E5 		str	r2, [r3, #40]
+  39:../firmware/sysTime.c ****   T0TCR = TCR_ENABLE;                   // enable timer 0
+  49              		.loc 1 39 3 is_stmt 1 view .LVU11
+  39:../firmware/sysTime.c ****   T0TCR = TCR_ENABLE;                   // enable timer 0
+  50              		.loc 1 39 9 is_stmt 0 view .LVU12
+  51 0020 3C2083E5 		str	r2, [r3, #60]
+  52              		.loc 1 40 3 is_stmt 1 view .LVU13
+  53              		.loc 1 40 9 is_stmt 0 view .LVU14
+  54 0024 041083E5 		str	r1, [r3, #4]
+  41:../firmware/sysTime.c ****   sysTICs = 0;
+  55              		.loc 1 41 3 is_stmt 1 view .LVU15
+  56              		.loc 1 41 11 is_stmt 0 view .LVU16
+  57 0028 08309FE5 		ldr	r3, .L2+4
+  58 002c 002083E5 		str	r2, [r3]
+  42:../firmware/sysTime.c **** }
+  59              		.loc 1 42 1 view .LVU17
+  60 0030 1EFF2FE1 		bx	lr
+  61              	.L3:
+  62              		.align	2
+  63              	.L2:
+  64 0034 004000E0 		.word	-536854528
+  65 0038 00000000 		.word	.LANCHOR0
+  66              		.cfi_endproc
+  67              	.LFE0:
+  69              		.align	2
+  70              		.global	getSysTICs
+  71              		.syntax unified
+  72              		.arm
+  74              	getSysTICs:
+  75              	.LFB1:
+  43:../firmware/sysTime.c **** 
+  44:../firmware/sysTime.c **** /******************************************************************************
+  45:../firmware/sysTime.c ****  *
+  46:../firmware/sysTime.c ****  * Function Name: getSysTICs()
+  47:../firmware/sysTime.c ****  *
+  48:../firmware/sysTime.c ****  * Description:
+  49:../firmware/sysTime.c ****  *    This function returns the current system time in TICs.
+  50:../firmware/sysTime.c ****  *
+  51:../firmware/sysTime.c ****  * Calling Sequence:
+  52:../firmware/sysTime.c ****  *    void
+  53:../firmware/sysTime.c ****  *
+  54:../firmware/sysTime.c ****  * Returns:
+  55:../firmware/sysTime.c ****  *    The current time in TICs as represented by sysTICs
+  56:../firmware/sysTime.c ****  *
+  57:../firmware/sysTime.c ****  *****************************************************************************/
+  58:../firmware/sysTime.c **** uint32_t getSysTICs(void)
+  59:../firmware/sysTime.c **** {
+  76              		.loc 1 59 1 is_stmt 1 view -0
+  77              		.cfi_startproc
+  78              		@ Function supports interworking.
+  79              		@ args = 0, pretend = 0, frame = 0
+  80              		@ frame_needed = 0, uses_anonymous_args = 0
+  81              		@ link register save eliminated.
+  60:../firmware/sysTime.c ****   uint32_t now = T0TC;
+  82              		.loc 1 60 3 view .LVU19
+  83              		.loc 1 60 12 is_stmt 0 view .LVU20
+  84 003c 1C309FE5 		ldr	r3, .L5
+  85 0040 082093E5 		ldr	r2, [r3, #8]
+  86              	.LVL0:
+  61:../firmware/sysTime.c **** 
+  62:../firmware/sysTime.c ****   sysTICs += (uint32_t)(now - lastT0TC);
+  87              		.loc 1 62 3 is_stmt 1 view .LVU21
+  88              		.loc 1 62 11 is_stmt 0 view .LVU22
+  89 0044 18309FE5 		ldr	r3, .L5+4
+  90 0048 000093E5 		ldr	r0, [r3]
+  91 004c 041093E5 		ldr	r1, [r3, #4]
+  92 0050 000082E0 		add	r0, r2, r0
+  93 0054 010040E0 		sub	r0, r0, r1
+  63:../firmware/sysTime.c ****   lastT0TC = now;
+  94              		.loc 1 63 12 view .LVU23
+  95 0058 050083E8 		stm	r3, {r0, r2}
+  64:../firmware/sysTime.c ****   return sysTICs;
+  96              		.loc 1 64 3 is_stmt 1 view .LVU24
+  65:../firmware/sysTime.c **** }
+  97              		.loc 1 65 1 is_stmt 0 view .LVU25
+  98 005c 1EFF2FE1 		bx	lr
+  99              	.L6:
+ 100              		.align	2
+ 101              	.L5:
+ 102 0060 004000E0 		.word	-536854528
+ 103 0064 00000000 		.word	.LANCHOR0
+ 104              		.cfi_endproc
+ 105              	.LFE1:
+ 107              		.align	2
+ 108              		.global	getElapsedSysTICs
+ 109              		.syntax unified
+ 110              		.arm
+ 112              	getElapsedSysTICs:
+ 113              	.LVL1:
+ 114              	.LFB2:
+  66:../firmware/sysTime.c **** 
+  67:../firmware/sysTime.c **** 
+  68:../firmware/sysTime.c **** /******************************************************************************
+  69:../firmware/sysTime.c ****  *
+  70:../firmware/sysTime.c ****  * Function Name: getElapsedSysTICs()
+  71:../firmware/sysTime.c ****  *
+  72:../firmware/sysTime.c ****  * Description:
+  73:../firmware/sysTime.c ****  *    This function then returns the difference in TICs between the
+  74:../firmware/sysTime.c ****  *    given starting time and the current system time.
+  75:../firmware/sysTime.c ****  *
+  76:../firmware/sysTime.c ****  * Calling Sequence:
+  77:../firmware/sysTime.c ****  *    The starting time.
+  78:../firmware/sysTime.c ****  *
+  79:../firmware/sysTime.c ****  * Returns:
+  80:../firmware/sysTime.c ****  *    The time difference.
+  81:../firmware/sysTime.c ****  *
+  82:../firmware/sysTime.c ****  *****************************************************************************/
+  83:../firmware/sysTime.c **** uint32_t getElapsedSysTICs(uint32_t startTime)
+  84:../firmware/sysTime.c **** {
+ 115              		.loc 1 84 1 is_stmt 1 view -0
+ 116              		.cfi_startproc
+ 117              		@ Function supports interworking.
+ 118              		@ args = 0, pretend = 0, frame = 0
+ 119              		@ frame_needed = 0, uses_anonymous_args = 0
+  85:../firmware/sysTime.c ****   return getSysTICs() - startTime;
+ 120              		.loc 1 85 3 view .LVU27
+  84:../firmware/sysTime.c ****   return getSysTICs() - startTime;
+ 121              		.loc 1 84 1 is_stmt 0 view .LVU28
+ 122 0068 10402DE9 		push	{r4, lr}
+ 123              	.LCFI0:
+ 124              		.cfi_def_cfa_offset 8
+ 125              		.cfi_offset 4, -8
+ 126              		.cfi_offset 14, -4
+  84:../firmware/sysTime.c ****   return getSysTICs() - startTime;
+ 127              		.loc 1 84 1 view .LVU29
+ 128 006c 0040A0E1 		mov	r4, r0
+ 129              		.loc 1 85 10 view .LVU30
+ 130 0070 FEFFFFEB 		bl	getSysTICs
+ 131              	.LVL2:
+  86:../firmware/sysTime.c **** }
+ 132              		.loc 1 86 1 view .LVU31
+ 133 0074 040040E0 		sub	r0, r0, r4
+ 134 0078 1040BDE8 		pop	{r4, lr}
+ 135              	.LCFI1:
+ 136              		.cfi_restore 14
+ 137              		.cfi_restore 4
+ 138              		.cfi_def_cfa_offset 0
+ 139              	.LVL3:
+ 140              		.loc 1 86 1 view .LVU32
+ 141 007c 1EFF2FE1 		bx	lr
+ 142              		.cfi_endproc
+ 143              	.LFE2:
+ 145              		.align	2
+ 146              		.global	pause
+ 147              		.syntax unified
+ 148              		.arm
+ 150              	pause:
+ 151              	.LVL4:
+ 152              	.LFB3:
+  87:../firmware/sysTime.c **** 
+  88:../firmware/sysTime.c **** 
+  89:../firmware/sysTime.c **** /******************************************************************************
+  90:../firmware/sysTime.c ****  *
+  91:../firmware/sysTime.c ****  * Function Name: pause()
+  92:../firmware/sysTime.c ****  *
+  93:../firmware/sysTime.c ****  * Description:
+  94:../firmware/sysTime.c ****  *    This function does not return until the specified 'duration' in
+  95:../firmware/sysTime.c ****  *    TICs has elapsed.
+  96:../firmware/sysTime.c ****  *
+  97:../firmware/sysTime.c ****  * Calling Sequence:
+  98:../firmware/sysTime.c ****  *    duration - length of time in TICs to wait before returning
+  99:../firmware/sysTime.c ****  *
+ 100:../firmware/sysTime.c ****  * Returns:
+ 101:../firmware/sysTime.c ****  *    void
+ 102:../firmware/sysTime.c ****  *
+ 103:../firmware/sysTime.c ****  *****************************************************************************/
+ 104:../firmware/sysTime.c **** void pause(uint32_t duration)
+ 105:../firmware/sysTime.c **** {
+ 153              		.loc 1 105 1 is_stmt 1 view -0
+ 154              		.cfi_startproc
+ 155              		@ Function supports interworking.
+ 156              		@ args = 0, pretend = 0, frame = 0
+ 157              		@ frame_needed = 0, uses_anonymous_args = 0
+ 106:../firmware/sysTime.c ****   uint32_t startTime = getSysTICs();
+ 158              		.loc 1 106 3 view .LVU34
+ 105:../firmware/sysTime.c ****   uint32_t startTime = getSysTICs();
+ 159              		.loc 1 105 1 is_stmt 0 view .LVU35
+ 160 0080 70402DE9 		push	{r4, r5, r6, lr}
+ 161              	.LCFI2:
+ 162              		.cfi_def_cfa_offset 16
+ 163              		.cfi_offset 4, -16
+ 164              		.cfi_offset 5, -12
+ 165              		.cfi_offset 6, -8
+ 166              		.cfi_offset 14, -4
+ 105:../firmware/sysTime.c ****   uint32_t startTime = getSysTICs();
+ 167              		.loc 1 105 1 view .LVU36
+ 168 0084 0040A0E1 		mov	r4, r0
+ 169              		.loc 1 106 24 view .LVU37
+ 170 0088 FEFFFFEB 		bl	getSysTICs
+ 171              	.LVL5:
+ 172              		.loc 1 106 24 view .LVU38
+ 173 008c 0050A0E1 		mov	r5, r0
+ 174              	.LVL6:
+ 107:../firmware/sysTime.c **** 
+ 108:../firmware/sysTime.c ****   while (getElapsedSysTICs(startTime) < duration)
+ 175              		.loc 1 108 3 is_stmt 1 view .LVU39
+ 176              	.L10:
+ 109:../firmware/sysTime.c ****     WDOG();
+ 177              		.loc 1 109 11 discriminator 1 view .LVU40
+ 108:../firmware/sysTime.c ****     WDOG();
+ 178              		.loc 1 108 9 discriminator 1 view .LVU41
+ 179              	.LBB4:
+ 180              	.LBI4:
+  83:../firmware/sysTime.c **** {
+ 181              		.loc 1 83 10 discriminator 1 view .LVU42
+ 182              	.LBB5:
+  85:../firmware/sysTime.c **** }
+ 183              		.loc 1 85 3 discriminator 1 view .LVU43
+  85:../firmware/sysTime.c **** }
+ 184              		.loc 1 85 10 is_stmt 0 discriminator 1 view .LVU44
+ 185 0090 FEFFFFEB 		bl	getSysTICs
+ 186              	.LVL7:
+  85:../firmware/sysTime.c **** }
+ 187              		.loc 1 85 23 discriminator 1 view .LVU45
+ 188 0094 053040E0 		sub	r3, r0, r5
+ 189              	.LBE5:
+ 190              	.LBE4:
+ 108:../firmware/sysTime.c ****     WDOG();
+ 191              		.loc 1 108 9 discriminator 1 view .LVU46
+ 192 0098 030054E1 		cmp	r4, r3
+ 193 009c FBFFFF8A 		bhi	.L10
+ 110:../firmware/sysTime.c **** }
+ 194              		.loc 1 110 1 view .LVU47
+ 195 00a0 7040BDE8 		pop	{r4, r5, r6, lr}
+ 196              	.LCFI3:
+ 197              		.cfi_restore 14
+ 198              		.cfi_restore 6
+ 199              		.cfi_restore 5
+ 200              		.cfi_restore 4
+ 201              		.cfi_def_cfa_offset 0
+ 202              	.LVL8:
+ 203              		.loc 1 110 1 view .LVU48
+ 204 00a4 1EFF2FE1 		bx	lr
+ 205              		.cfi_endproc
+ 206              	.LFE3:
+ 208              		.bss
+ 209              		.align	2
+ 210              		.set	.LANCHOR0,. + 0
+ 213              	sysTICs:
+ 214 0000 00000000 		.space	4
+ 217              	lastT0TC:
+ 218 0004 00000000 		.space	4
+ 219              		.text
+ 220              	.Letext0:
+ 221              		.file 2 "../firmware/lpcTMR.h"
+ 222              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 223              		.file 4 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 sysTime.c
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:17     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:22     .text:00000000 initSysTime
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:64     .text:00000034 $d
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:69     .text:0000003c $a
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:74     .text:0000003c getSysTICs
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:102    .text:00000060 $d
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:107    .text:00000068 $a
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:112    .text:00000068 getElapsedSysTICs
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:150    .text:00000080 pause
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:209    .bss:00000000 $d
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:213    .bss:00000000 sysTICs
+C:\Users\ishin\AppData\Local\Temp\ccUK3kkL.s:217    .bss:00000004 lastT0TC
+
+NO UNDEFINED SYMBOLS

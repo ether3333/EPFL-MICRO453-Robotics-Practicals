@@ -1,6 +1,6 @@
 /**
  * @file ex6.cc
- * @brief Task 6.1 — Combine LED spot tracking with the radio head LED (RGB).
+ * @brief Task 6.1 Combine LED spot tracking with the radio head LED (RGB).
  *
  * The aquarium tracking PC streams (x, y) of the head LED in metres.  This
  * program maps position to colour while keeping green fixed at 64 so the
@@ -27,10 +27,6 @@
 #include "utils.h"
 
 using namespace std;
-
-/* -------------------------------------------------------------------------- */
-/*  Bench configuration — edit for your session                               */
-/* -------------------------------------------------------------------------- */
 
 static const char* const TRACKING_PC_NAME = "biorobpc6";  ///< tracking server host
 static const uint16_t TRACKING_PORT = 10502;               ///< default tracking TCP port
@@ -68,7 +64,6 @@ int main()
   CRemoteRegs regs;
   CTrackingClient trk;
 
-  /* Radio first — head must be running firmware that exposes REG32_LED. */
   if (!init_radio_interface(INTERFACE, RADIO_CHANNEL, regs)) {
     cerr << "Radio init failed.\n";
     return 1;
@@ -115,7 +110,7 @@ int main()
       cout << "(no spot)                    \r";
     }
 
-    Sleep(10);  /* ~100 Hz poll; tracker is ~15 Hz so this is plenty */
+    Sleep(10);  /* ~100 Hz poll*/
   }
 
   FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
