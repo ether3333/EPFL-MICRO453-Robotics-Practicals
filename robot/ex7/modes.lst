@@ -369,7 +369,7 @@
   46:modes.c       ****     start_pid(MOTOR_ADDR[i]);
  287              		.loc 1 46 19 view .LVU71
  288              		.loc 1 47 5 view .LVU72
- 289 0148 88619FE5 		ldr	r6, .L27
+ 289 0148 98719FE5 		ldr	r7, .L29
  290 014c 1600A0E3 		mov	r0, #22
  291 0150 FEFFFFEB 		bl	start_pid
  292              	.LVL39:
@@ -396,7 +396,7 @@
  306              	.LBB9:
   47:modes.c       ****   }
  307              		.loc 1 47 5 is_stmt 0 view .LVU80
- 308 015c 0670A0E1 		mov	r7, r6
+ 308 015c 0760A0E1 		mov	r6, r7
  309              	.LBE9:
  310              	.LBB10:
  311              		.loc 1 49 12 view .LVU81
@@ -407,7 +407,7 @@
  315              		.loc 1 50 5 is_stmt 1 discriminator 3 view .LVU82
  316 0164 0020A0E3 		mov	r2, #0
  317 0168 0110A0E3 		mov	r1, #1
- 318 016c 0100D7E4 		ldrb	r0, [r7], #1	@ zero_extendqisi2
+ 318 016c 0100D6E4 		ldrb	r0, [r6], #1	@ zero_extendqisi2
   49:modes.c       ****     set_reg_value_dw(MOTOR_ADDR[i], MREG32_LED, 0);
  319              		.loc 1 49 37 is_stmt 0 discriminator 3 view .LVU83
  320 0170 015085E2 		add	r5, r5, #1
@@ -442,7 +442,7 @@
  339 0184 0400A0E1 		mov	r0, r4
  340 0188 FEFFFFEB 		bl	getElapsedSysTICs
  341              	.LVL45:
- 342 018c 0070A0E1 		mov	r7, r0
+ 342 018c 0060A0E1 		mov	r6, r0
  343              	.LVL46:
   57:modes.c       ****     cycletimer = getSysTICs();
  344              		.loc 1 57 5 is_stmt 1 view .LVU92
@@ -458,7 +458,7 @@
  352              		.loc 1 59 5 view .LVU96
   58:modes.c       ****     float delta_t = (float) dt / sysTICSperSEC;
  353              		.loc 1 58 21 is_stmt 0 view .LVU97
- 354 0198 0700A0E1 		mov	r0, r7
+ 354 0198 0600A0E1 		mov	r0, r6
  355              	.LVL49:
   58:modes.c       ****     float delta_t = (float) dt / sysTICSperSEC;
  356              		.loc 1 58 21 view .LVU98
@@ -466,7 +466,7 @@
  358              	.LVL50:
   58:modes.c       ****     float delta_t = (float) dt / sysTICSperSEC;
  359              		.loc 1 58 11 view .LVU99
- 360 01a0 34119FE5 		ldr	r1, .L27+4
+ 360 01a0 44119FE5 		ldr	r1, .L29+4
  361 01a4 FEFFFFEB 		bl	__aeabi_fdiv
  362              	.LVL51:
  363 01a8 0010A0E1 		mov	r1, r0
@@ -474,7 +474,7 @@
  365 01ac 0500A0E1 		mov	r0, r5
  366 01b0 FEFFFFEB 		bl	__aeabi_fadd
  367              	.LVL52:
- 368 01b4 0680A0E1 		mov	r8, r6
+ 368 01b4 0780A0E1 		mov	r8, r7
  369 01b8 0050A0E1 		mov	r5, r0
  370              	.LVL53:
   60:modes.c       **** 
@@ -484,7 +484,7 @@
  373              		.loc 1 61 10 view .LVU102
  374              		.loc 1 61 21 view .LVU103
  375              		.loc 1 61 14 is_stmt 0 view .LVU104
- 376 01bc 0070A0E3 		mov	r7, #0
+ 376 01bc 0060A0E3 		mov	r6, #0
  377              	.LVL54:
  378              	.LBB13:
   62:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
@@ -497,7 +497,7 @@
  383              		.loc 1 62 7 is_stmt 1 discriminator 3 view .LVU106
   62:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
  384              		.loc 1 62 26 is_stmt 0 discriminator 3 view .LVU107
- 385 01c4 14219FE5 		ldr	r2, .L27+8
+ 385 01c4 24219FE5 		ldr	r2, .L29+8
  386 01c8 04B092E5 		ldr	fp, [r2, #4]	@ float
   62:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
  387              		.loc 1 62 45 discriminator 3 view .LVU108
@@ -505,7 +505,7 @@
   62:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
  389              		.loc 1 62 57 discriminator 3 view .LVU109
  390 01d0 089092E5 		ldr	r9, [r2, #8]	@ float
- 391 01d4 0700A0E1 		mov	r0, r7
+ 391 01d4 0600A0E1 		mov	r0, r6
   62:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
  392              		.loc 1 62 45 discriminator 3 view .LVU110
  393 01d8 00308DE5 		str	r3, [sp]
@@ -518,7 +518,7 @@
  399              	.LVL57:
   62:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
  400              		.loc 1 62 63 discriminator 3 view .LVU112
- 401 01e8 F4109FE5 		ldr	r1, .L27+12
+ 401 01e8 04119FE5 		ldr	r1, .L29+12
  402 01ec FEFFFFEB 		bl	__aeabi_fdiv
  403              	.LVL58:
   62:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
@@ -543,8 +543,8 @@
  419              	.LVL61:
   62:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
  420              		.loc 1 62 28 discriminator 3 view .LVU117
- 421 0214 CC209FE5 		ldr	r2, .L27+16
- 422 0218 CC309FE5 		ldr	r3, .L27+20
+ 421 0214 DC209FE5 		ldr	r2, .L29+16
+ 422 0218 DC309FE5 		ldr	r3, .L29+20
  423 021c FEFFFFEB 		bl	__aeabi_dmul
  424              	.LVL62:
  425 0220 FEFFFFEB 		bl	sin
@@ -586,7 +586,7 @@
  456              	.LBE13:
   61:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
  457              		.loc 1 61 39 discriminator 3 view .LVU126
- 458 0260 017087E2 		add	r7, r7, #1
+ 458 0260 016086E2 		add	r6, r6, #1
  459              	.LVL70:
  460              	.LBB14:
  461              		.loc 1 63 7 discriminator 3 view .LVU127
@@ -599,7 +599,7 @@
  466              		.loc 1 61 21 discriminator 3 view .LVU129
   61:modes.c       ****       float theta = ampl * sin(M_TWOPI*(freq*my_time + i*phase/MOTOR_COUNT));
  467              		.loc 1 61 5 is_stmt 0 discriminator 3 view .LVU130
- 468 0268 050057E3 		cmp	r7, #5
+ 468 0268 050056E3 		cmp	r6, #5
  469 026c D4FFFF1A 		bne	.L16
  470              	.LBE12:
  471              	.LBE11:
@@ -608,7 +608,7 @@
   66:modes.c       ****   } while (reg8_table[REG8_MODE] == IMODE_SWIM);
  472              		.loc 1 66 11 is_stmt 1 view .LVU131
  473              		.loc 1 66 22 is_stmt 0 view .LVU132
- 474 0270 78309FE5 		ldr	r3, .L27+24
+ 474 0270 88309FE5 		ldr	r3, .L29+24
  475 0274 0030D3E5 		ldrb	r3, [r3]	@ zero_extendqisi2
  476              		.loc 1 66 3 view .LVU133
  477 0278 010053E3 		cmp	r3, #1
@@ -622,7 +622,7 @@
  482              	.LVL72:
  483              		.loc 1 69 12 view .LVU135
  484              	.LBE15:
- 485 0284 4C509FE5 		ldr	r5, .L27
+ 485 0284 5C509FE5 		ldr	r5, .L29
  486              	.LVL73:
  487              	.L18:
  488              	.LBB16:
@@ -651,204 +651,238 @@
   72:modes.c       ****   // Give it some time for this to happen
   73:modes.c       ****   pause(HALF_SEC);
  505              		.loc 1 73 3 is_stmt 1 view .LVU142
- 506 02a4 48009FE5 		ldr	r0, .L27+28
+ 506 02a4 58009FE5 		ldr	r0, .L29+28
  507 02a8 FEFFFFEB 		bl	pause
  508              	.LVL76:
   74:modes.c       ****   // Turn off the PD controller
-  75:modes.c       ****   for (int i = 0; i < MOTOR_COUNT; i++){
+  75:modes.c       ****   for(int j=0; j<10; j++){
  509              		.loc 1 75 3 view .LVU143
  510              	.LBB17:
- 511              		.loc 1 75 8 view .LVU144
- 512              		.loc 1 75 19 view .LVU145
- 513              		.loc 1 75 12 is_stmt 0 view .LVU146
- 514 02ac 0040A0E3 		mov	r4, #0
- 515              	.LVL77:
- 516              	.L19:
-  76:modes.c       ****     bus_set(MOTOR_ADDR[i], MREG_MODE, MODE_IDLE);
- 517              		.loc 1 76 5 is_stmt 1 discriminator 3 view .LVU147
- 518 02b0 0020A0E3 		mov	r2, #0
- 519 02b4 2810A0E3 		mov	r1, #40
- 520 02b8 0100D6E4 		ldrb	r0, [r6], #1	@ zero_extendqisi2
-  75:modes.c       ****     bus_set(MOTOR_ADDR[i], MREG_MODE, MODE_IDLE);
- 521              		.loc 1 75 37 is_stmt 0 discriminator 3 view .LVU148
- 522 02bc 014084E2 		add	r4, r4, #1
- 523              	.LVL78:
- 524              		.loc 1 76 5 discriminator 3 view .LVU149
- 525 02c0 FEFFFFEB 		bl	bus_set
- 526              	.LVL79:
-  75:modes.c       ****     bus_set(MOTOR_ADDR[i], MREG_MODE, MODE_IDLE);
- 527              		.loc 1 75 36 is_stmt 1 discriminator 3 view .LVU150
-  75:modes.c       ****     bus_set(MOTOR_ADDR[i], MREG_MODE, MODE_IDLE);
- 528              		.loc 1 75 19 discriminator 3 view .LVU151
-  75:modes.c       ****     bus_set(MOTOR_ADDR[i], MREG_MODE, MODE_IDLE);
- 529              		.loc 1 75 3 is_stmt 0 discriminator 3 view .LVU152
- 530 02c4 050054E3 		cmp	r4, #5
- 531 02c8 F8FFFF1A 		bne	.L19
- 532              	.LBE17:
-  77:modes.c       ****   }
-  78:modes.c       ****   
-  79:modes.c       **** }
- 533              		.loc 1 79 1 view .LVU153
- 534 02cc 0CD08DE2 		add	sp, sp, #12
- 535              	.LCFI5:
- 536              		.cfi_def_cfa_offset 36
- 537              		@ sp needed
- 538 02d0 F04FBDE8 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
- 539              	.LCFI6:
- 540              		.cfi_restore 14
- 541              		.cfi_restore 11
- 542              		.cfi_restore 10
- 543              		.cfi_restore 9
- 544              		.cfi_restore 8
- 545              		.cfi_restore 7
- 546              		.cfi_restore 6
- 547              		.cfi_restore 5
- 548              		.cfi_restore 4
- 549              		.cfi_def_cfa_offset 0
- 550              	.LVL80:
- 551              		.loc 1 79 1 view .LVU154
- 552 02d4 1EFF2FE1 		bx	lr
- 553              	.L28:
- 554              		.align	2
- 555              	.L27:
- 556 02d8 00000000 		.word	.LANCHOR1
- 557 02dc 8096184B 		.word	1259902592
- 558 02e0 00000000 		.word	.LANCHOR0
- 559 02e4 0000A040 		.word	1084227584
- 560 02e8 182D4454 		.word	1413754136
- 561 02ec FB211940 		.word	1075388923
- 562 02f0 00000000 		.word	reg8_table
- 563 02f4 404B4C00 		.word	5000000
- 564              		.cfi_endproc
- 565              	.LFE1:
- 567              		.align	2
- 568              		.global	main_mode_loop
- 569              		.syntax unified
- 570              		.arm
- 572              	main_mode_loop:
- 573              	.LFB2:
-  80:modes.c       **** 
-  81:modes.c       **** void main_mode_loop()
-  82:modes.c       **** {
- 574              		.loc 1 82 1 is_stmt 1 view -0
- 575              		.cfi_startproc
- 576              		@ Function supports interworking.
- 577              		@ Volatile: function does not return.
- 578              		@ args = 0, pretend = 0, frame = 0
- 579              		@ frame_needed = 0, uses_anonymous_args = 0
-  83:modes.c       ****   reg8_table[REG8_MODE] = IMODE_IDLE;
- 580              		.loc 1 83 3 view .LVU156
- 581              		.loc 1 83 25 is_stmt 0 view .LVU157
- 582 02f8 0050A0E3 		mov	r5, #0
-  82:modes.c       ****   reg8_table[REG8_MODE] = IMODE_IDLE;
- 583              		.loc 1 82 1 view .LVU158
- 584 02fc 10402DE9 		push	{r4, lr}
- 585              	.LCFI7:
- 586              		.cfi_def_cfa_offset 8
- 587              		.cfi_offset 4, -8
- 588              		.cfi_offset 14, -4
- 589              		.loc 1 83 25 view .LVU159
- 590 0300 28409FE5 		ldr	r4, .L37
-  84:modes.c       ****   radio_add_reg_callback(register_handler);
- 591              		.loc 1 84 3 view .LVU160
- 592 0304 28009FE5 		ldr	r0, .L37+4
-  83:modes.c       ****   reg8_table[REG8_MODE] = IMODE_IDLE;
- 593              		.loc 1 83 25 view .LVU161
- 594 0308 0050C4E5 		strb	r5, [r4]
- 595              		.loc 1 84 3 is_stmt 1 view .LVU162
- 596 030c FEFFFFEB 		bl	radio_add_reg_callback
- 597              	.LVL81:
- 598              	.L31:
-  85:modes.c       ****   while (1)
- 599              		.loc 1 85 3 view .LVU163
-  86:modes.c       ****   {
-  87:modes.c       ****     switch(reg8_table[REG8_MODE])
- 600              		.loc 1 87 5 view .LVU164
- 601              		.loc 1 87 22 is_stmt 0 view .LVU165
- 602 0310 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
- 603              		.loc 1 87 5 view .LVU166
- 604 0314 FF3013E2 		ands	r3, r3, #255
- 605 0318 FCFFFF0A 		beq	.L31
- 606 031c 010053E3 		cmp	r3, #1
-  88:modes.c       ****     {
-  89:modes.c       ****       case IMODE_IDLE:
-  90:modes.c       ****         break;
-  91:modes.c       ****       case IMODE_SWIM:
-  92:modes.c       ****         swim_mode();
+ 511              		.loc 1 75 7 view .LVU144
+ 512              		.loc 1 75 16 view .LVU145
+ 513              	.LBE17:
+  73:modes.c       ****   // Turn off the PD controller
+ 514              		.loc 1 73 3 is_stmt 0 view .LVU146
+ 515 02ac 0A50A0E3 		mov	r5, #10
+ 516              	.LVL77:
+ 517              	.L19:
+ 518              	.LBB20:
+ 519              	.LBB18:
+  76:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 520              		.loc 1 76 21 is_stmt 1 view .LVU147
+ 521              	.LBE18:
+ 522              	.LBE20:
+ 523              	.LBB21:
+  69:modes.c       ****     bus_set(MOTOR_ADDR[i], MREG_SETPOINT, DEG_TO_OUTPUT_BODY(0.0));
+ 524              		.loc 1 69 12 is_stmt 0 view .LVU148
+ 525 02b0 0760A0E1 		mov	r6, r7
+ 526              	.LBE21:
+ 527              	.LBB22:
+ 528              	.LBB19:
+ 529              		.loc 1 76 14 view .LVU149
+ 530 02b4 0040A0E3 		mov	r4, #0
+ 531              	.LVL78:
+ 532              	.L20:
+  77:modes.c       ****         bus_set(MOTOR_ADDR[i], MREG_MODE, MODE_IDLE);
+ 533              		.loc 1 77 9 is_stmt 1 discriminator 3 view .LVU150
+ 534 02b8 0020A0E3 		mov	r2, #0
+ 535 02bc 2810A0E3 		mov	r1, #40
+ 536 02c0 0100D6E4 		ldrb	r0, [r6], #1	@ zero_extendqisi2
+  76:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 537              		.loc 1 76 39 is_stmt 0 discriminator 3 view .LVU151
+ 538 02c4 014084E2 		add	r4, r4, #1
+ 539              	.LVL79:
+ 540              		.loc 1 77 9 discriminator 3 view .LVU152
+ 541 02c8 FEFFFFEB 		bl	bus_set
+ 542              	.LVL80:
+  76:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 543              		.loc 1 76 38 is_stmt 1 discriminator 3 view .LVU153
+  76:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 544              		.loc 1 76 21 discriminator 3 view .LVU154
+  76:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 545              		.loc 1 76 5 is_stmt 0 discriminator 3 view .LVU155
+ 546 02cc 050054E3 		cmp	r4, #5
+ 547 02d0 F8FFFF1A 		bne	.L20
+ 548              	.LBE19:
+  75:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 549              		.loc 1 75 22 is_stmt 1 discriminator 2 view .LVU156
+ 550              	.LVL81:
+  75:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 551              		.loc 1 75 16 discriminator 2 view .LVU157
+  75:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 552              		.loc 1 75 3 is_stmt 0 discriminator 2 view .LVU158
+ 553 02d4 015055E2 		subs	r5, r5, #1
+ 554              	.LVL82:
+  75:modes.c       ****     for (int i = 0; i < MOTOR_COUNT; i++){
+ 555              		.loc 1 75 3 discriminator 2 view .LVU159
+ 556 02d8 F4FFFF1A 		bne	.L19
+ 557              	.LBE22:
+  78:modes.c       ****       }
+  79:modes.c       ****   }
+  80:modes.c       ****   
+  81:modes.c       ****   
+  82:modes.c       **** }
+ 558              		.loc 1 82 1 view .LVU160
+ 559 02dc 0CD08DE2 		add	sp, sp, #12
+ 560              	.LCFI5:
+ 561              		.cfi_def_cfa_offset 36
+ 562              		@ sp needed
+ 563 02e0 F04FBDE8 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 564              	.LCFI6:
+ 565              		.cfi_restore 14
+ 566              		.cfi_restore 11
+ 567              		.cfi_restore 10
+ 568              		.cfi_restore 9
+ 569              		.cfi_restore 8
+ 570              		.cfi_restore 7
+ 571              		.cfi_restore 6
+ 572              		.cfi_restore 5
+ 573              		.cfi_restore 4
+ 574              		.cfi_def_cfa_offset 0
+ 575              	.LVL83:
+ 576              		.loc 1 82 1 view .LVU161
+ 577 02e4 1EFF2FE1 		bx	lr
+ 578              	.L30:
+ 579              		.align	2
+ 580              	.L29:
+ 581 02e8 00000000 		.word	.LANCHOR1
+ 582 02ec 8096184B 		.word	1259902592
+ 583 02f0 00000000 		.word	.LANCHOR0
+ 584 02f4 0000A040 		.word	1084227584
+ 585 02f8 182D4454 		.word	1413754136
+ 586 02fc FB211940 		.word	1075388923
+ 587 0300 00000000 		.word	reg8_table
+ 588 0304 404B4C00 		.word	5000000
+ 589              		.cfi_endproc
+ 590              	.LFE1:
+ 592              		.align	2
+ 593              		.global	main_mode_loop
+ 594              		.syntax unified
+ 595              		.arm
+ 597              	main_mode_loop:
+ 598              	.LFB2:
+  83:modes.c       **** 
+  84:modes.c       **** void main_mode_loop()
+  85:modes.c       **** {
+ 599              		.loc 1 85 1 is_stmt 1 view -0
+ 600              		.cfi_startproc
+ 601              		@ Function supports interworking.
+ 602              		@ Volatile: function does not return.
+ 603              		@ args = 0, pretend = 0, frame = 0
+ 604              		@ frame_needed = 0, uses_anonymous_args = 0
+  86:modes.c       ****   reg8_table[REG8_MODE] = IMODE_IDLE;
+ 605              		.loc 1 86 3 view .LVU163
+ 606              		.loc 1 86 25 is_stmt 0 view .LVU164
+ 607 0308 0050A0E3 		mov	r5, #0
+  85:modes.c       ****   reg8_table[REG8_MODE] = IMODE_IDLE;
+ 608              		.loc 1 85 1 view .LVU165
+ 609 030c 10402DE9 		push	{r4, lr}
+ 610              	.LCFI7:
+ 611              		.cfi_def_cfa_offset 8
+ 612              		.cfi_offset 4, -8
+ 613              		.cfi_offset 14, -4
+ 614              		.loc 1 86 25 view .LVU166
+ 615 0310 28409FE5 		ldr	r4, .L39
+  87:modes.c       ****   radio_add_reg_callback(register_handler);
+ 616              		.loc 1 87 3 view .LVU167
+ 617 0314 28009FE5 		ldr	r0, .L39+4
+  86:modes.c       ****   reg8_table[REG8_MODE] = IMODE_IDLE;
+ 618              		.loc 1 86 25 view .LVU168
+ 619 0318 0050C4E5 		strb	r5, [r4]
+ 620              		.loc 1 87 3 is_stmt 1 view .LVU169
+ 621 031c FEFFFFEB 		bl	radio_add_reg_callback
+ 622              	.LVL84:
+ 623              	.L33:
+  88:modes.c       ****   while (1)
+ 624              		.loc 1 88 3 view .LVU170
+  89:modes.c       ****   {
+  90:modes.c       ****     switch(reg8_table[REG8_MODE])
+ 625              		.loc 1 90 5 view .LVU171
+ 626              		.loc 1 90 22 is_stmt 0 view .LVU172
+ 627 0320 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+ 628              		.loc 1 90 5 view .LVU173
+ 629 0324 FF3013E2 		ands	r3, r3, #255
+ 630 0328 FCFFFF0A 		beq	.L33
+ 631 032c 010053E3 		cmp	r3, #1
+  91:modes.c       ****     {
+  92:modes.c       ****       case IMODE_IDLE:
   93:modes.c       ****         break;
-  94:modes.c       ****       default:
-  95:modes.c       ****         reg8_table[REG8_MODE] = IMODE_IDLE;
- 607              		.loc 1 95 31 view .LVU167
- 608 0320 0050C415 		strbne	r5, [r4]
-  87:modes.c       ****     {
- 609              		.loc 1 87 5 view .LVU168
- 610 0324 F9FFFF1A 		bne	.L31
-  92:modes.c       ****         break;
- 611              		.loc 1 92 9 is_stmt 1 view .LVU169
- 612 0328 FEFFFFEB 		bl	swim_mode
- 613              	.LVL82:
-  93:modes.c       ****       default:
- 614              		.loc 1 93 9 view .LVU170
- 615 032c F7FFFFEA 		b	.L31
- 616              	.L38:
- 617              		.align	2
- 618              	.L37:
- 619 0330 00000000 		.word	reg8_table
- 620 0334 00000000 		.word	register_handler
- 621              		.cfi_endproc
- 622              	.LFE2:
- 624              		.global	phase
- 625              		.global	ampl
- 626              		.global	freq
- 627              		.global	MOTOR_ADDR
- 628              		.global	FREQ
- 629              		.section	.rodata
- 630              		.align	2
- 631              		.set	.LANCHOR1,. + 0
- 634              	MOTOR_ADDR:
- 635 0000 051A1816 		.ascii	"\005\032\030\026\031"
- 635      19
- 636 0005 000000   		.space	3
- 639              	FREQ:
- 640 0008 0000803F 		.word	1065353216
- 641              		.bss
+  94:modes.c       ****       case IMODE_SWIM:
+  95:modes.c       ****         swim_mode();
+  96:modes.c       ****         break;
+  97:modes.c       ****       default:
+  98:modes.c       ****         reg8_table[REG8_MODE] = IMODE_IDLE;
+ 632              		.loc 1 98 31 view .LVU174
+ 633 0330 0050C415 		strbne	r5, [r4]
+  90:modes.c       ****     {
+ 634              		.loc 1 90 5 view .LVU175
+ 635 0334 F9FFFF1A 		bne	.L33
+  95:modes.c       ****         break;
+ 636              		.loc 1 95 9 is_stmt 1 view .LVU176
+ 637 0338 FEFFFFEB 		bl	swim_mode
+ 638              	.LVL85:
+  96:modes.c       ****       default:
+ 639              		.loc 1 96 9 view .LVU177
+ 640 033c F7FFFFEA 		b	.L33
+ 641              	.L40:
  642              		.align	2
- 643              		.set	.LANCHOR0,. + 0
- 646              	freq:
- 647 0000 00000000 		.space	4
- 650              	ampl:
- 651 0004 00000000 		.space	4
- 654              	phase:
- 655 0008 00000000 		.space	4
- 656              		.text
- 657              	.Letext0:
- 658              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
- 659              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
- 660              		.file 4 "../firmware/radio.h"
- 661              		.file 5 "../firmware/registers.h"
- 662              		.file 6 "../firmware/robot.h"
- 663              		.file 7 "../firmware/can.h"
- 664              		.file 8 "../firmware/sysTime.h"
- 665              		.file 9 "../../common/regdefs.h"
- 666              		.file 10 "c:\\arm-gcc\\arm-none-eabi\\include\\math.h"
+ 643              	.L39:
+ 644 0340 00000000 		.word	reg8_table
+ 645 0344 00000000 		.word	register_handler
+ 646              		.cfi_endproc
+ 647              	.LFE2:
+ 649              		.global	phase
+ 650              		.global	ampl
+ 651              		.global	freq
+ 652              		.global	MOTOR_ADDR
+ 653              		.global	FREQ
+ 654              		.section	.rodata
+ 655              		.align	2
+ 656              		.set	.LANCHOR1,. + 0
+ 659              	MOTOR_ADDR:
+ 660 0000 051A1816 		.ascii	"\005\032\030\026\031"
+ 660      19
+ 661 0005 000000   		.space	3
+ 664              	FREQ:
+ 665 0008 0000803F 		.word	1065353216
+ 666              		.bss
+ 667              		.align	2
+ 668              		.set	.LANCHOR0,. + 0
+ 671              	freq:
+ 672 0000 00000000 		.space	4
+ 675              	ampl:
+ 676 0004 00000000 		.space	4
+ 679              	phase:
+ 680 0008 00000000 		.space	4
+ 681              		.text
+ 682              	.Letext0:
+ 683              		.file 2 "c:\\arm-gcc\\arm-none-eabi\\include\\machine\\_default_types.h"
+ 684              		.file 3 "c:\\arm-gcc\\arm-none-eabi\\include\\sys\\_stdint.h"
+ 685              		.file 4 "../firmware/radio.h"
+ 686              		.file 5 "../firmware/registers.h"
+ 687              		.file 6 "../firmware/robot.h"
+ 688              		.file 7 "../firmware/can.h"
+ 689              		.file 8 "../firmware/sysTime.h"
+ 690              		.file 9 "../../common/regdefs.h"
+ 691              		.file 10 "c:\\arm-gcc\\arm-none-eabi\\include\\math.h"
 DEFINED SYMBOLS
                             *ABS*:00000000 modes.c
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:23     .text:00000000 $a
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:27     .text:00000000 register_handler
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:186    .text:000000ec $d
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:198    .text:000000fc $a
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:203    .text:000000fc swim_mode
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:556    .text:000002d8 $d
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:567    .text:000002f8 $a
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:572    .text:000002f8 main_mode_loop
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:619    .text:00000330 $d
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:654    .bss:00000008 phase
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:650    .bss:00000004 ampl
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:646    .bss:00000000 freq
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:634    .rodata:00000000 MOTOR_ADDR
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:639    .rodata:00000008 FREQ
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:630    .rodata:00000000 $d
-C:\Users\ishin\AppData\Local\Temp\ccQdSpuc.s:642    .bss:00000000 $d
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:23     .text:00000000 $a
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:27     .text:00000000 register_handler
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:186    .text:000000ec $d
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:198    .text:000000fc $a
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:203    .text:000000fc swim_mode
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:581    .text:000002e8 $d
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:592    .text:00000308 $a
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:597    .text:00000308 main_mode_loop
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:644    .text:00000340 $d
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:679    .bss:00000008 phase
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:675    .bss:00000004 ampl
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:671    .bss:00000000 freq
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:659    .rodata:00000000 MOTOR_ADDR
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:664    .rodata:00000008 FREQ
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:655    .rodata:00000000 $d
+C:\Users\ishin\AppData\Local\Temp\ccI4QKJU.s:667    .bss:00000000 $d
 
 UNDEFINED SYMBOLS
 __aeabi_ui2f

@@ -22,7 +22,7 @@ static const char* const INTERFACE = "COM3";///< serial port of the wireless bas
 static const float FREQ_MIN = 0.0f, FREQ_MAX = 1.5f;
 static const float AMPL_MIN = 0.0f, AMPL_MAX = 60.0f;
 static const float PHASE_MIN = 0.5f, PHASE_MAX = 1.0f;
-static const float START = 1.0f, STOP = 5.5f;
+static const float START = 1.0f, STOP = 5.0f;
 static const float TIMEOUT = 60.0f;
 
 bool safe_set_reg_b(CRemoteRegs& regs, const uint8_t reg, const uint8_t val)
@@ -74,7 +74,7 @@ int main()
   if (ampl < AMPL_MIN) ampl = AMPL_MIN; 
   if (ampl > AMPL_MAX) ampl = AMPL_MAX; 
 
-  cout << "Phase [0.5, 1.0] deg: ";
+  cout << "Phase [0.5, 1.25] deg: ";
   cin >> phase;
   if (phase < PHASE_MIN) phase = PHASE_MIN; 
   if (phase > PHASE_MAX) phase = PHASE_MAX;
@@ -102,8 +102,9 @@ int main()
   double init_time = time_d();
   double elapsed = 0.0;
   double last_log = -1.0;
+  bool stopped = false;
 
-  while(!kbhit()){
+  while(!kbhit() && !stopped){
     uint32_t frame_time = 0;
     if (!trk.update(frame_time)) {
       cerr << "Tracking update failed.\n";
@@ -120,7 +121,7 @@ int main()
     elapsed = time_d() - init_time;
 
     // Log at ~1 Hz
-    if (elapsed - last_log >= 1.0) {
+    if (elapsed - last_log >= 0.1) {
       csv << std::fixed << std::setprecision(3) << elapsed
           << "," << x << "," << y << "\n";
       last_log = elapsed;
@@ -128,6 +129,7 @@ int main()
 
     if (x > STOP){
       cout << "Final time: " << elapsed << endl;
+      stopped = true;
       break;
     }
     if (elapsed > TIMEOUT){
