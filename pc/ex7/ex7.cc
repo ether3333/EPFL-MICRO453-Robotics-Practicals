@@ -1,4 +1,7 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <cstdint>
 #include <windows.h>
 
@@ -84,10 +87,21 @@ int main()
   safe_set_reg_b(regs, 21, ENCODE_PARAM_8(ampl, AMPL_MIN, AMPL_MAX));
   safe_set_reg_b(regs, 22, ENCODE_PARAM_8(phase, PHASE_MIN, PHASE_MAX));
 
+  // Build CSV filename from settings
+  std::ostringstream fname;
+  fname << "swim"
+        << "_f" << std::fixed << std::setprecision(2) << freq
+        << "_a" << std::fixed << std::setprecision(1) << ampl
+        << "_p" << std::fixed << std::setprecision(2) << phase
+        << ".csv";
+  std::ofstream csv(fname.str());
+  csv << "time_s,x,y\n";
+
   double x = 0.0;
   double y = 0.0;
-  int init_time = time_d();
-  int time = 0;
+  double init_time = time_d();
+  double elapsed = 0.0;
+  double last_log = -1.0;
 
   while(!kbhit()){
     uint32_t frame_time = 0;
@@ -103,13 +117,20 @@ int main()
       init_time = time_d();
     }
 
-    time = time_d() - init_time;
+    elapsed = time_d() - init_time;
+
+    // Log at ~1 Hz
+    if (elapsed - last_log >= 1.0) {
+      csv << std::fixed << std::setprecision(3) << elapsed
+          << "," << x << "," << y << "\n";
+      last_log = elapsed;
+    }
 
     if (x > STOP){
-      cout << "Final time: " << time << endl;
+      cout << "Final time: " << elapsed << endl;
       break;
     }
-    if (time > TIMEOUT){
+    if (elapsed > TIMEOUT){
       cout << "Timed out" << endl;
       break;
     }
