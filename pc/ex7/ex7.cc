@@ -66,13 +66,13 @@ int main()
   if (freq < FREQ_MIN) freq = FREQ_MIN; 
   if (freq > FREQ_MAX) freq = FREQ_MAX; 
 
-  cout << "Amplitude [0, 60.0] deg: ";
+  cout << "Amplitude [0, 60.0] deg: ";  
   cin >> ampl;
   if (ampl < AMPL_MIN) ampl = AMPL_MIN; 
   if (ampl > AMPL_MAX) ampl = AMPL_MAX; 
 
   cout << "Phase [0.5, 1.0] deg: ";
-  cin >> ampl;
+  cin >> phase;
   if (phase < PHASE_MIN) phase = PHASE_MIN; 
   if (phase > PHASE_MAX) phase = PHASE_MAX;
 
