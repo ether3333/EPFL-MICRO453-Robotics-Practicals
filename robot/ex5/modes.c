@@ -7,7 +7,7 @@
 
 const float FREQ = 1.0;   // Hz
 
-const uint8_t MOTOR_ADDR = 21;
+const uint8_t MOTOR_ADDR = 25;
 
 static volatile uint8_t freq_enc = 0;
 static volatile uint8_t ampl_enc = 0;
@@ -17,11 +17,15 @@ static int8_t register_handler(uint8_t operation, uint8_t address, RadioData* ra
   if (operation == ROP_WRITE_8) {
     if (address == 20){
       freq_enc = radio_data->byte;
+      float freq = DECODE_PARAM_8(freq_enc, 0.0f, 1.5f);
+      return TRUE;
     }
     if (address == 21){
       ampl_enc = radio_data->byte;
+      float ampl = DECODE_PARAM_8(ampl_enc, 0.0f, 60.0f);
+      return TRUE;
     }
-    return TRUE;
+    return FALSE;
   }
   return FALSE;
 }
@@ -38,12 +42,9 @@ void sine_demo_mode()
   // Set the LED to red to show activity
   set_color(4);
 
-  radio_add_reg_callback(register_handler);
+  
 
   do {
-
-    float freq = DECODE_PARAM_8(freq_enc, 0.0f, 1.5f);
-    float ampl = DECODE_PARAM_8(ampl_enc, 0.0f, 60.0f);
 
     // Calculates the delta_t in seconds and adds it to the current time
     uint32_t dt = getElapsedSysTICs(cycletimer);
@@ -71,7 +72,7 @@ void sine_demo_mode()
 void main_mode_loop()
 {
   reg8_table[REG8_MODE] = IMODE_IDLE;
-
+  radio_add_reg_callback(register_handler);
   while (1)
   {
     switch(reg8_table[REG8_MODE])

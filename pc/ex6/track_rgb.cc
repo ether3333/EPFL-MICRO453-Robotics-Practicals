@@ -32,7 +32,7 @@ using namespace std;
 /*  Bench configuration — edit for your session                               */
 /* -------------------------------------------------------------------------- */
 
-static const char* const TRACKING_PC_NAME = "biorobpc11";  ///< tracking server host
+static const char* const TRACKING_PC_NAME = "biorobpc6";  ///< tracking server host
 static const uint16_t TRACKING_PORT = 10502;               ///< default tracking TCP port
 
 static const uint8_t RADIO_CHANNEL = 126;   ///< must match robot / interface pairing
