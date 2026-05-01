@@ -22,7 +22,7 @@ static const char* const INTERFACE = "COM3";///< serial port of the wireless bas
 static const float FREQ_MIN = 0.0f, FREQ_MAX = 1.5f;
 static const float AMPL_MIN = 0.0f, AMPL_MAX = 60.0f;
 static const float PHASE_MIN = 0.5f, PHASE_MAX = 1.0f;
-static const float START = 1.0f, STOP = 5.0f;
+static const float START = 1.0f, STOP = 5.5f;
 static const float TIMEOUT = 60.0f;
 
 bool safe_set_reg_b(CRemoteRegs& regs, const uint8_t reg, const uint8_t val)
@@ -137,8 +137,10 @@ int main()
       break;
     }
   }
+  for (int i(0); i < 10; i++) {
+   regs.set_reg_b(REG8_MODE, 0);
+  }  
   ext_key();
-  regs.set_reg_b(REG8_MODE, 0);
   
 }
 
