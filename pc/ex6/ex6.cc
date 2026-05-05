@@ -1,20 +1,3 @@
-/**
- * @file ex6.cc
- * @brief Task 6.1 Combine LED spot tracking with the radio head LED (RGB).
- *
- * The aquarium tracking PC streams (x, y) of the head LED in metres.  This
- * program maps position to colour while keeping green fixed at 64 so the
- * blob stays easy for the tracker to segment:
- *
- *   - red   increases with x across the pool width  (~0 … 6 m)
- *   - blue  increases with y across the pool depth (~0 … 2 m)
- *
- * The 32-bit word written to the head is (r << 16) | (g << 8) | b as in the
- * practical sheet.  Register index REG32_LED is 0 in regdefs.h.
- *
- * @note Run on the lab Windows PC with the radio dongle; set INTERFACE and
- *       RADIO_CHANNEL to match your bench.  Tracking hostname/port match ex6.
- */
 
 #include <iostream>
 #include <cstdint>
@@ -34,15 +17,12 @@ static const uint16_t TRACKING_PORT = 10502;               ///< default tracking
 static const uint8_t RADIO_CHANNEL = 126;   ///< must match robot / interface pairing
 static const char* const INTERFACE = "COM3";///< serial port of the wireless base
 
-/** Physical size of the visible tank (m), used to map position → colour. */
 static const double AQUARIUM_X_M = 6.0;
 static const double AQUARIUM_Y_M = 2.0;
 
-/** Fixed green component for reliable chroma segmentation (assignment). */
 static const uint8_t G_FIXED = 64;
 
-/* -------------------------------------------------------------------------- */
-/** Clamp @a v into [0, 255] after linear scaling from [0, span]. */
+/** Clamp v into [0, 255] after linear scaling from [0, span]. */
 static uint8_t scale_axis(double pos_m, double span_m)
 {
   if (span_m <= 0.0) {
@@ -110,7 +90,7 @@ int main()
       cout << "(no spot)                    \r";
     }
 
-    Sleep(10);  /* ~100 Hz poll*/
+    Sleep(10); 
   }
 
   FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
